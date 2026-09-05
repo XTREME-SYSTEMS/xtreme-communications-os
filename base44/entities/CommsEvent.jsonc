@@ -1,0 +1,61 @@
+{
+  "name": "CommsEvent",
+  "type": "object",
+  "properties": {
+    "channel": {
+      "type": "string",
+      "enum": [
+        "voice",
+        "sms",
+        "mms",
+        "whatsapp",
+        "rcs",
+        "email",
+        "video"
+      ]
+    },
+    "direction": {
+      "type": "string",
+      "enum": [
+        "inbound",
+        "outbound"
+      ]
+    },
+    "from_addr": {
+      "type": "string"
+    },
+    "to_addr": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "completed",
+        "failed",
+        "queued",
+        "ringing"
+      ]
+    },
+    "duration_sec": {
+      "type": "number"
+    },
+    "classification": {
+      "type": "string",
+      "enum": [
+        "LIVE",
+        "PROVIDER-BACKED",
+        "SANDBOX",
+        "MOCK/DEV-ONLY"
+      ],
+      "default": "MOCK/DEV-ONLY"
+    },
+    "summary": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "channel",
+    "direction"
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "name": "TestResult",
+  "type": "object",
+  "properties": {
+    "test_name": {
+      "type": "string"
+    },
+    "suite": {
+      "type": "string",
+      "enum": [
+        "unit",
+        "integration",
+        "api",
+        "database",
+        "rls",
+        "authorization",
+        "provider",
+        "webhook",
+        "event",
+        "retry",
+        "idempotency",
+        "failure",
+        "load",
+        "chaos",
+        "browser",
+        "ui",
+        "accessibility",
+        "deployment",
+        "security",
+        "e2e"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pass",
+        "fail",
+        "skip"
+      ],
+      "default": "fail"
+    },
+    "evidence": {
+      "type": "string"
+    },
+    "mandatory": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "test_name",
+    "suite"
+  ]
+}

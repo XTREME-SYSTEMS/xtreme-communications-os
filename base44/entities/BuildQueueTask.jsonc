@@ -1,0 +1,53 @@
+{
+  "name": "BuildQueueTask",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "capability": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "queued",
+        "in_progress",
+        "testing",
+        "blocked",
+        "done"
+      ],
+      "default": "queued"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "critical",
+        "high",
+        "medium",
+        "low"
+      ],
+      "default": "medium"
+    },
+    "assigned_engine": {
+      "type": "string",
+      "enum": [
+        "Vision Cortex",
+        "AutoBuilder",
+        "Faultline",
+        "Cloud Browser",
+        "Shadow"
+      ],
+      "default": "AutoBuilder"
+    },
+    "evidence_url": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "title"
+  ]
+}

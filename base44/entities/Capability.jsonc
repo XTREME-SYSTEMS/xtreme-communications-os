@@ -1,0 +1,51 @@
+{
+  "name": "Capability",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string"
+    },
+    "twilio_parity": {
+      "type": "boolean",
+      "default": true
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "LIVE",
+        "PROVIDER-BACKED",
+        "SANDBOX",
+        "MOCK/DEV-ONLY",
+        "NOT-YET-IMPLEMENTED"
+      ],
+      "default": "NOT-YET-IMPLEMENTED"
+    },
+    "coverage_pct": {
+      "type": "number",
+      "default": 0
+    },
+    "benchmark_delta_pct": {
+      "type": "number",
+      "default": 0
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "critical",
+        "high",
+        "medium",
+        "low"
+      ],
+      "default": "medium"
+    },
+    "description": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

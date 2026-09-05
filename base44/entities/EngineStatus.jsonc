@@ -1,0 +1,43 @@
+{
+  "name": "EngineStatus",
+  "type": "object",
+  "properties": {
+    "engine_name": {
+      "type": "string",
+      "enum": [
+        "Vision Cortex",
+        "AutoBuilder",
+        "Faultline",
+        "Cloud Browser",
+        "Shadow"
+      ]
+    },
+    "role": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "online",
+        "degraded",
+        "offline",
+        "standby"
+      ],
+      "default": "standby"
+    },
+    "health_pct": {
+      "type": "number",
+      "default": 100
+    },
+    "last_action": {
+      "type": "string"
+    },
+    "last_verified_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "engine_name"
+  ]
+}

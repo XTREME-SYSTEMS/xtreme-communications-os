@@ -1,0 +1,39 @@
+{
+  "name": "AuditFinding",
+  "type": "object",
+  "properties": {
+    "severity": {
+      "type": "string",
+      "enum": [
+        "critical",
+        "high",
+        "medium",
+        "low",
+        "info"
+      ]
+    },
+    "area": {
+      "type": "string"
+    },
+    "finding": {
+      "type": "string"
+    },
+    "recommendation": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "remediated",
+        "accepted",
+        "wont_fix"
+      ],
+      "default": "open"
+    }
+  },
+  "required": [
+    "area",
+    "finding"
+  ]
+}

@@ -44,6 +44,13 @@ module.exports = {
   			border: 'hsl(var(--border))',
   			input: 'hsl(var(--input))',
   			ring: 'hsl(var(--ring))',
+  			base: 'hsl(var(--base))',
+  			surface: 'hsl(var(--surface))',
+  			'surface-border': 'hsl(var(--surface-border))',
+  			'accent-orange': 'hsl(var(--accent-orange))',
+  			'status-green': 'hsl(var(--status-green))',
+  			'text-primary': 'hsl(var(--text-primary))',
+  			'text-muted': 'hsl(var(--text-muted))',
   			chart: {
   				'1': 'hsl(var(--chart-1))',
   				'2': 'hsl(var(--chart-2))',

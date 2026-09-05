@@ -1,0 +1,59 @@
+{
+  "name": "ProviderLog",
+  "type": "object",
+  "properties": {
+    "provider": {
+      "type": "string"
+    },
+    "channel": {
+      "type": "string",
+      "enum": [
+        "sms",
+        "mms",
+        "rcs",
+        "voice",
+        "whatsapp",
+        "email",
+        "video",
+        "sip",
+        "number",
+        "verify",
+        "lookup",
+        "payment"
+      ]
+    },
+    "event_type": {
+      "type": "string"
+    },
+    "direction": {
+      "type": "string",
+      "enum": [
+        "inbound",
+        "outbound",
+        "system"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "delivered",
+        "sent",
+        "received",
+        "failed",
+        "queued",
+        "accepted",
+        "processing"
+      ]
+    },
+    "latency_ms": {
+      "type": "number"
+    },
+    "message": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "provider",
+    "channel"
+  ]
+}

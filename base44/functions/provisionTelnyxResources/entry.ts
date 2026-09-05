@@ -5,6 +5,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 //   2. Call Control Application (Voice) → webhook = telnyxWebhook endpoint
 //   3. For every toll-free number: link to messaging profile (SMS/MMS) AND
 //      assign to the call control app (voice inbound) via connection_id.
+// Voice assignment needs the phone-number record id (not E.164), resolved via the slim list.
 // Idempotent by name — re-runs reuse/sync existing resources instead of duplicating.
 const TELNYX = "https://api.telnyx.com/v2";
 const WEBHOOK_URL = "https://xtreme-comms.base44.app/functions/telnyxWebhook";
@@ -76,7 +77,11 @@ export default async function(req) {
       else { out.errors.push({ step: "call_control_app", status: c.status, detail: errMsg(c.data) }); return Response.json({ status: "partial", ...out }); }
     }
 
-    // ── 3. Wire every number: messaging profile (SMS/MMS) + call control app (voice) ──
+    // ── 3. Resolve phone-number record ids (voice PATCH needs id, not E.164) ──
+    const slim = await telnyx("/phone_numbers/slim?page[size]=100", "GET", apiKey);
+    const idByNumber = new Map((slim.data?.data || []).map((p) => [p.phone_number, p.id]));
+
+    // ── 4. Wire every number: messaging profile (SMS/MMS) + call control app (voice) ──
     for (const num of NUMBERS) {
       const enc = encodeURIComponent(num);
       const entry = { number: num, sms: null, voice: null };
@@ -88,10 +93,16 @@ export default async function(req) {
         : { linked: false, error: errMsg(link.data) };
       if (!link.ok) out.errors.push({ step: "number_link_sms", number: num, status: link.status, detail: errMsg(link.data) });
 
-      const assign = await telnyx(`/number_configurations/${enc}`, "PATCH", apiKey, { connection_id: appId });
-      entry.voice = assign.ok ? { assigned: true, connection_id: appId }
-        : { assigned: false, error: errMsg(assign.data) };
-      if (!assign.ok) out.errors.push({ step: "number_assign_voice", number: num, status: assign.status, detail: errMsg(assign.data) });
+      const recordId = idByNumber.get(num);
+      if (!recordId) {
+        entry.voice = { assigned: false, error: "phone number record not found in Telnyx account" };
+        out.errors.push({ step: "number_assign_voice", number: num, detail: "record not found in Telnyx account" });
+      } else {
+        const assign = await telnyx(`/phone_numbers/${recordId}`, "PATCH", apiKey, { connection_id: appId });
+        entry.voice = assign.ok ? { assigned: true, connection_id: appId, record_id: recordId }
+          : { assigned: false, error: errMsg(assign.data) };
+        if (!assign.ok) out.errors.push({ step: "number_assign_voice", number: num, status: assign.status, detail: errMsg(assign.data) });
+      }
 
       out.numbers.push(entry);
     }

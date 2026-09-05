@@ -1,0 +1,49 @@
+{
+  "name": "LookupResult",
+  "type": "object",
+  "properties": {
+    "tenant_id": {
+      "type": "string"
+    },
+    "e164": {
+      "type": "string"
+    },
+    "country_code": {
+      "type": "string"
+    },
+    "line_type": {
+      "type": "string",
+      "enum": [
+        "mobile",
+        "landline",
+        "voip",
+        "toll_free",
+        "unknown"
+      ],
+      "default": "unknown"
+    },
+    "carrier": {
+      "type": "string"
+    },
+    "portable": {
+      "type": "boolean",
+      "default": true
+    },
+    "classification": {
+      "type": "string",
+      "enum": [
+        "LIVE",
+        "PROVIDER-BACKED",
+        "SANDBOX",
+        "MOCK/DEV-ONLY"
+      ],
+      "default": "SANDBOX"
+    },
+    "raw": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "e164"
+  ]
+}

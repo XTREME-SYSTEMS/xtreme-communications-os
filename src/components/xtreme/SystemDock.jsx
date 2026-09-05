@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
-import { Brain, Factory, ShieldCheck, Globe, EyeOff, Radio, Network } from "lucide-react";
+import { Brain, Factory, ShieldCheck, Globe, EyeOff, Radio, Network, Phone } from "lucide-react";
 import { ENGINE_STYLES } from "@/lib/xtreme";
 
 const NODES = [
@@ -11,6 +11,7 @@ const NODES = [
   { name: "Shadow", role: "Privileged", icon: EyeOff },
   { name: "Telecom Bus", role: "Provider Layer", icon: Radio, route: "/providers" },
   { name: "Wholesale Core", role: "CaaS Gateway", icon: Network, route: "/core" },
+  { name: "Number Mgmt", role: "DIDs + SIP", icon: Phone, route: "/numbers" },
 ];
 
 export default function SystemDock({ activeNode, onSelect, engineState }) {

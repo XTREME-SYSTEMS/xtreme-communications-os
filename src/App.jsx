@@ -10,6 +10,7 @@ import ScrollToTop from './components/ScrollToTop';
 import Home from './pages/Home';
 import ProviderAbstraction from './pages/ProviderAbstraction';
 import WholesaleCore from './pages/WholesaleCore';
+import NumberManagement from './pages/NumberManagement';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -41,6 +42,7 @@ const AuthenticatedApp = () => {
       <Route path="/" element={<Home />} />
       <Route path="/providers" element={<ProviderAbstraction />} />
       <Route path="/core" element={<WholesaleCore />} />
+      <Route path="/numbers" element={<NumberManagement />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

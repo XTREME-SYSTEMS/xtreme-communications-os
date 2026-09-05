@@ -1,0 +1,62 @@
+{
+  "name": "Verification",
+  "type": "object",
+  "properties": {
+    "tenant_id": {
+      "type": "string"
+    },
+    "channel": {
+      "type": "string",
+      "enum": [
+        "sms",
+        "voice",
+        "email",
+        "call"
+      ],
+      "default": "sms"
+    },
+    "to_addr": {
+      "type": "string"
+    },
+    "token": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "expired",
+        "canceled"
+      ],
+      "default": "pending"
+    },
+    "attempts": {
+      "type": "integer",
+      "default": 0
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "verified_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "classification": {
+      "type": "string",
+      "enum": [
+        "LIVE",
+        "PROVIDER-BACKED",
+        "SANDBOX",
+        "MOCK/DEV-ONLY"
+      ],
+      "default": "SANDBOX"
+    }
+  },
+  "required": [
+    "tenant_id",
+    "to_addr",
+    "token"
+  ]
+}

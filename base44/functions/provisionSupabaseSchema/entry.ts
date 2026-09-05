@@ -97,6 +97,37 @@ DROP POLICY IF EXISTS phone_numbers_isolation ON public.phone_numbers;
 CREATE POLICY phone_numbers_isolation ON public.phone_numbers FOR ALL USING (tenant_id::text = public.current_tenant_id() OR tenant_id IS NULL);
 DROP POLICY IF EXISTS sip_trunks_isolation ON public.sip_trunks;
 CREATE POLICY sip_trunks_isolation ON public.sip_trunks FOR ALL USING (tenant_id::text = public.current_tenant_id());
+CREATE TABLE IF NOT EXISTS public.verifications (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid REFERENCES public.tenants(id) ON DELETE CASCADE,
+  channel text NOT NULL DEFAULT 'sms',
+  to_addr text NOT NULL,
+  token text NOT NULL,
+  status text NOT NULL DEFAULT 'pending',
+  attempts integer NOT NULL DEFAULT 0,
+  expires_at timestamptz,
+  verified_at timestamptz,
+  classification text NOT NULL DEFAULT 'SANDBOX',
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS public.lookup_results (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid REFERENCES public.tenants(id) ON DELETE CASCADE,
+  e164 text NOT NULL,
+  country_code text,
+  line_type text NOT NULL DEFAULT 'unknown',
+  carrier text,
+  portable boolean NOT NULL DEFAULT true,
+  classification text NOT NULL DEFAULT 'SANDBOX',
+  raw text,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE public.verifications ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.lookup_results ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS verifications_isolation ON public.verifications;
+CREATE POLICY verifications_isolation ON public.verifications FOR ALL USING (tenant_id::text = public.current_tenant_id());
+DROP POLICY IF EXISTS lookup_results_isolation ON public.lookup_results;
+CREATE POLICY lookup_results_isolation ON public.lookup_results FOR ALL USING (tenant_id::text = public.current_tenant_id());
 `;
 
 export default async function(req) {
@@ -111,7 +142,7 @@ export default async function(req) {
         status: "connector_not_authorized",
         detail: "Authorize the Supabase connector to push the schema live. The full DDL + RLS migration is staged and ready.",
         sql_chars: DDL.length,
-        tables: ["tenants", "api_keys", "api_routes", "webhook_dispatchers", "phone_numbers", "sip_trunks"],
+        tables: ["tenants", "api_keys", "api_routes", "webhook_dispatchers", "phone_numbers", "sip_trunks", "verifications", "lookup_results"],
       });
     }
 
@@ -134,7 +165,7 @@ export default async function(req) {
       status: rr.ok ? "provisioned" : "error",
       ref,
       detail: detail.slice(0, 600),
-      tables: ["tenants", "api_keys", "api_routes", "webhook_dispatchers", "phone_numbers", "sip_trunks"],
+      tables: ["tenants", "api_keys", "api_routes", "webhook_dispatchers", "phone_numbers", "sip_trunks", "verifications", "lookup_results"],
     });
   } catch (error) {
     return Response.json({ status: "error", detail: error.message }, { status: 500 });

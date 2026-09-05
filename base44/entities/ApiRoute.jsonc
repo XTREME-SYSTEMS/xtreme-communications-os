@@ -1,0 +1,49 @@
+{
+  "name": "ApiRoute",
+  "type": "object",
+  "properties": {
+    "tenant_id": {
+      "type": "string"
+    },
+    "channel": {
+      "type": "string",
+      "enum": [
+        "sms",
+        "mms",
+        "voice",
+        "whatsapp",
+        "sip",
+        "verify",
+        "lookup"
+      ]
+    },
+    "endpoint": {
+      "type": "string"
+    },
+    "provider_id": {
+      "type": "string"
+    },
+    "strategy": {
+      "type": "string",
+      "enum": [
+        "priority",
+        "round-robin",
+        "least-latency"
+      ],
+      "default": "priority"
+    },
+    "failover_sandbox": {
+      "type": "boolean",
+      "default": true
+    },
+    "enabled": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "tenant_id",
+    "channel",
+    "endpoint"
+  ]
+}

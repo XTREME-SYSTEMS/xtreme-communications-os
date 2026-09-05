@@ -9,6 +9,7 @@ import ScrollToTop from './components/ScrollToTop';
 // Add page imports here
 import Home from './pages/Home';
 import ProviderAbstraction from './pages/ProviderAbstraction';
+import WholesaleCore from './pages/WholesaleCore';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -39,6 +40,7 @@ const AuthenticatedApp = () => {
       {/* Add your page Route elements here */}
       <Route path="/" element={<Home />} />
       <Route path="/providers" element={<ProviderAbstraction />} />
+      <Route path="/core" element={<WholesaleCore />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

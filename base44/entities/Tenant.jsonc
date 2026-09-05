@@ -1,0 +1,31 @@
+{
+  "name": "Tenant",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "suspended",
+        "provisioning"
+      ],
+      "default": "provisioning"
+    },
+    "plan": {
+      "type": "string",
+      "default": "starter"
+    },
+    "api_key_hash": {
+      "type": "string"
+    },
+    "webhook_secret_hash": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
 import { Brain, Factory, ShieldCheck, Globe, EyeOff, Radio } from "lucide-react";
 import { ENGINE_STYLES } from "@/lib/xtreme";
 
@@ -12,10 +13,11 @@ const NODES = [
 ];
 
 export default function SystemDock({ activeNode, onSelect, engineState }) {
+  const navigate = useNavigate();
   return (
     <aside className="hidden lg:flex flex-col w-60 shrink-0 border-r border-surface-border bg-base/60 backdrop-blur">
       <div className="px-4 h-14 flex items-center border-b border-surface-border">
-        <span className="font-display text-[13px] tracking-[0.2em] text-text-primary">XTREME//OS</span>
+        <span className="font-display text-[13px] tracking-[0.2em] text-text-primary">XTREME//COMMS</span>
       </div>
       <div className="flex-1 overflow-y-auto scrollbar-thin py-3">
         {NODES.map((n) => {
@@ -24,7 +26,7 @@ export default function SystemDock({ activeNode, onSelect, engineState }) {
           const led = st ? ENGINE_STYLES[st] : "bg-text-muted";
           const active = activeNode === n.name;
           return (
-            <button key={n.name} onClick={() => onSelect(n.name)}
+            <button key={n.name} onClick={() => n.name === "Telecom Bus" ? navigate("/providers") : onSelect(n.name)}
               className={cn("w-full flex items-center gap-3 px-4 py-3 text-left transition-colors border-l-2",
                 active ? "border-accent-orange bg-surface text-text-primary" : "border-transparent text-text-muted hover:text-text-primary hover:bg-surface/50")}>
               <Icon className="h-4 w-4 shrink-0" />

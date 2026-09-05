@@ -12,7 +12,7 @@ export default async function(req) {
 
     const summary = capabilities.map(c => `- ${c.name} [${c.category || "uncategorized"}]: ${c.status} (${c.coverage_pct || 0}% coverage)`).join("\n");
 
-    const prompt = `You are the Vision Cortex of XTREME Communications OS, a platform targeting Twilio capability parity.
+    const prompt = `You are the Vision Cortex of XTREME COMMUNICATIONS, a multi-tenant communications engine operating as a pluggable subsystem under the XTREME OS master control plane, targeting Twilio capability parity.
 You are performing an autonomous forensic audit of the current capability registry.
 Classify honestly: never mark a capability LIVE unless it is genuinely production-ready with provider backing.
 

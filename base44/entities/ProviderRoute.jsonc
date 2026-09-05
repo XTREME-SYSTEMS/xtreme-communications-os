@@ -1,0 +1,43 @@
+{
+  "name": "ProviderRoute",
+  "type": "object",
+  "properties": {
+    "channel": {
+      "type": "string",
+      "enum": [
+        "sms",
+        "mms",
+        "voice",
+        "whatsapp",
+        "sip",
+        "verify",
+        "lookup"
+      ]
+    },
+    "primary_provider": {
+      "type": "string"
+    },
+    "failover_providers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "strategy": {
+      "type": "string",
+      "enum": [
+        "priority",
+        "round-robin",
+        "least-latency"
+      ],
+      "default": "priority"
+    },
+    "enabled": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "channel"
+  ]
+}

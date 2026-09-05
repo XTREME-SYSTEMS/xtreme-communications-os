@@ -1,0 +1,73 @@
+{
+  "name": "Provider",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "twilio",
+        "telnyx",
+        "plivo",
+        "vonage",
+        "bandwidth",
+        "custom"
+      ]
+    },
+    "channels": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "sms",
+          "mms",
+          "voice",
+          "whatsapp",
+          "sip",
+          "verify",
+          "lookup"
+        ]
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "connected",
+        "disconnected",
+        "pending",
+        "credentials_required"
+      ],
+      "default": "credentials_required"
+    },
+    "credentials_secret": {
+      "type": "string"
+    },
+    "priority": {
+      "type": "integer",
+      "default": 100
+    },
+    "failover_group": {
+      "type": "string"
+    },
+    "enabled": {
+      "type": "boolean",
+      "default": false
+    },
+    "base_url": {
+      "type": "string"
+    },
+    "last_tested_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_test_result": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "name",
+    "type"
+  ]
+}

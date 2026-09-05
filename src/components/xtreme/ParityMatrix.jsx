@@ -11,7 +11,7 @@ const STATUS_STYLE = {
 
 function computeProofHash(capName, tests) {
   const keyword = capName.toLowerCase().split(" ")[0];
-  const relevant = tests.filter((t) =>
+  const relevant = (tests || []).filter((t) =>
     t.status === "pass" &&
     ((t.evidence || "").toLowerCase().includes(keyword) ||
      (t.test_name || "").toLowerCase().includes(keyword))
@@ -28,7 +28,7 @@ function computeProofHash(capName, tests) {
 
 function getTwilioStatus(cap, audits) {
   const keyword = cap.name.toLowerCase().split(" ")[0];
-  const matchingAudit = audits.find(
+  const matchingAudit = (audits || []).find(
     (a) => (a.area || "").toLowerCase().includes(keyword) ||
           (a.xcomm_bypass || "").toLowerCase().includes(keyword) ||
           (cap.category || "").toLowerCase().includes((a.vulnerability_class || "").split("_")[0])
@@ -42,7 +42,7 @@ function getTwilioStatus(cap, audits) {
   return { label: "GAP", score: 0, icon: XCircle, color: "text-text-muted" };
 }
 
-export default function ParityMatrix({ capabilities, tests, audits }) {
+export default function ParityMatrix({ capabilities = [], tests = [], audits = [] }) {
   return (
     <div className="rounded-lg border border-surface-border bg-surface overflow-hidden">
       <div className="px-4 h-11 flex items-center gap-2 border-b border-surface-border">

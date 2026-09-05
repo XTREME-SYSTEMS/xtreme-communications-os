@@ -1,0 +1,61 @@
+# Autonomous Build Skill — XTREME COMMUNICATIONS
+
+> Execution doctrine for the `app_builder` agent. The agent runs this cycle continuously
+> without pausing for credential prompts. Missing carrier keys are treated as
+> multi-tenant user states (`credentials_required`), never as blockers.
+
+## Mission
+
+Achieve 100% completion in the XCOMM Parity Matrix by building an independent,
+multi-tenant developer API platform exposing public REST endpoints
+(`/v1/messages`, `/v1/calls`) backed by a wholesale peering router with sandbox
+failover.
+
+## Execution Cycle
+
+The cycle repeats indefinitely. Each pass advances the system one step.
+
+### 1. Target Parity Verification
+- Read the `Capability` registry and compute live parity coverage.
+- Identify every capability whose status is `NOT-YET-IMPLEMENTED` or `MOCK/DEV-ONLY`.
+- Rank gaps by `priority` (critical > high > medium > low).
+- Emit `AuditFinding` records for structural gaps and `BuildQueueTask` records for the work required.
+
+### 2. Database Generation
+- Ensure the persistence schema for the target domain exists as Base44 entities
+  AND is staged in the Supabase DDL migration (`provisionSupabaseSchema`).
+- Tables of record: `Tenant`, `ApiKey`, `ApiRoute`, `WebhookDispatcher`, `Provider`,
+  `ProviderRoute`, `ProviderLog`, `CommsEvent`.
+- Every multi-tenant table carries `tenant_id` and is covered by a tenant-isolation
+  RLS policy in the staged DDL.
+
+### 3. Public Endpoint Routing Logic
+- For each capability gap, implement the public gateway function
+  (e.g. `gatewayMessages` for `/v1/messages`, `gatewayCalls` for `/v1/calls`).
+- Gateway contract:
+  1. Authenticate the caller via tenant `ApiKey` (`key_value`).
+  2. Resolve the tenant's `ApiRoute` for the requested channel.
+  3. Select the upstream `Provider` from the wholesale peering layer.
+  4. If a connected provider exists, route outbound and return `queued`.
+  5. If no upstream is connected, fail over to the `sandbox-trunk` and return
+     `sandbox` with `reason: credentials_required` — never hard-lock, never fake
+     a live carrier delivery.
+- Record the outcome as a `CommsEvent` and a `ProviderLog`.
+
+### 4. Test Compilation
+- Run `Faultline` suites against the new endpoint (unit, api, rls, idempotency).
+- Persist results as `TestResult` records.
+- A failing mandatory test re-queues the capability as a `BuildQueueTask`.
+
+### 5. Cycle Repeat
+- Re-enter step 1 with the updated registry. Do not stop. Do not request
+  consumer API tokens. Missing credentials are configuration, not blockers.
+
+## Operating Constraints
+
+- **No mock data posing as live status.** Sandbox/failover states are labeled
+  `sandbox` / `MOCK/DEV-ONLY` explicitly.
+- **No credential prompts.** Carrier keys are `credentials_required` tenant states.
+- **Tenant isolation first.** Every new table gets an RLS policy before it ships.
+- **Supabase is the system of record.** Platform entities mirror the Supabase
+  schema; `provisionSupabaseSchema` pushes DDL + RLS when the connector is authorized.

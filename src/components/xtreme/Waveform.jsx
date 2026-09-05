@@ -12,12 +12,17 @@ export default function Waveform({ active = true, halted = false }) {
     const BARS = 56;
     if (stateRef.current.length === 0) stateRef.current = new Array(BARS).fill(0.08);
 
+    let rafResize = 0;
     const resize = () => {
-      const dpr = window.devicePixelRatio || 1;
-      const rect = canvas.getBoundingClientRect();
-      canvas.width = Math.max(1, rect.width) * dpr;
-      canvas.height = Math.max(1, rect.height) * dpr;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      cancelAnimationFrame(rafResize);
+      rafResize = requestAnimationFrame(() => {
+        const dpr = window.devicePixelRatio || 1;
+        const rect = canvas.getBoundingClientRect();
+        if (rect.width === 0 || rect.height === 0) return;
+        canvas.width = Math.max(1, rect.width) * dpr;
+        canvas.height = Math.max(1, rect.height) * dpr;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      });
     };
     resize();
     const ro = new ResizeObserver(resize);
@@ -41,7 +46,7 @@ export default function Waveform({ active = true, halted = false }) {
       rafRef.current = requestAnimationFrame(draw);
     };
     draw();
-    return () => { cancelAnimationFrame(rafRef.current); ro.disconnect(); };
+    return () => { cancelAnimationFrame(rafRef.current); cancelAnimationFrame(rafResize); ro.disconnect(); };
   }, [active, halted]);
 
   return <canvas ref={canvasRef} className="w-full h-full" />;

@@ -1,6 +1,185 @@
 {
   "description": "Continuous code generation engine for XTREME COMMUNICATIONS infrastructure.",
   "instructions": "You are the autonomous engineering core. Your primary directive is to achieve 100% completion metrics in the XCOMM Parity Matrix. You are instructed to build an independent, multi-tenant developer API platform (/v1/messages, /v1/calls). Treat missing credentials as standard tenant configuration fields ('credentials_required')\u2014never stop or pause execution loops to ask for keys. Run continuously through: State Discovery -> Entity Build -> API Route Logic -> Test Compilation -> Cycle Repeat.",
-  "tool_configs": [],
+  "tool_configs": [
+    {
+      "entity_name": "Tenant",
+      "allowed_operations": [
+        "create",
+        "read",
+        "update",
+        "delete"
+      ]
+    },
+    {
+      "entity_name": "ApiKey",
+      "allowed_operations": [
+        "create",
+        "read",
+        "update",
+        "delete"
+      ]
+    },
+    {
+      "entity_name": "ApiRoute",
+      "allowed_operations": [
+        "create",
+        "read",
+        "update",
+        "delete"
+      ]
+    },
+    {
+      "entity_name": "WebhookDispatcher",
+      "allowed_operations": [
+        "create",
+        "read",
+        "update",
+        "delete"
+      ]
+    },
+    {
+      "entity_name": "Provider",
+      "allowed_operations": [
+        "create",
+        "read",
+        "update",
+        "delete"
+      ]
+    },
+    {
+      "entity_name": "ProviderRoute",
+      "allowed_operations": [
+        "create",
+        "read",
+        "update",
+        "delete"
+      ]
+    },
+    {
+      "entity_name": "ProviderLog",
+      "allowed_operations": [
+        "create",
+        "read",
+        "update",
+        "delete"
+      ]
+    },
+    {
+      "entity_name": "CommsEvent",
+      "allowed_operations": [
+        "create",
+        "read",
+        "update",
+        "delete"
+      ]
+    },
+    {
+      "entity_name": "PhoneNumber",
+      "allowed_operations": [
+        "create",
+        "read",
+        "update",
+        "delete"
+      ]
+    },
+    {
+      "entity_name": "SipTrunk",
+      "allowed_operations": [
+        "create",
+        "read",
+        "update",
+        "delete"
+      ]
+    },
+    {
+      "entity_name": "Capability",
+      "allowed_operations": [
+        "create",
+        "read",
+        "update",
+        "delete"
+      ]
+    },
+    {
+      "entity_name": "BuildQueueTask",
+      "allowed_operations": [
+        "create",
+        "read",
+        "update",
+        "delete"
+      ]
+    },
+    {
+      "entity_name": "AuditFinding",
+      "allowed_operations": [
+        "create",
+        "read",
+        "update",
+        "delete"
+      ]
+    },
+    {
+      "entity_name": "TestResult",
+      "allowed_operations": [
+        "create",
+        "read",
+        "update",
+        "delete"
+      ]
+    },
+    {
+      "entity_name": "EngineStatus",
+      "allowed_operations": [
+        "create",
+        "read",
+        "update",
+        "delete"
+      ]
+    },
+    {
+      "function_name": "gatewayMessages",
+      "description": "Public /v1/messages CaaS gateway"
+    },
+    {
+      "function_name": "gatewayCalls",
+      "description": "Public /v1/calls SIP/trunk routing gateway"
+    },
+    {
+      "function_name": "managePhoneNumbers",
+      "description": "Phone-number provisioning controller"
+    },
+    {
+      "function_name": "provisionSupabaseSchema",
+      "description": "Push DDL + RLS to Supabase"
+    },
+    {
+      "function_name": "runAutonomousAudit",
+      "description": "Autonomous audit cycle"
+    },
+    {
+      "function_name": "testProviderConnection",
+      "description": "Provider connectivity test"
+    }
+  ],
+  "context_files": [],
+  "app_user_connector_configs": [],
+  "selected_skill_names": [],
+  "selected_workspace_skill_ids": [],
+  "model": "automatic",
+  "whatsapp_greeting": null,
+  "telegram_greeting": null,
+  "line_greeting": null,
+  "memory_config": {
+    "enabled": true,
+    "scope": "both",
+    "include_other_conversation_context": false,
+    "instructions": null
+  },
+  "voice_config": {
+    "voice_id": null
+  },
+  "emails_settings": null,
+  "allow_anonymous_access": false,
   "name": "app_builder"
 }

@@ -11,7 +11,7 @@ const STATUS_STYLE = {
 
 function computeProofHash(capName, tests) {
   const keyword = capName.toLowerCase().split(" ")[0];
-  const relevant = (tests || []).filter((t) =>
+  const relevant = (Array.isArray(tests) ? tests : []).filter((t) =>
     t.status === "pass" &&
     ((t.evidence || "").toLowerCase().includes(keyword) ||
      (t.test_name || "").toLowerCase().includes(keyword))
@@ -27,8 +27,8 @@ function computeProofHash(capName, tests) {
 }
 
 function getTwilioStatus(cap, audits) {
-  const keyword = cap.name.toLowerCase().split(" ")[0];
-  const matchingAudit = (audits || []).find(
+  const keyword = (cap?.name || "").toLowerCase().split(" ")[0];
+  const matchingAudit = (Array.isArray(audits) ? audits : []).find(
     (a) => (a.area || "").toLowerCase().includes(keyword) ||
           (a.xcomm_bypass || "").toLowerCase().includes(keyword) ||
           (cap.category || "").toLowerCase().includes((a.vulnerability_class || "").split("_")[0])

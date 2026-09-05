@@ -3,13 +3,14 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 // Provisions Telnyx resources programmatically so the CaaS gateway is fully wired:
 //   1. Messaging Profile (SMS/MMS) → webhook = telnyxWebhook endpoint
 //   2. Call Control Application (Voice) → webhook = telnyxWebhook endpoint
-//   3. Links the toll-free number to the messaging profile
+//   3. For every toll-free number: link to messaging profile (SMS/MMS) AND
+//      assign to the call control app (voice inbound) via connection_id.
 // Idempotent by name — re-runs reuse/sync existing resources instead of duplicating.
 const TELNYX = "https://api.telnyx.com/v2";
-const WEBHOOK_URL = "https://xtreme-communications.com/functions/telnyxWebhook";
+const WEBHOOK_URL = "https://xtreme-comms.base44.app/functions/telnyxWebhook";
 const MP_NAME = "XTREME COMMS Messaging";
 const APP_NAME = "XTREME COMMS Voice";
-const TOLLFREE = "+18334843799";
+const NUMBERS = ["+18334843799", "+18337001239"];
 const MP_EVENTS = ["message.received", "message.delivered", "message.sent", "message.finalized"];
 
 async function telnyx(path, method, key, body) {
@@ -33,7 +34,7 @@ export default async function(req) {
     const apiKey = process.env.TELNYX_API_KEY;
     if (!apiKey) return Response.json({ error: "TELNYX_API_KEY not configured" }, { status: 503 });
 
-    const out = { webhook_url: WEBHOOK_URL, messaging_profile: null, call_control_app: null, number_link: null, errors: [] };
+    const out = { webhook_url: WEBHOOK_URL, messaging_profile: null, call_control_app: null, numbers: [], errors: [] };
 
     // ── 1. Messaging Profile ──
     const mpList = await telnyx("/messaging_profiles?page[size]=50", "GET", apiKey);
@@ -48,40 +49,51 @@ export default async function(req) {
       out.messaging_profile = { id: existingMp.id, name: existingMp.name, reused: true, webhook: WEBHOOK_URL, webhook_updated: currentWh !== WEBHOOK_URL };
     } else {
       const c = await telnyx("/messaging_profiles", "POST", apiKey, {
-        name: MP_NAME,
-        enabled: true,
+        name: MP_NAME, enabled: true,
         whitelisted_destinations: ["US", "CA"],
         webhooks: [{ webhook_url: WEBHOOK_URL, events: MP_EVENTS }],
       });
       if (c.ok) out.messaging_profile = { id: c.data.data.id, name: c.data.data.name, created: true };
-      else out.errors.push({ step: "messaging_profile", status: c.status, detail: errMsg(c.data), errors: c.data?.errors });
+      else { out.errors.push({ step: "messaging_profile", status: c.status, detail: errMsg(c.data) }); return Response.json({ status: "partial", ...out }); }
     }
 
     // ── 2. Call Control Application ──
     const appList = await telnyx("/call_control_applications?page[size]=50", "GET", apiKey);
     const existingApp = (appList.data?.data || []).find((a) => (a.application_name || a.name) === APP_NAME);
+    let appId = null;
     if (existingApp) {
       const currentWh = existingApp.webhook_event_url || existingApp.webhook_url;
       if (currentWh !== WEBHOOK_URL) {
         await telnyx(`/call_control_applications/${existingApp.id}`, "PATCH", apiKey, { webhook_event_url: WEBHOOK_URL });
       }
-      out.call_control_app = { id: existingApp.id, name: APP_NAME, reused: true, webhook: WEBHOOK_URL, webhook_updated: currentWh !== WEBHOOK_URL };
+      appId = existingApp.id;
+      out.call_control_app = { id: appId, name: APP_NAME, reused: true, webhook: WEBHOOK_URL, webhook_updated: currentWh !== WEBHOOK_URL };
     } else {
       const c = await telnyx("/call_control_applications", "POST", apiKey, {
-        application_name: APP_NAME,
-        webhook_event_url: WEBHOOK_URL,
+        application_name: APP_NAME, webhook_event_url: WEBHOOK_URL,
       });
-      if (c.ok) out.call_control_app = { id: c.data.data.id, name: APP_NAME, created: true };
-      else out.errors.push({ step: "call_control_app", status: c.status, detail: errMsg(c.data), errors: c.data?.errors });
+      if (c.ok) { appId = c.data.data.id; out.call_control_app = { id: appId, name: APP_NAME, created: true }; }
+      else { out.errors.push({ step: "call_control_app", status: c.status, detail: errMsg(c.data) }); return Response.json({ status: "partial", ...out }); }
     }
 
-    // ── 3. Link toll-free number to messaging profile ──
-    if (out.messaging_profile) {
-      const link = await telnyx(`/messaging_phone_numbers/${encodeURIComponent(TOLLFREE)}`, "PATCH", apiKey, {
+    // ── 3. Wire every number: messaging profile (SMS/MMS) + call control app (voice) ──
+    for (const num of NUMBERS) {
+      const enc = encodeURIComponent(num);
+      const entry = { number: num, sms: null, voice: null };
+
+      const link = await telnyx(`/messaging_phone_numbers/${enc}`, "PATCH", apiKey, {
         messaging_profile_id: out.messaging_profile.id,
       });
-      if (link.ok) out.number_link = { number: TOLLFREE, messaging_profile_id: out.messaging_profile.id, linked: true };
-      else out.errors.push({ step: "number_link", status: link.status, detail: errMsg(link.data), errors: link.data?.errors });
+      entry.sms = link.ok ? { linked: true, messaging_profile_id: out.messaging_profile.id }
+        : { linked: false, error: errMsg(link.data) };
+      if (!link.ok) out.errors.push({ step: "number_link_sms", number: num, status: link.status, detail: errMsg(link.data) });
+
+      const assign = await telnyx(`/number_configurations/${enc}`, "PATCH", apiKey, { connection_id: appId });
+      entry.voice = assign.ok ? { assigned: true, connection_id: appId }
+        : { assigned: false, error: errMsg(assign.data) };
+      if (!assign.ok) out.errors.push({ step: "number_assign_voice", number: num, status: assign.status, detail: errMsg(assign.data) });
+
+      out.numbers.push(entry);
     }
 
     return Response.json({ status: out.errors.length ? "partial" : "provisioned", ...out });

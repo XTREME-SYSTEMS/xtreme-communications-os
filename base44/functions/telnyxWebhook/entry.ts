@@ -64,23 +64,28 @@ export default async function(req) {
         conversationId = newConv.id;
       }
 
-      // Process MMS media array
+      // Process MMS media array — fail gracefully so webhook ingestion never crashes
       const media = payload.media || [];
       let mediaProcessed = 0;
       if (media.length > 0) {
-        const mediaUrls = media.map((m) => ({
-          url: m.url || m.web_url || m,
-          mime_type: m.content_type || m.mime_type || "application/octet-stream",
-          size_bytes: m.size || m.size_bytes || 0,
-        }));
-        const apiKey = process.env.TELNYX_WEBHOOK_API_KEY || "telnyx_internal";
-        const res = await base44.asServiceRole.functions.invoke("processMediaAttachment", {
-          api_key: apiKey, media_urls: mediaUrls, channel: "mms",
-          direction: "inbound", from, to, identity: from,
-          conversation_id: conversationId, message_id: payload.id,
-        });
-        const data = (res && res.data) || res;
-        mediaProcessed = data.media_count || 0;
+        try {
+          const mediaUrls = media.map((m) => ({
+            url: m.url || m.web_url || m,
+            mime_type: m.content_type || m.mime_type || "application/octet-stream",
+            size_bytes: m.size || m.size_bytes || 0,
+          }));
+          const apiKey = process.env.TELNYX_WEBHOOK_API_KEY || "telnyx_internal";
+          const res = await base44.asServiceRole.functions.invoke("processMediaAttachment", {
+            api_key: apiKey, media_urls: mediaUrls, channel: "mms",
+            direction: "inbound", from, to, identity: from,
+            conversation_id: conversationId, message_id: payload.id,
+          });
+          const data = (res && res.data) || res;
+          mediaProcessed = data.media_count || 0;
+        } catch (mediaErr) {
+          // Media processing failure should not crash webhook ingestion
+          mediaProcessed = 0;
+        }
       }
 
       return Response.json({

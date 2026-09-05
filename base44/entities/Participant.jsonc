@@ -1,0 +1,42 @@
+{
+  "name": "Participant",
+  "type": "object",
+  "properties": {
+    "tenant_id": {
+      "type": "string"
+    },
+    "conversation_id": {
+      "type": "string"
+    },
+    "identity": {
+      "type": "string"
+    },
+    "channel": {
+      "type": "string",
+      "enum": [
+        "sms",
+        "mms",
+        "whatsapp",
+        "voice",
+        "email"
+      ]
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "customer",
+        "agent",
+        "system",
+        "bot"
+      ],
+      "default": "customer"
+    },
+    "display_name": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "tenant_id",
+    "identity"
+  ]
+}

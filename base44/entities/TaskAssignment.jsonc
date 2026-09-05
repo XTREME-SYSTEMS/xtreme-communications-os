@@ -1,0 +1,49 @@
+{
+  "name": "TaskAssignment",
+  "type": "object",
+  "properties": {
+    "tenant_id": {
+      "type": "string"
+    },
+    "conversation_id": {
+      "type": "string"
+    },
+    "queue_id": {
+      "type": "string"
+    },
+    "agent_id": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "queued",
+        "assigned",
+        "in_progress",
+        "completed",
+        "escalated",
+        "timeout"
+      ],
+      "default": "queued"
+    },
+    "priority": {
+      "type": "integer",
+      "default": 100
+    },
+    "sla_due_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "assigned_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "tenant_id"
+  ]
+}

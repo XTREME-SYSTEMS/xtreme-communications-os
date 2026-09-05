@@ -1,0 +1,45 @@
+{
+  "name": "Agent",
+  "type": "object",
+  "properties": {
+    "tenant_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "online",
+        "offline",
+        "break",
+        "busy"
+      ],
+      "default": "offline"
+    },
+    "skill_profile_id": {
+      "type": "string"
+    },
+    "max_concurrent": {
+      "type": "integer",
+      "default": 5
+    },
+    "current_load": {
+      "type": "integer",
+      "default": 0
+    },
+    "supervisor": {
+      "type": "boolean",
+      "default": false
+    },
+    "last_assigned_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "tenant_id",
+    "name"
+  ]
+}

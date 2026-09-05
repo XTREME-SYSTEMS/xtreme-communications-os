@@ -1,0 +1,49 @@
+{
+  "name": "Conversation",
+  "type": "object",
+  "properties": {
+    "tenant_id": {
+      "type": "string"
+    },
+    "participant_identity": {
+      "type": "string"
+    },
+    "channels": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "sms",
+          "mms",
+          "whatsapp",
+          "voice",
+          "email"
+        ]
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "idle",
+        "closed",
+        "archived"
+      ],
+      "default": "active"
+    },
+    "last_message_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "task_assignment_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "tenant_id",
+    "participant_identity"
+  ]
+}

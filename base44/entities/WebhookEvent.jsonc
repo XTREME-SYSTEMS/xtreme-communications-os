@@ -1,0 +1,41 @@
+{
+  "name": "WebhookEvent",
+  "type": "object",
+  "properties": {
+    "tenant_id": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string"
+    },
+    "event_type": {
+      "type": "string"
+    },
+    "raw": {
+      "type": "string"
+    },
+    "normalized": {
+      "type": "object"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ingested",
+        "validated",
+        "normalized",
+        "persisted",
+        "dispatched",
+        "failed"
+      ],
+      "default": "ingested"
+    },
+    "signature_valid": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "tenant_id",
+    "source"
+  ]
+}

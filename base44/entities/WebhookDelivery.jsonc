@@ -1,0 +1,51 @@
+{
+  "name": "WebhookDelivery",
+  "type": "object",
+  "properties": {
+    "tenant_id": {
+      "type": "string"
+    },
+    "webhook_dispatcher_id": {
+      "type": "string"
+    },
+    "event_id": {
+      "type": "string"
+    },
+    "url": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "queued",
+        "sent",
+        "delivered",
+        "failed",
+        "retrying"
+      ],
+      "default": "queued"
+    },
+    "attempts": {
+      "type": "integer",
+      "default": 0
+    },
+    "max_attempts": {
+      "type": "integer",
+      "default": 5
+    },
+    "next_attempt_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "response_code": {
+      "type": "integer"
+    },
+    "signature": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "tenant_id",
+    "url"
+  ]
+}

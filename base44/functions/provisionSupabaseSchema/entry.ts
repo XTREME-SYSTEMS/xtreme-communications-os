@@ -128,6 +128,120 @@ DROP POLICY IF EXISTS verifications_isolation ON public.verifications;
 CREATE POLICY verifications_isolation ON public.verifications FOR ALL USING (tenant_id::text = public.current_tenant_id());
 DROP POLICY IF EXISTS lookup_results_isolation ON public.lookup_results;
 CREATE POLICY lookup_results_isolation ON public.lookup_results FOR ALL USING (tenant_id::text = public.current_tenant_id());
+CREATE TABLE IF NOT EXISTS public.conversations (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid REFERENCES public.tenants(id) ON DELETE CASCADE,
+  participant_identity text NOT NULL,
+  channels text[] NOT NULL DEFAULT '{}',
+  status text NOT NULL DEFAULT 'active',
+  last_message_at timestamptz,
+  summary text,
+  task_assignment_id text,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS public.participants (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid REFERENCES public.tenants(id) ON DELETE CASCADE,
+  conversation_id text,
+  identity text NOT NULL,
+  channel text,
+  role text NOT NULL DEFAULT 'customer',
+  display_name text,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS public.agents (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid REFERENCES public.tenants(id) ON DELETE CASCADE,
+  name text NOT NULL,
+  status text NOT NULL DEFAULT 'offline',
+  skill_profile_id text,
+  max_concurrent integer NOT NULL DEFAULT 5,
+  current_load integer NOT NULL DEFAULT 0,
+  supervisor boolean NOT NULL DEFAULT false,
+  last_assigned_at timestamptz,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS public.routing_queues (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid REFERENCES public.tenants(id) ON DELETE CASCADE,
+  name text NOT NULL,
+  strategy text NOT NULL DEFAULT 'skill-based',
+  sla_seconds integer NOT NULL DEFAULT 30,
+  skills_required text[] NOT NULL DEFAULT '{}',
+  priority integer NOT NULL DEFAULT 100,
+  enabled boolean NOT NULL DEFAULT true,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS public.skill_profiles (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid REFERENCES public.tenants(id) ON DELETE CASCADE,
+  name text NOT NULL,
+  skills text[] NOT NULL DEFAULT '{}',
+  weights jsonb NOT NULL DEFAULT '{}',
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS public.task_assignments (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid REFERENCES public.tenants(id) ON DELETE CASCADE,
+  conversation_id text,
+  queue_id text,
+  agent_id text,
+  status text NOT NULL DEFAULT 'queued',
+  priority integer NOT NULL DEFAULT 100,
+  sla_due_at timestamptz,
+  assigned_at timestamptz,
+  completed_at timestamptz,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS public.webhook_events (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid REFERENCES public.tenants(id) ON DELETE CASCADE,
+  source text NOT NULL,
+  event_type text,
+  raw text,
+  normalized jsonb,
+  status text NOT NULL DEFAULT 'ingested',
+  signature_valid boolean NOT NULL DEFAULT false,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS public.webhook_deliveries (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid REFERENCES public.tenants(id) ON DELETE CASCADE,
+  webhook_dispatcher_id text,
+  event_id text,
+  url text NOT NULL,
+  status text NOT NULL DEFAULT 'queued',
+  attempts integer NOT NULL DEFAULT 0,
+  max_attempts integer NOT NULL DEFAULT 5,
+  next_attempt_at timestamptz,
+  response_code integer,
+  signature text,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE public.conversations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.participants ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.agents ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.routing_queues ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.skill_profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.task_assignments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.webhook_events ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.webhook_deliveries ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS conversations_isolation ON public.conversations;
+CREATE POLICY conversations_isolation ON public.conversations FOR ALL USING (tenant_id::text = public.current_tenant_id());
+DROP POLICY IF EXISTS participants_isolation ON public.participants;
+CREATE POLICY participants_isolation ON public.participants FOR ALL USING (tenant_id::text = public.current_tenant_id());
+DROP POLICY IF EXISTS agents_isolation ON public.agents;
+CREATE POLICY agents_isolation ON public.agents FOR ALL USING (tenant_id::text = public.current_tenant_id());
+DROP POLICY IF EXISTS routing_queues_isolation ON public.routing_queues;
+CREATE POLICY routing_queues_isolation ON public.routing_queues FOR ALL USING (tenant_id::text = public.current_tenant_id());
+DROP POLICY IF EXISTS skill_profiles_isolation ON public.skill_profiles;
+CREATE POLICY skill_profiles_isolation ON public.skill_profiles FOR ALL USING (tenant_id::text = public.current_tenant_id());
+DROP POLICY IF EXISTS task_assignments_isolation ON public.task_assignments;
+CREATE POLICY task_assignments_isolation ON public.task_assignments FOR ALL USING (tenant_id::text = public.current_tenant_id());
+DROP POLICY IF EXISTS webhook_events_isolation ON public.webhook_events;
+CREATE POLICY webhook_events_isolation ON public.webhook_events FOR ALL USING (tenant_id::text = public.current_tenant_id());
+DROP POLICY IF EXISTS webhook_deliveries_isolation ON public.webhook_deliveries;
+CREATE POLICY webhook_deliveries_isolation ON public.webhook_deliveries FOR ALL USING (tenant_id::text = public.current_tenant_id());
 `;
 
 export default async function(req) {
@@ -142,7 +256,7 @@ export default async function(req) {
         status: "connector_not_authorized",
         detail: "Authorize the Supabase connector to push the schema live. The full DDL + RLS migration is staged and ready.",
         sql_chars: DDL.length,
-        tables: ["tenants", "api_keys", "api_routes", "webhook_dispatchers", "phone_numbers", "sip_trunks", "verifications", "lookup_results"],
+        tables: ["tenants", "api_keys", "api_routes", "webhook_dispatchers", "phone_numbers", "sip_trunks", "verifications", "lookup_results", "conversations", "participants", "agents", "routing_queues", "skill_profiles", "task_assignments", "webhook_events", "webhook_deliveries"],
       });
     }
 
@@ -165,7 +279,7 @@ export default async function(req) {
       status: rr.ok ? "provisioned" : "error",
       ref,
       detail: detail.slice(0, 600),
-      tables: ["tenants", "api_keys", "api_routes", "webhook_dispatchers", "phone_numbers", "sip_trunks", "verifications", "lookup_results"],
+      tables: ["tenants", "api_keys", "api_routes", "webhook_dispatchers", "phone_numbers", "sip_trunks", "verifications", "lookup_results", "conversations", "participants", "agents", "routing_queues", "skill_profiles", "task_assignments", "webhook_events", "webhook_deliveries"],
     });
   } catch (error) {
     return Response.json({ status: "error", detail: error.message }, { status: 500 });

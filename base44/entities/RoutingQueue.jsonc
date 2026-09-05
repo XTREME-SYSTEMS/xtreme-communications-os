@@ -1,0 +1,44 @@
+{
+  "name": "RoutingQueue",
+  "type": "object",
+  "properties": {
+    "tenant_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "strategy": {
+      "type": "string",
+      "enum": [
+        "skill-based",
+        "round-robin",
+        "least-load",
+        "priority"
+      ],
+      "default": "skill-based"
+    },
+    "sla_seconds": {
+      "type": "integer",
+      "default": 30
+    },
+    "skills_required": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "priority": {
+      "type": "integer",
+      "default": 100
+    },
+    "enabled": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "tenant_id",
+    "name"
+  ]
+}

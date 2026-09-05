@@ -14,6 +14,7 @@ export default function ApiKeyManager({ tenants, onMutate }) {
   const [copied, setCopied] = useState(null);
   const [label, setLabel] = useState("");
   const [scopes, setScopes] = useState(["messages", "calls"]);
+  const [pasteKey, setPasteKey] = useState("");
 
   const loadKeys = async (tid) => {
     if (!tid) { setKeys([]); return; }
@@ -39,6 +40,17 @@ export default function ApiKeyManager({ tenants, onMutate }) {
 
   const copy = async (k) => {
     try { await navigator.clipboard.writeText(k.key_value); setCopied(k.id); setTimeout(() => setCopied(null), 1500); } catch (_) {}
+  };
+
+  const importKey = async () => {
+    if (!tenantId) { toast({ title: "Select a tenant", variant: "destructive" }); return; }
+    if (!pasteKey.trim()) { toast({ title: "Paste a key first", variant: "destructive" }); return; }
+    try {
+      await base44.entities.ApiKey.create({ tenant_id: tenantId, label: label || "imported", key_value: pasteKey.trim(), scopes, status: "active" });
+      setPasteKey(""); setLabel("");
+      toast({ title: "Key imported", description: "Your API key is now active." });
+      loadKeys(tenantId); onMutate?.();
+    } catch (e) { toast({ title: "Failed", description: String(e.message || e), variant: "destructive" }); }
   };
 
   const roll = async (k) => {
@@ -78,9 +90,15 @@ export default function ApiKeyManager({ tenants, onMutate }) {
           {tenants.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
         </select>
         <div className="flex gap-2">
-          <input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Key label" className={input} />
-          <button onClick={gen} className="h-8 px-3 rounded border border-accent-orange/50 text-accent-orange text-[10px] font-display uppercase tracking-wider hover:bg-accent-orange/10 flex items-center gap-1">
+          <input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Key label (optional)" className={input} />
+          <button onClick={gen} className="h-8 px-3 rounded border border-accent-orange/50 text-accent-orange text-[10px] font-display uppercase tracking-wider hover:bg-accent-orange/10 flex items-center gap-1 shrink-0">
             <Plus className="h-3 w-3" /> Generate
+          </button>
+        </div>
+        <div className="flex gap-2">
+          <input value={pasteKey} onChange={(e) => setPasteKey(e.target.value)} placeholder="Paste your own API key…" className={cn(input, "font-mono")} type="text" />
+          <button onClick={importKey} className="h-8 px-3 rounded border border-status-green/50 text-status-green text-[10px] font-display uppercase tracking-wider hover:bg-status-green/10 flex items-center gap-1 shrink-0">
+            <KeyRound className="h-3 w-3" /> Import
           </button>
         </div>
         <div className="flex flex-wrap gap-1">

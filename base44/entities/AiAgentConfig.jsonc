@@ -1,0 +1,50 @@
+{
+  "name": "AiAgentConfig",
+  "type": "object",
+  "properties": {
+    "tenant_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "voice": {
+      "type": "string",
+      "default": "river"
+    },
+    "language": {
+      "type": "string",
+      "default": "en"
+    },
+    "system_prompt": {
+      "type": "string"
+    },
+    "tools": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "memory_window": {
+      "type": "integer",
+      "default": 10
+    },
+    "interruption_enabled": {
+      "type": "boolean",
+      "default": true
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "draft",
+        "archived"
+      ],
+      "default": "active"
+    }
+  },
+  "required": [
+    "tenant_id",
+    "name"
+  ]
+}

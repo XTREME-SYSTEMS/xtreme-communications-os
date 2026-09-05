@@ -1,0 +1,59 @@
+{
+  "name": "MediaAttachment",
+  "type": "object",
+  "properties": {
+    "tenant_id": {
+      "type": "string"
+    },
+    "conversation_id": {
+      "type": "string"
+    },
+    "message_id": {
+      "type": "string"
+    },
+    "channel": {
+      "type": "string",
+      "enum": [
+        "sms",
+        "mms",
+        "whatsapp",
+        "rcs",
+        "email"
+      ]
+    },
+    "mime_type": {
+      "type": "string"
+    },
+    "file_url": {
+      "type": "string"
+    },
+    "storage_key": {
+      "type": "string"
+    },
+    "access_token": {
+      "type": "string"
+    },
+    "size_bytes": {
+      "type": "integer",
+      "default": 0
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "uploaded",
+        "validated",
+        "normalized",
+        "mapped",
+        "failed"
+      ],
+      "default": "uploaded"
+    },
+    "public_url": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "tenant_id",
+    "file_url"
+  ]
+}

@@ -242,6 +242,73 @@ DROP POLICY IF EXISTS webhook_events_isolation ON public.webhook_events;
 CREATE POLICY webhook_events_isolation ON public.webhook_events FOR ALL USING (tenant_id::text = public.current_tenant_id());
 DROP POLICY IF EXISTS webhook_deliveries_isolation ON public.webhook_deliveries;
 CREATE POLICY webhook_deliveries_isolation ON public.webhook_deliveries FOR ALL USING (tenant_id::text = public.current_tenant_id());
+CREATE TABLE IF NOT EXISTS public.ai_voice_sessions (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid REFERENCES public.tenants(id) ON DELETE CASCADE,
+  conversation_id text,
+  agent_config_id text,
+  status text NOT NULL DEFAULT 'streaming',
+  stt_text text,
+  tts_text text,
+  tts_audio_url text,
+  context_state jsonb NOT NULL DEFAULT '{}',
+  interrupted boolean NOT NULL DEFAULT false,
+  started_at timestamptz,
+  ended_at timestamptz,
+  duration_sec numeric,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS public.ai_agent_configs (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid REFERENCES public.tenants(id) ON DELETE CASCADE,
+  name text NOT NULL,
+  voice text NOT NULL DEFAULT 'river',
+  language text NOT NULL DEFAULT 'en',
+  system_prompt text,
+  tools text[] NOT NULL DEFAULT '{}',
+  memory_window integer NOT NULL DEFAULT 10,
+  interruption_enabled boolean NOT NULL DEFAULT true,
+  status text NOT NULL DEFAULT 'active',
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS public.speech_transcripts (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid REFERENCES public.tenants(id) ON DELETE CASCADE,
+  voice_session_id text NOT NULL,
+  role text NOT NULL DEFAULT 'user',
+  content text,
+  stt_confidence numeric,
+  tts_audio_url text,
+  interrupted boolean NOT NULL DEFAULT false,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS public.media_attachments (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid REFERENCES public.tenants(id) ON DELETE CASCADE,
+  conversation_id text,
+  message_id text,
+  channel text,
+  mime_type text,
+  file_url text NOT NULL,
+  storage_key text,
+  access_token text,
+  size_bytes integer NOT NULL DEFAULT 0,
+  status text NOT NULL DEFAULT 'uploaded',
+  public_url text,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE public.ai_voice_sessions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.ai_agent_configs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.speech_transcripts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.media_attachments ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS ai_voice_sessions_isolation ON public.ai_voice_sessions;
+CREATE POLICY ai_voice_sessions_isolation ON public.ai_voice_sessions FOR ALL USING (tenant_id::text = public.current_tenant_id());
+DROP POLICY IF EXISTS ai_agent_configs_isolation ON public.ai_agent_configs;
+CREATE POLICY ai_agent_configs_isolation ON public.ai_agent_configs FOR ALL USING (tenant_id::text = public.current_tenant_id());
+DROP POLICY IF EXISTS speech_transcripts_isolation ON public.speech_transcripts;
+CREATE POLICY speech_transcripts_isolation ON public.speech_transcripts FOR ALL USING (tenant_id::text = public.current_tenant_id());
+DROP POLICY IF EXISTS media_attachments_isolation ON public.media_attachments;
+CREATE POLICY media_attachments_isolation ON public.media_attachments FOR ALL USING (tenant_id::text = public.current_tenant_id());
 `;
 
 export default async function(req) {
@@ -256,7 +323,7 @@ export default async function(req) {
         status: "connector_not_authorized",
         detail: "Authorize the Supabase connector to push the schema live. The full DDL + RLS migration is staged and ready.",
         sql_chars: DDL.length,
-        tables: ["tenants", "api_keys", "api_routes", "webhook_dispatchers", "phone_numbers", "sip_trunks", "verifications", "lookup_results", "conversations", "participants", "agents", "routing_queues", "skill_profiles", "task_assignments", "webhook_events", "webhook_deliveries"],
+        tables: ["tenants", "api_keys", "api_routes", "webhook_dispatchers", "phone_numbers", "sip_trunks", "verifications", "lookup_results", "conversations", "participants", "agents", "routing_queues", "skill_profiles", "task_assignments", "webhook_events", "webhook_deliveries", "ai_voice_sessions", "ai_agent_configs", "speech_transcripts", "media_attachments"],
       });
     }
 
@@ -279,7 +346,7 @@ export default async function(req) {
       status: rr.ok ? "provisioned" : "error",
       ref,
       detail: detail.slice(0, 600),
-      tables: ["tenants", "api_keys", "api_routes", "webhook_dispatchers", "phone_numbers", "sip_trunks", "verifications", "lookup_results", "conversations", "participants", "agents", "routing_queues", "skill_profiles", "task_assignments", "webhook_events", "webhook_deliveries"],
+      tables: ["tenants", "api_keys", "api_routes", "webhook_dispatchers", "phone_numbers", "sip_trunks", "verifications", "lookup_results", "conversations", "participants", "agents", "routing_queues", "skill_profiles", "task_assignments", "webhook_events", "webhook_deliveries", "ai_voice_sessions", "ai_agent_configs", "speech_transcripts", "media_attachments"],
     });
   } catch (error) {
     return Response.json({ status: "error", detail: error.message }, { status: 500 });

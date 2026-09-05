@@ -1,0 +1,38 @@
+{
+  "name": "SpeechTranscript",
+  "type": "object",
+  "properties": {
+    "tenant_id": {
+      "type": "string"
+    },
+    "voice_session_id": {
+      "type": "string"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "user",
+        "assistant",
+        "system"
+      ],
+      "default": "user"
+    },
+    "content": {
+      "type": "string"
+    },
+    "stt_confidence": {
+      "type": "number"
+    },
+    "tts_audio_url": {
+      "type": "string"
+    },
+    "interrupted": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "tenant_id",
+    "voice_session_id"
+  ]
+}

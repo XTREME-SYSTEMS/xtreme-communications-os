@@ -149,6 +149,13 @@
     "barge_in_count": {
       "type": "integer",
       "default": 0
+    },
+    "supervisor_barge_enabled": {
+      "type": "boolean",
+      "default": false
+    },
+    "whisper_transcript": {
+      "type": "string"
     }
   },
   "required": [

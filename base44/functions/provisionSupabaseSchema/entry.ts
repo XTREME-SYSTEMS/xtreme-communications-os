@@ -551,6 +551,28 @@ ALTER TABLE public.carrier_route_metrics ADD COLUMN IF NOT EXISTS region text;
 ALTER TABLE public.carrier_route_metrics ADD COLUMN IF NOT EXISTS latitude numeric;
 ALTER TABLE public.carrier_route_metrics ADD COLUMN IF NOT EXISTS longitude numeric;
 CREATE INDEX IF NOT EXISTS idx_carrier_route_metrics_region ON public.carrier_route_metrics (region);
+CREATE TABLE IF NOT EXISTS public.comms_events (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid REFERENCES public.tenants(id) ON DELETE CASCADE,
+  channel text NOT NULL,
+  direction text NOT NULL,
+  from_addr text,
+  to_addr text,
+  status text,
+  duration_sec numeric,
+  classification text NOT NULL DEFAULT 'MOCK/DEV-ONLY',
+  summary text,
+  recording_url text,
+  recording_status text NOT NULL DEFAULT 'none',
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE public.comms_events ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS comms_events_isolation ON public.comms_events;
+CREATE POLICY comms_events_isolation ON public.comms_events FOR ALL USING (tenant_id::text = public.current_tenant_id() OR tenant_id IS NULL);
+ALTER TABLE public.ai_voice_sessions ADD COLUMN IF NOT EXISTS supervisor_barge_enabled boolean NOT NULL DEFAULT false;
+ALTER TABLE public.ai_voice_sessions ADD COLUMN IF NOT EXISTS whisper_transcript text;
+CREATE INDEX IF NOT EXISTS idx_comms_events_tenant ON public.comms_events (tenant_id, status);
+CREATE INDEX IF NOT EXISTS idx_comms_events_recording ON public.comms_events (recording_status);
 `;
 
 export default async function(req) {

@@ -35,7 +35,8 @@
         "failed",
         "queued",
         "ringing"
-      ]
+      ],
+      "default": "active"
     },
     "duration_sec": {
       "type": "number"
@@ -52,6 +53,19 @@
     },
     "summary": {
       "type": "string"
+    },
+    "recording_url": {
+      "type": "string"
+    },
+    "recording_status": {
+      "type": "string",
+      "enum": [
+        "none",
+        "recording",
+        "completed",
+        "failed"
+      ],
+      "default": "none"
     }
   },
   "required": [

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { ArrowLeft, Scale, ShieldAlert, CheckCircle2 } from "lucide-react";
-import ParityMatrix from "@/components/xtreme/ParityMatrix";
+import DomainCatalog from "@/components/xtreme/DomainCatalog";
 import ThemeToggle from "@/components/xtreme/ThemeToggle";
 
 export default function ParityComparison() {
@@ -49,7 +49,7 @@ export default function ParityComparison() {
             <StatCard label="Twilio Vulnerabilities" value={auditCount} icon={ShieldAlert} accent="text-destructive" />
             <StatCard label="Parity Coverage" value={`${Math.round(capabilities.reduce((s, c) => s + (c.coverage_pct || 0), 0) / Math.max(capabilities.length, 1))}%`} icon={Scale} accent="text-primary" />
           </div>
-          <ParityMatrix capabilities={capabilities} tests={tests} audits={audits} />
+          <DomainCatalog capabilities={capabilities} tests={tests} audits={audits} />
           {audits.length > 0 && (
             <div className="rounded-lg border border-surface-border bg-surface">
               <div className="px-4 h-11 flex items-center gap-2 border-b border-surface-border">

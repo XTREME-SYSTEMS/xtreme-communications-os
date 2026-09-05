@@ -1,0 +1,73 @@
+{
+  "name": "PromptLibrary",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "domain": {
+      "type": "string",
+      "enum": [
+        "voice_persona",
+        "conversation_flow",
+        "sms_template",
+        "mms_template",
+        "whatsapp_template",
+        "industry_intelligence",
+        "testing_playbook",
+        "sop",
+        "memory_doctrine",
+        "compliance",
+        "objection_handling",
+        "qualification",
+        "follow_up",
+        "integration",
+        "closing"
+      ],
+      "default": "conversation_flow"
+    },
+    "channel": {
+      "type": "string",
+      "enum": [
+        "voice",
+        "sms",
+        "mms",
+        "whatsapp",
+        "email",
+        "universal"
+      ],
+      "default": "universal"
+    },
+    "industry": {
+      "type": "string",
+      "default": "universal"
+    },
+    "body": {
+      "type": "string"
+    },
+    "variables": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    },
+    "version": {
+      "type": "integer",
+      "default": 1
+    },
+    "quality_score": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "title",
+    "domain",
+    "body"
+  ]
+}

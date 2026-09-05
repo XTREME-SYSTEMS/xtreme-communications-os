@@ -1,0 +1,37 @@
+{
+  "name": "SystemMemory",
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "doctrine",
+        "ideal_state",
+        "persona",
+        "guardrail",
+        "operating_protocol",
+        "memory_anchor",
+        "quality_standard"
+      ],
+      "default": "doctrine"
+    },
+    "value": {
+      "type": "string"
+    },
+    "priority": {
+      "type": "integer",
+      "default": 0
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "key",
+    "value"
+  ]
+}

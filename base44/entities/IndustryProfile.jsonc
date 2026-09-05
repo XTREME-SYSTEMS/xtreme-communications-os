@@ -1,0 +1,58 @@
+{
+  "name": "IndustryProfile",
+  "type": "object",
+  "properties": {
+    "industry": {
+      "type": "string"
+    },
+    "is_primary": {
+      "type": "boolean",
+      "default": false
+    },
+    "focus_areas": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "objection_catalog": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "objection": {
+            "type": "string"
+          },
+          "response": {
+            "type": "string"
+          }
+        }
+      },
+      "default": []
+    },
+    "qualification_criteria": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "compliance_notes": {
+      "type": "string"
+    },
+    "kpi_targets": {
+      "type": "object"
+    },
+    "script_seed": {
+      "type": "string"
+    },
+    "universal": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "industry"
+  ]
+}

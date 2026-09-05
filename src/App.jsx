@@ -14,6 +14,7 @@ import NumberManagement from './pages/NumberManagement';
 import DeveloperSettings from './pages/DeveloperSettings';
 import BillingDashboard from './pages/BillingDashboard';
 import RouteQuality from './pages/RouteQuality';
+import CampaignAutomation from './pages/CampaignAutomation';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -49,6 +50,7 @@ const AuthenticatedApp = () => {
       <Route path="/developers" element={<DeveloperSettings />} />
       <Route path="/billing" element={<BillingDashboard />} />
       <Route path="/routes" element={<RouteQuality />} />
+      <Route path="/campaigns" element={<CampaignAutomation />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

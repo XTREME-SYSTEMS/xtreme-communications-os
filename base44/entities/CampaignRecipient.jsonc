@@ -1,0 +1,57 @@
+{
+  "name": "CampaignRecipient",
+  "type": "object",
+  "properties": {
+    "tenant_id": {
+      "type": "string"
+    },
+    "campaign_id": {
+      "type": "string"
+    },
+    "segment_id": {
+      "type": "string"
+    },
+    "phone_number": {
+      "type": "string"
+    },
+    "display_name": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "queued",
+        "sent",
+        "delivered",
+        "failed",
+        "opt_out",
+        "skipped"
+      ],
+      "default": "pending"
+    },
+    "attempts": {
+      "type": "integer",
+      "default": 0
+    },
+    "last_attempt_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "delivered_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "error": {
+      "type": "string"
+    },
+    "message_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "tenant_id",
+    "campaign_id",
+    "phone_number"
+  ]
+}

@@ -147,6 +147,60 @@
       ]
     },
     {
+      "entity_name": "Workflow",
+      "allowed_operations": [
+        "create",
+        "read",
+        "update",
+        "delete"
+      ]
+    },
+    {
+      "entity_name": "WorkflowStep",
+      "allowed_operations": [
+        "create",
+        "read",
+        "update",
+        "delete"
+      ]
+    },
+    {
+      "entity_name": "WorkflowExecutionLog",
+      "allowed_operations": [
+        "create",
+        "read",
+        "update",
+        "delete"
+      ]
+    },
+    {
+      "entity_name": "Campaign",
+      "allowed_operations": [
+        "create",
+        "read",
+        "update",
+        "delete"
+      ]
+    },
+    {
+      "entity_name": "AudienceSegment",
+      "allowed_operations": [
+        "create",
+        "read",
+        "update",
+        "delete"
+      ]
+    },
+    {
+      "entity_name": "CampaignRecipient",
+      "allowed_operations": [
+        "create",
+        "read",
+        "update",
+        "delete"
+      ]
+    },
+    {
       "function_name": "gatewayMessages",
       "description": "Public /v1/messages CaaS gateway"
     },
@@ -173,6 +227,14 @@
     {
       "function_name": "monitorRouteQuality",
       "description": "Carrier route quality metrics + anomaly detection"
+    },
+    {
+      "function_name": "executeWorkflowEngine",
+      "description": "Event-driven workflow step-tree execution engine"
+    },
+    {
+      "function_name": "manageCampaignOutreach",
+      "description": "Mass outreach blast manager with throttling + opt-out guards"
     }
   ],
   "context_files": [],

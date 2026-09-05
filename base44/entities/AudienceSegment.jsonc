@@ -1,0 +1,41 @@
+{
+  "name": "AudienceSegment",
+  "type": "object",
+  "properties": {
+    "tenant_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "filter_criteria": {
+      "type": "object"
+    },
+    "recipient_count": {
+      "type": "integer",
+      "default": 0
+    },
+    "opt_out_list": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "archived"
+      ],
+      "default": "active"
+    }
+  },
+  "required": [
+    "tenant_id",
+    "name"
+  ]
+}

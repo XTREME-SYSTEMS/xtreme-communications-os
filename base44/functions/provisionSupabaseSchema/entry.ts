@@ -414,6 +414,122 @@ CREATE INDEX IF NOT EXISTS idx_carrier_route_metrics_anomaly ON public.carrier_r
 CREATE INDEX IF NOT EXISTS idx_carrier_route_metrics_measured_at ON public.carrier_route_metrics (measured_at);
 CREATE INDEX IF NOT EXISTS idx_ai_voice_sessions_sentiment ON public.ai_voice_sessions (tenant_id, status);
 CREATE INDEX IF NOT EXISTS idx_speech_transcripts_turn ON public.speech_transcripts (voice_session_id, turn_index);
+CREATE TABLE IF NOT EXISTS public.workflows (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid REFERENCES public.tenants(id) ON DELETE CASCADE,
+  name text NOT NULL,
+  description text,
+  trigger_type text NOT NULL DEFAULT 'manual',
+  trigger_config jsonb NOT NULL DEFAULT '{}',
+  status text NOT NULL DEFAULT 'draft',
+  version integer NOT NULL DEFAULT 1,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS public.workflow_steps (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid REFERENCES public.tenants(id) ON DELETE CASCADE,
+  workflow_id uuid REFERENCES public.workflows(id) ON DELETE CASCADE,
+  step_key text NOT NULL,
+  step_type text NOT NULL DEFAULT 'trigger',
+  step_config jsonb NOT NULL DEFAULT '{}',
+  next_step_key text,
+  branch_true_step_key text,
+  branch_false_step_key text,
+  position integer NOT NULL DEFAULT 0,
+  enabled boolean NOT NULL DEFAULT true,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS public.workflow_execution_logs (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid REFERENCES public.tenants(id) ON DELETE CASCADE,
+  workflow_id uuid REFERENCES public.workflows(id) ON DELETE CASCADE,
+  execution_id text NOT NULL,
+  step_key text NOT NULL,
+  step_type text,
+  status text NOT NULL DEFAULT 'pending',
+  input jsonb,
+  output jsonb,
+  error text,
+  started_at timestamptz,
+  completed_at timestamptz,
+  duration_ms integer NOT NULL DEFAULT 0,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS public.campaigns (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid REFERENCES public.tenants(id) ON DELETE CASCADE,
+  name text NOT NULL,
+  description text,
+  channel text NOT NULL DEFAULT 'sms',
+  message_template text,
+  voice_script text,
+  segment_id text,
+  status text NOT NULL DEFAULT 'draft',
+  schedule_type text NOT NULL DEFAULT 'immediate',
+  scheduled_at timestamptz,
+  throttle_per_sec integer NOT NULL DEFAULT 10,
+  rate_limit_per_sec integer NOT NULL DEFAULT 25,
+  total_recipients integer NOT NULL DEFAULT 0,
+  sent_count integer NOT NULL DEFAULT 0,
+  delivered_count integer NOT NULL DEFAULT 0,
+  failed_count integer NOT NULL DEFAULT 0,
+  opt_out_count integer NOT NULL DEFAULT 0,
+  started_at timestamptz,
+  completed_at timestamptz,
+  classification text NOT NULL DEFAULT 'SANDBOX',
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS public.audience_segments (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid REFERENCES public.tenants(id) ON DELETE CASCADE,
+  name text NOT NULL,
+  description text,
+  filter_criteria jsonb NOT NULL DEFAULT '{}',
+  recipient_count integer NOT NULL DEFAULT 0,
+  opt_out_list text[] NOT NULL DEFAULT '{}',
+  status text NOT NULL DEFAULT 'active',
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS public.campaign_recipients (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid REFERENCES public.tenants(id) ON DELETE CASCADE,
+  campaign_id uuid REFERENCES public.campaigns(id) ON DELETE CASCADE,
+  segment_id text,
+  phone_number text NOT NULL,
+  display_name text,
+  status text NOT NULL DEFAULT 'pending',
+  attempts integer NOT NULL DEFAULT 0,
+  last_attempt_at timestamptz,
+  delivered_at timestamptz,
+  error text,
+  message_id text,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE public.workflows ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.workflow_steps ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.workflow_execution_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.campaigns ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.audience_segments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.campaign_recipients ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS workflows_isolation ON public.workflows;
+CREATE POLICY workflows_isolation ON public.workflows FOR ALL USING (tenant_id::text = public.current_tenant_id());
+DROP POLICY IF EXISTS workflow_steps_isolation ON public.workflow_steps;
+CREATE POLICY workflow_steps_isolation ON public.workflow_steps FOR ALL USING (tenant_id::text = public.current_tenant_id());
+DROP POLICY IF EXISTS workflow_execution_logs_isolation ON public.workflow_execution_logs;
+CREATE POLICY workflow_execution_logs_isolation ON public.workflow_execution_logs FOR ALL USING (tenant_id::text = public.current_tenant_id());
+DROP POLICY IF EXISTS campaigns_isolation ON public.campaigns;
+CREATE POLICY campaigns_isolation ON public.campaigns FOR ALL USING (tenant_id::text = public.current_tenant_id());
+DROP POLICY IF EXISTS audience_segments_isolation ON public.audience_segments;
+CREATE POLICY audience_segments_isolation ON public.audience_segments FOR ALL USING (tenant_id::text = public.current_tenant_id());
+DROP POLICY IF EXISTS campaign_recipients_isolation ON public.campaign_recipients;
+CREATE POLICY campaign_recipients_isolation ON public.campaign_recipients FOR ALL USING (tenant_id::text = public.current_tenant_id());
+CREATE INDEX IF NOT EXISTS idx_workflows_tenant_status ON public.workflows (tenant_id, status);
+CREATE INDEX IF NOT EXISTS idx_workflow_steps_workflow ON public.workflow_steps (workflow_id, position);
+CREATE INDEX IF NOT EXISTS idx_workflow_execution_logs_execution ON public.workflow_execution_logs (execution_id);
+CREATE INDEX IF NOT EXISTS idx_workflow_execution_logs_workflow ON public.workflow_execution_logs (workflow_id, started_at);
+CREATE INDEX IF NOT EXISTS idx_campaigns_tenant_status ON public.campaigns (tenant_id, status);
+CREATE INDEX IF NOT EXISTS idx_campaign_recipients_campaign_status ON public.campaign_recipients (campaign_id, status);
+CREATE INDEX IF NOT EXISTS idx_audience_segments_tenant ON public.audience_segments (tenant_id, status);
 `;
 
 export default async function(req) {

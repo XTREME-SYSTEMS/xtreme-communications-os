@@ -1,0 +1,53 @@
+{
+  "name": "WorkflowStep",
+  "type": "object",
+  "properties": {
+    "tenant_id": {
+      "type": "string"
+    },
+    "workflow_id": {
+      "type": "string"
+    },
+    "step_key": {
+      "type": "string"
+    },
+    "step_type": {
+      "type": "string",
+      "enum": [
+        "trigger",
+        "condition",
+        "action_delay",
+        "api_call",
+        "send_message",
+        "escalation_human",
+        "escalation_ai"
+      ],
+      "default": "trigger"
+    },
+    "step_config": {
+      "type": "object"
+    },
+    "next_step_key": {
+      "type": "string"
+    },
+    "branch_true_step_key": {
+      "type": "string"
+    },
+    "branch_false_step_key": {
+      "type": "string"
+    },
+    "position": {
+      "type": "integer",
+      "default": 0
+    },
+    "enabled": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "tenant_id",
+    "workflow_id",
+    "step_key"
+  ]
+}

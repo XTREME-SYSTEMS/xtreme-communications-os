@@ -1,0 +1,49 @@
+{
+  "name": "Workflow",
+  "type": "object",
+  "properties": {
+    "tenant_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "trigger_type": {
+      "type": "string",
+      "enum": [
+        "inbound_sms",
+        "inbound_call",
+        "inbound_mms",
+        "bid_event",
+        "webhook_event",
+        "schedule",
+        "manual"
+      ],
+      "default": "manual"
+    },
+    "trigger_config": {
+      "type": "object"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "active",
+        "paused",
+        "archived"
+      ],
+      "default": "draft"
+    },
+    "version": {
+      "type": "integer",
+      "default": 1
+    }
+  },
+  "required": [
+    "tenant_id",
+    "name"
+  ]
+}

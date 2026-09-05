@@ -1,0 +1,61 @@
+{
+  "name": "WorkflowExecutionLog",
+  "type": "object",
+  "properties": {
+    "tenant_id": {
+      "type": "string"
+    },
+    "workflow_id": {
+      "type": "string"
+    },
+    "execution_id": {
+      "type": "string"
+    },
+    "step_key": {
+      "type": "string"
+    },
+    "step_type": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "running",
+        "completed",
+        "failed",
+        "skipped",
+        "waiting",
+        "escalated"
+      ],
+      "default": "pending"
+    },
+    "input": {
+      "type": "object"
+    },
+    "output": {
+      "type": "object"
+    },
+    "error": {
+      "type": "string"
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "duration_ms": {
+      "type": "integer",
+      "default": 0
+    }
+  },
+  "required": [
+    "tenant_id",
+    "workflow_id",
+    "execution_id",
+    "step_key"
+  ]
+}

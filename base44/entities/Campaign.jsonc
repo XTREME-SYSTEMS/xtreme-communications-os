@@ -1,0 +1,110 @@
+{
+  "name": "Campaign",
+  "type": "object",
+  "properties": {
+    "tenant_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "channel": {
+      "type": "string",
+      "enum": [
+        "sms",
+        "mms",
+        "voice",
+        "whatsapp",
+        "rcs"
+      ],
+      "default": "sms"
+    },
+    "message_template": {
+      "type": "string"
+    },
+    "voice_script": {
+      "type": "string"
+    },
+    "segment_id": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "scheduled",
+        "running",
+        "paused",
+        "completed",
+        "cancelled"
+      ],
+      "default": "draft"
+    },
+    "schedule_type": {
+      "type": "string",
+      "enum": [
+        "immediate",
+        "scheduled",
+        "recurring"
+      ],
+      "default": "immediate"
+    },
+    "scheduled_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "throttle_per_sec": {
+      "type": "integer",
+      "default": 10
+    },
+    "rate_limit_per_sec": {
+      "type": "integer",
+      "default": 25
+    },
+    "total_recipients": {
+      "type": "integer",
+      "default": 0
+    },
+    "sent_count": {
+      "type": "integer",
+      "default": 0
+    },
+    "delivered_count": {
+      "type": "integer",
+      "default": 0
+    },
+    "failed_count": {
+      "type": "integer",
+      "default": 0
+    },
+    "opt_out_count": {
+      "type": "integer",
+      "default": 0
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "classification": {
+      "type": "string",
+      "enum": [
+        "LIVE",
+        "PROVIDER-BACKED",
+        "SANDBOX",
+        "MOCK/DEV-ONLY"
+      ],
+      "default": "SANDBOX"
+    }
+  },
+  "required": [
+    "tenant_id",
+    "name"
+  ]
+}

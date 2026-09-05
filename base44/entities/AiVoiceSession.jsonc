@@ -49,6 +49,106 @@
     },
     "duration_sec": {
       "type": "number"
+    },
+    "sentiment_trace": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "turn": {
+            "type": "integer"
+          },
+          "role": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string",
+            "enum": [
+              "positive",
+              "neutral",
+              "negative",
+              "frustrated",
+              "confused"
+            ]
+          },
+          "score": {
+            "type": "number"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "default": []
+    },
+    "sentiment_summary": {
+      "type": "object",
+      "properties": {
+        "positive": {
+          "type": "integer",
+          "default": 0
+        },
+        "neutral": {
+          "type": "integer",
+          "default": 0
+        },
+        "negative": {
+          "type": "integer",
+          "default": 0
+        },
+        "frustrated": {
+          "type": "integer",
+          "default": 0
+        },
+        "confused": {
+          "type": "integer",
+          "default": 0
+        },
+        "dominant": {
+          "type": "string"
+        }
+      }
+    },
+    "latent_metrics": {
+      "type": "object",
+      "properties": {
+        "avg_response_latency_ms": {
+          "type": "number",
+          "default": 0
+        },
+        "max_silence_gap_ms": {
+          "type": "number",
+          "default": 0
+        },
+        "speech_latency_gaps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "turn": {
+                "type": "integer"
+              },
+              "gap_ms": {
+                "type": "number"
+              },
+              "at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          },
+          "default": []
+        },
+        "total_turns": {
+          "type": "integer",
+          "default": 0
+        }
+      }
+    },
+    "barge_in_count": {
+      "type": "integer",
+      "default": 0
     }
   },
   "required": [

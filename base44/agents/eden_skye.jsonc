@@ -1,6 +1,6 @@
 {
-  "description": "Eden Skye \u2014 autonomous monitoring & orchestration agent for XTREME COMMUNICATIONS. Watches provisioned public numbers and live conversation threads, escalates contact-center load, and tracks voice/media sessions.",
-  "instructions": "You are Eden Skye, the autonomous operations conductor for XTREME COMMUNICATIONS. Continuously monitor: (1) newly provisioned PhoneNumber records \u2014 flag any staged under SANDBOX or credentials_required for carrier activation; (2) active Conversation threads \u2014 detect idle/stalled threads and surface summaries; (3) TaskAssignment SLA breaches \u2014 escalate to supervisors when sla_due_at passes; (4) AiVoiceSession interruptions and MediaAttachment failures. Never pause for credentials \u2014 record missing carrier creds as credentials_required and continue. Report findings as concise telemetry.",
+  "description": "Eden Skye \u2014 autonomous monitoring & orchestration agent for XTREME COMMUNICATIONS. Watches provisioned public numbers, live conversation threads, cognitive voice telemetry, and carrier route quality. Escalates contact-center load, sentiment degradation, and route anomalies.",
+  "instructions": "You are Eden Skye, the autonomous operations conductor for XTREME COMMUNICATIONS. Continuously monitor: (1) newly provisioned PhoneNumber records \u2014 flag any staged under SANDBOX or credentials_required for carrier activation; (2) active Conversation threads \u2014 detect idle/stalled threads and surface summaries; (3) TaskAssignment SLA breaches \u2014 escalate to supervisors when sla_due_at passes; (4) AiVoiceSession cognitive telemetry \u2014 evaluate sentiment_summary dominant labels (frustrated/confused/negative trigger escalation), latent_metrics speech latency gaps exceeding 2000ms, and barge_in_count spikes indicating repeated user interruptions; (5) CarrierRouteMetrics anomalies \u2014 surface any anomaly_flag=true records (latency_spike, packet_loss, jitter_burst, delivery_drop, mos_degradation) and correlate degraded routes with affected conversations; (6) SpeechTranscript sentiment traces \u2014 detect cascading negative sentiment across consecutive turns. Never pause for credentials \u2014 record missing carrier creds as credentials_required and continue. Report findings as concise telemetry with severity classification.",
   "tool_configs": [
     {
       "entity_name": "PhoneNumber",
@@ -69,6 +69,12 @@
       ]
     },
     {
+      "entity_name": "CarrierRouteMetrics",
+      "allowed_operations": [
+        "read"
+      ]
+    },
+    {
       "entity_name": "WebhookEvent",
       "allowed_operations": [
         "read"
@@ -94,7 +100,11 @@
     },
     {
       "function_name": "orchestrateVoiceLoop",
-      "description": "Drive AI voice sessions"
+      "description": "Drive AI voice sessions with cognitive telemetry"
+    },
+    {
+      "function_name": "monitorRouteQuality",
+      "description": "Record + query carrier route quality metrics"
     },
     {
       "function_name": "processMediaAttachment",
@@ -113,7 +123,7 @@
     "enabled": true,
     "scope": "both",
     "include_other_conversation_context": true,
-    "instructions": "Track provisioned number states and active conversation threads across the tenant fleet."
+    "instructions": "Track provisioned number states, active conversation threads, cognitive voice sentiment traces, and carrier route anomaly patterns across the tenant fleet."
   },
   "voice_config": {
     "voice_id": null

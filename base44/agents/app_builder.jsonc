@@ -138,6 +138,15 @@
       ]
     },
     {
+      "entity_name": "CarrierRouteMetrics",
+      "allowed_operations": [
+        "create",
+        "read",
+        "update",
+        "delete"
+      ]
+    },
+    {
       "function_name": "gatewayMessages",
       "description": "Public /v1/messages CaaS gateway"
     },
@@ -160,6 +169,10 @@
     {
       "function_name": "testProviderConnection",
       "description": "Provider connectivity test"
+    },
+    {
+      "function_name": "monitorRouteQuality",
+      "description": "Carrier route quality metrics + anomaly detection"
     }
   ],
   "context_files": [],

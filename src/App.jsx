@@ -13,6 +13,7 @@ import WholesaleCore from './pages/WholesaleCore';
 import NumberManagement from './pages/NumberManagement';
 import DeveloperSettings from './pages/DeveloperSettings';
 import BillingDashboard from './pages/BillingDashboard';
+import RouteQuality from './pages/RouteQuality';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -47,6 +48,7 @@ const AuthenticatedApp = () => {
       <Route path="/numbers" element={<NumberManagement />} />
       <Route path="/developers" element={<DeveloperSettings />} />
       <Route path="/billing" element={<BillingDashboard />} />
+      <Route path="/routes" element={<RouteQuality />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

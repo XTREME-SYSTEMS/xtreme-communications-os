@@ -1,0 +1,93 @@
+{
+  "name": "CarrierRouteMetrics",
+  "type": "object",
+  "properties": {
+    "tenant_id": {
+      "type": "string"
+    },
+    "provider_id": {
+      "type": "string"
+    },
+    "provider_name": {
+      "type": "string"
+    },
+    "channel": {
+      "type": "string",
+      "enum": [
+        "sms",
+        "mms",
+        "voice",
+        "whatsapp",
+        "rcs",
+        "sip",
+        "verify",
+        "lookup"
+      ]
+    },
+    "route_id": {
+      "type": "string"
+    },
+    "latency_ms": {
+      "type": "number",
+      "default": 0
+    },
+    "latency_p95_ms": {
+      "type": "number",
+      "default": 0
+    },
+    "packet_loss_pct": {
+      "type": "number",
+      "default": 0
+    },
+    "jitter_ms": {
+      "type": "number",
+      "default": 0
+    },
+    "delivery_success_pct": {
+      "type": "number",
+      "default": 100
+    },
+    "mos_score": {
+      "type": "number",
+      "default": 0
+    },
+    "anomaly_flag": {
+      "type": "boolean",
+      "default": false
+    },
+    "anomaly_type": {
+      "type": "string",
+      "enum": [
+        "none",
+        "latency_spike",
+        "packet_loss",
+        "jitter_burst",
+        "delivery_drop",
+        "mos_degradation"
+      ],
+      "default": "none"
+    },
+    "sample_count": {
+      "type": "integer",
+      "default": 1
+    },
+    "measured_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "classification": {
+      "type": "string",
+      "enum": [
+        "LIVE",
+        "PROVIDER-BACKED",
+        "SANDBOX",
+        "MOCK/DEV-ONLY"
+      ],
+      "default": "SANDBOX"
+    }
+  },
+  "required": [
+    "tenant_id",
+    "channel"
+  ]
+}

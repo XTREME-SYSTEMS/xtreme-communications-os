@@ -378,6 +378,42 @@ CREATE INDEX IF NOT EXISTS idx_usage_meters_tenant_channel ON public.usage_meter
 CREATE INDEX IF NOT EXISTS idx_usage_meters_metered_at ON public.usage_meters (metered_at);
 CREATE INDEX IF NOT EXISTS idx_billing_accounts_tenant ON public.billing_accounts (tenant_id, status);
 CREATE INDEX IF NOT EXISTS idx_invoices_tenant_status ON public.invoices (tenant_id, status);
+ALTER TABLE public.ai_voice_sessions ADD COLUMN IF NOT EXISTS sentiment_trace jsonb NOT NULL DEFAULT '[]';
+ALTER TABLE public.ai_voice_sessions ADD COLUMN IF NOT EXISTS sentiment_summary jsonb NOT NULL DEFAULT '{}';
+ALTER TABLE public.ai_voice_sessions ADD COLUMN IF NOT EXISTS latent_metrics jsonb NOT NULL DEFAULT '{}';
+ALTER TABLE public.ai_voice_sessions ADD COLUMN IF NOT EXISTS barge_in_count integer NOT NULL DEFAULT 0;
+ALTER TABLE public.speech_transcripts ADD COLUMN IF NOT EXISTS turn_index integer NOT NULL DEFAULT 0;
+ALTER TABLE public.speech_transcripts ADD COLUMN IF NOT EXISTS sentiment jsonb;
+ALTER TABLE public.speech_transcripts ADD COLUMN IF NOT EXISTS latency_ms numeric NOT NULL DEFAULT 0;
+ALTER TABLE public.speech_transcripts ADD COLUMN IF NOT EXISTS silence_gap_ms numeric NOT NULL DEFAULT 0;
+CREATE TABLE IF NOT EXISTS public.carrier_route_metrics (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid REFERENCES public.tenants(id) ON DELETE CASCADE,
+  provider_id text,
+  provider_name text,
+  channel text NOT NULL,
+  route_id text,
+  latency_ms numeric NOT NULL DEFAULT 0,
+  latency_p95_ms numeric NOT NULL DEFAULT 0,
+  packet_loss_pct numeric NOT NULL DEFAULT 0,
+  jitter_ms numeric NOT NULL DEFAULT 0,
+  delivery_success_pct numeric NOT NULL DEFAULT 100,
+  mos_score numeric NOT NULL DEFAULT 0,
+  anomaly_flag boolean NOT NULL DEFAULT false,
+  anomaly_type text NOT NULL DEFAULT 'none',
+  sample_count integer NOT NULL DEFAULT 1,
+  measured_at timestamptz NOT NULL DEFAULT now(),
+  classification text NOT NULL DEFAULT 'SANDBOX',
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE public.carrier_route_metrics ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS carrier_route_metrics_isolation ON public.carrier_route_metrics;
+CREATE POLICY carrier_route_metrics_isolation ON public.carrier_route_metrics FOR ALL USING (tenant_id::text = public.current_tenant_id());
+CREATE INDEX IF NOT EXISTS idx_carrier_route_metrics_tenant_channel ON public.carrier_route_metrics (tenant_id, channel);
+CREATE INDEX IF NOT EXISTS idx_carrier_route_metrics_anomaly ON public.carrier_route_metrics (anomaly_flag, measured_at);
+CREATE INDEX IF NOT EXISTS idx_carrier_route_metrics_measured_at ON public.carrier_route_metrics (measured_at);
+CREATE INDEX IF NOT EXISTS idx_ai_voice_sessions_sentiment ON public.ai_voice_sessions (tenant_id, status);
+CREATE INDEX IF NOT EXISTS idx_speech_transcripts_turn ON public.speech_transcripts (voice_session_id, turn_index);
 `;
 
 export default async function(req) {
@@ -392,7 +428,7 @@ export default async function(req) {
         status: "connector_not_authorized",
         detail: "Authorize the Supabase connector to push the schema live. The full DDL + RLS migration is staged and ready.",
         sql_chars: DDL.length,
-        tables: ["tenants", "api_keys", "api_routes", "webhook_dispatchers", "phone_numbers", "sip_trunks", "verifications", "lookup_results", "conversations", "participants", "agents", "routing_queues", "skill_profiles", "task_assignments", "webhook_events", "webhook_deliveries", "ai_voice_sessions", "ai_agent_configs", "speech_transcripts", "media_attachments"],
+        tables: ["tenants", "api_keys", "api_routes", "webhook_dispatchers", "phone_numbers", "sip_trunks", "verifications", "lookup_results", "conversations", "participants", "agents", "routing_queues", "skill_profiles", "task_assignments", "webhook_events", "webhook_deliveries", "ai_voice_sessions", "ai_agent_configs", "speech_transcripts", "media_attachments", "carrier_route_metrics"],
       });
     }
 
@@ -415,7 +451,7 @@ export default async function(req) {
       status: rr.ok ? "provisioned" : "error",
       ref,
       detail: detail.slice(0, 600),
-      tables: ["tenants", "api_keys", "api_routes", "webhook_dispatchers", "phone_numbers", "sip_trunks", "verifications", "lookup_results", "conversations", "participants", "agents", "routing_queues", "skill_profiles", "task_assignments", "webhook_events", "webhook_deliveries", "ai_voice_sessions", "ai_agent_configs", "speech_transcripts", "media_attachments"],
+      tables: ["tenants", "api_keys", "api_routes", "webhook_dispatchers", "phone_numbers", "sip_trunks", "verifications", "lookup_results", "conversations", "participants", "agents", "routing_queues", "skill_profiles", "task_assignments", "webhook_events", "webhook_deliveries", "ai_voice_sessions", "ai_agent_configs", "speech_transcripts", "media_attachments", "carrier_route_metrics"],
     });
   } catch (error) {
     return Response.json({ status: "error", detail: error.message }, { status: 500 });

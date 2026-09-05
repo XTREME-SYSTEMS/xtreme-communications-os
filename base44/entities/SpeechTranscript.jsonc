@@ -29,6 +29,36 @@
     "interrupted": {
       "type": "boolean",
       "default": false
+    },
+    "turn_index": {
+      "type": "integer",
+      "default": 0
+    },
+    "sentiment": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string",
+          "enum": [
+            "positive",
+            "neutral",
+            "negative",
+            "frustrated",
+            "confused"
+          ]
+        },
+        "score": {
+          "type": "number"
+        }
+      }
+    },
+    "latency_ms": {
+      "type": "number",
+      "default": 0
+    },
+    "silence_gap_ms": {
+      "type": "number",
+      "default": 0
     }
   },
   "required": [

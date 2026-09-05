@@ -1,14 +1,49 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 
+function base64ToBytes(b64) {
+  const bin = atob(b64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return bytes;
+}
+
 // Telnyx inbound webhook controller — /api/v1/webhooks/telnyx
 // Receives Telnyx message.received + call.initiated events, resolves the tenant
 // from the destination phone number, ingests the event, and threads MMS media
 // into the tenant's chat timeline via processMediaAttachment.
+// Verifies the Ed25519 signature (telnyx-signature-ed25519) against TELNYX_PUBLIC_KEY.
 export default async function(req) {
   try {
     const base44 = createClientFromRequest(req);
+
+    // ── Ed25519 webhook signature verification ──
+    const rawBody = await req.text();
+    const sigHeader = req.headers.get("telnyx-signature-ed25519") || req.headers.get("Telnyx-Signature-Ed25519") || "";
+    const tsHeader = req.headers.get("telnyx-timestamp") || req.headers.get("Telnyx-Timestamp") || "";
+    const pubKeyB64 = process.env.TELNYX_PUBLIC_KEY;
+
+    let signatureValid = false;
+    if (pubKeyB64 && sigHeader && tsHeader) {
+      try {
+        const pubKeyBytes = base64ToBytes(pubKeyB64.trim());
+        const sigBytes = base64ToBytes(sigHeader);
+        const message = new TextEncoder().encode(`${tsHeader}|${rawBody}`);
+        const cryptoKey = await crypto.subtle.importKey(
+          "raw", pubKeyBytes, { name: "Ed25519" }, false, ["verify"]
+        );
+        signatureValid = await crypto.subtle.verify("Ed25519", cryptoKey, sigBytes, message);
+      } catch (_) {
+        signatureValid = false;
+      }
+    }
+
+    // Reject unsigned/invalid webhooks once the public key is configured
+    if (pubKeyB64 && !signatureValid) {
+      return Response.json({ error: "invalid webhook signature" }, { status: 401 });
+    }
+
     let body = {};
-    try { body = await req.json(); } catch (_) {}
+    try { body = JSON.parse(rawBody); } catch (_) {}
 
     const eventType = body.data?.event_type || body.event_type || "unknown";
     const payload = body.data?.payload || body.payload || body;
@@ -29,7 +64,7 @@ export default async function(req) {
       raw: JSON.stringify(body).slice(0, 10000),
       normalized: payload,
       status: "ingested",
-      signature_valid: true,
+      signature_valid: signatureValid,
     });
 
     // ── Inbound SMS/MMS ──

@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { Eye, Volume2, Square } from "lucide-react";
+import { base44 } from "@/api/base44Client";
+import { Eye, Volume2, Square, Headphones } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function PreflightSensory({ tests, score }) {
   const [speaking, setSpeaking] = useState(false);
+  const [studio, setStudio] = useState({ url: null, loading: false });
   const visualTests = tests.slice(0, 48);
   const passCount = tests.filter((t) => t.status === "pass").length;
   const failCount = tests.filter((t) => t.status === "fail").length;
@@ -16,6 +18,19 @@ export default function PreflightSensory({ tests, score }) {
     u.onend = () => setSpeaking(false);
     setSpeaking(true);
     window.speechSynthesis.speak(u);
+  };
+
+  const playStudio = async () => {
+    if (studio.url) { new Audio(studio.url).play(); return; }
+    setStudio({ url: null, loading: true });
+    try {
+      const res = await base44.functions.invoke("preflightStudioVerdict", { score, pass_count: passCount, fail_count: failCount, total: tests.length });
+      const d = res.data || res;
+      setStudio({ url: d.url, loading: false });
+      if (d.url) new Audio(d.url).play();
+    } catch (e) {
+      setStudio({ url: null, loading: false });
+    }
   };
 
   return (
@@ -42,11 +57,17 @@ export default function PreflightSensory({ tests, score }) {
         <p className="text-[12px] text-text-muted leading-relaxed mb-4 flex-1">
           Speaks the live preflight verdict — overall score, pass/fail counts, and production readiness — using system speech synthesis. Verifiable auditory proof of system state.
         </p>
-        <button onClick={speak}
-          className={cn("h-10 rounded font-display tracking-[0.1em] uppercase text-[11px] flex items-center justify-center gap-2",
-            speaking ? "bg-destructive text-base" : "bg-accent-orange text-base")}>
-          {speaking ? <><Square className="h-4 w-4" /> Stop</> : <><Volume2 className="h-4 w-4" /> Speak Verdict</>}
-        </button>
+        <div className="flex gap-2">
+          <button onClick={speak}
+            className={cn("flex-1 h-10 rounded font-display tracking-[0.1em] uppercase text-[11px] flex items-center justify-center gap-2",
+              speaking ? "bg-destructive text-base" : "bg-accent-orange text-base")}>
+            {speaking ? <><Square className="h-4 w-4" /> Stop</> : <><Volume2 className="h-4 w-4" /> Speak</>}
+          </button>
+          <button onClick={playStudio} disabled={studio.loading}
+            className="flex-1 h-10 rounded border border-accent-orange/50 text-accent-orange font-display tracking-[0.1em] uppercase text-[11px] flex items-center justify-center gap-2 disabled:opacity-60">
+            <Headphones className="h-4 w-4" /> {studio.loading ? "Rendering…" : "Studio Verdict"}
+          </button>
+        </div>
       </div>
     </div>
   );

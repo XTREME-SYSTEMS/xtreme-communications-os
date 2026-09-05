@@ -8,7 +8,7 @@ import PreflightMatrix from "@/components/xtreme/PreflightMatrix";
 import PreflightStages from "@/components/xtreme/PreflightStages";
 import PreflightScoreGauge from "@/components/xtreme/PreflightScoreGauge";
 import PreflightSensory from "@/components/xtreme/PreflightSensory";
-import { Rocket } from "lucide-react";
+import { Rocket, Bot } from "lucide-react";
 
 export default function Preflight() {
   const { toast } = useToast();
@@ -19,6 +19,7 @@ export default function Preflight() {
   const [findings, setFindings] = useState([]);
   const [engines, setEngines] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [autoPiloting, setAutoPiloting] = useState(false);
 
   const load = useCallback(async () => {
     const [caps, tst, fnd, eng] = await Promise.all([
@@ -60,6 +61,18 @@ export default function Preflight() {
     variant: overall >= 100 ? "default" : "destructive",
   });
 
+  const runAutoPilot = async () => {
+    setAutoPiloting(true);
+    try {
+      const res = await base44.functions.invoke("preflightAutoPilot", { max_gaps: 5 });
+      const d = res.data || res;
+      toast({ title: "AutoPilot sweep complete", description: `${d.gaps_found} gaps · ${d.tasks_queued} tasks queued · ${d.current_score}% → ${d.projected_score}% projected` });
+      await load();
+    } catch (e) {
+      toast({ title: "AutoPilot failed", description: String(e.message || e), variant: "destructive" });
+    } finally { setAutoPiloting(false); }
+  };
+
   return (
     <div className="flex h-screen w-full overflow-hidden bg-base text-text-primary">
       <SystemDock activeNode={activeNode} engineState={engineState} />
@@ -72,9 +85,14 @@ export default function Preflight() {
                 <h1 className="font-display text-lg tracking-[0.1em] uppercase">Preflight Audit · XTREME vs Twilio</h1>
                 <p className="text-[12px] text-text-muted mt-1">Reverse-engineered capability matrix with an autonomous prompt-creator at every stage. Twilio benchmark on top, XTREME below. Per-row Auto Fix / Heal / Harden / Validate.</p>
               </div>
-              <button onClick={launch} className="h-10 px-5 rounded bg-accent-orange text-base font-display tracking-[0.1em] uppercase text-[12px] flex items-center gap-2 shrink-0">
-                <Rocket className="h-4 w-4" /> Launch
-              </button>
+              <div className="flex items-center gap-2 shrink-0">
+                <button onClick={runAutoPilot} disabled={autoPiloting} className="h-10 px-4 rounded border border-accent-orange/50 text-accent-orange font-display tracking-[0.1em] uppercase text-[12px] flex items-center gap-2 disabled:opacity-60">
+                  <Bot className="h-4 w-4" /> {autoPiloting ? "Sweeping…" : "AutoPilot"}
+                </button>
+                <button onClick={launch} className="h-10 px-5 rounded bg-accent-orange text-base font-display tracking-[0.1em] uppercase text-[12px] flex items-center gap-2">
+                  <Rocket className="h-4 w-4" /> Launch
+                </button>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-[200px_1fr] gap-4">

@@ -530,6 +530,23 @@ CREATE INDEX IF NOT EXISTS idx_workflow_execution_logs_workflow ON public.workfl
 CREATE INDEX IF NOT EXISTS idx_campaigns_tenant_status ON public.campaigns (tenant_id, status);
 CREATE INDEX IF NOT EXISTS idx_campaign_recipients_campaign_status ON public.campaign_recipients (campaign_id, status);
 CREATE INDEX IF NOT EXISTS idx_audience_segments_tenant ON public.audience_segments (tenant_id, status);
+CREATE TABLE IF NOT EXISTS public.twilio_vulnerability_audits (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid REFERENCES public.tenants(id) ON DELETE CASCADE,
+  area text NOT NULL,
+  twilio_behavior text NOT NULL,
+  vulnerability_class text NOT NULL DEFAULT 'fixed_routing',
+  severity text NOT NULL DEFAULT 'medium',
+  xcomm_bypass text,
+  evidence_source text,
+  status text NOT NULL DEFAULT 'open',
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE public.twilio_vulnerability_audits ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS twilio_vulnerability_audits_isolation ON public.twilio_vulnerability_audits;
+CREATE POLICY twilio_vulnerability_audits_isolation ON public.twilio_vulnerability_audits FOR ALL USING (tenant_id::text = public.current_tenant_id() OR tenant_id IS NULL);
+CREATE INDEX IF NOT EXISTS idx_twilio_vuln_audits_severity ON public.twilio_vulnerability_audits (severity, status);
+CREATE INDEX IF NOT EXISTS idx_twilio_vuln_audits_class ON public.twilio_vulnerability_audits (vulnerability_class);
 `;
 
 export default async function(req) {

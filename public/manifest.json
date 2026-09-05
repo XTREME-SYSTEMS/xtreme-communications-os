@@ -1,0 +1,13 @@
+{
+  "name": "XTREME COMMUNICATIONS",
+  "short_name": "XCOM",
+  "description": "Enterprise Communications-as-a-Service Command Center",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#FFFFFF",
+  "theme_color": "#FF6600",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

@@ -4,7 +4,59 @@
 
 @layer base {
   :root {
-    /* XTREME OS command-center palette */
+    /* XTREME COMMS — Light Mode Primary */
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 20 100% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222 47% 11%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 215 28% 89%;
+    --input: 215 28% 89%;
+    --ring: 20 100% 50%;
+    --chart-1: 20 100% 50%;
+    --chart-2: 151 100% 35%;
+    --chart-3: 197 90% 45%;
+    --chart-4: 43 96% 56%;
+    --chart-5: 280 70% 55%;
+    --radius: 0.375rem;
+
+    /* Command-center semantic tokens — light */
+    --base: 0 0% 100%;
+    --surface: 210 40% 98%;
+    --surface-border: 215 28% 89%;
+    --accent-orange: 20 100% 50%;
+    --status-green: 151 100% 35%;
+    --text-primary: 222 47% 11%;
+    --text-muted: 215 16% 47%;
+
+    --font-heading: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --font-body: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --font-display: 'JetBrains Mono', ui-monospace, monospace;
+    --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 20 100% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 40% 96%;
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-border: 215 28% 89%;
+    --sidebar-ring: 20 100% 50%;
+  }
+
+  .dark {
+    /* XTREME COMMS — Dark Mode (toggle) */
     --background: 222 42% 6%;
     --foreground: 210 40% 98%;
     --card: 222 38% 11%;
@@ -29,9 +81,7 @@
     --chart-3: 197 90% 55%;
     --chart-4: 43 96% 66%;
     --chart-5: 280 70% 65%;
-    --radius: 0.375rem;
 
-    /* Command-center semantic tokens */
     --base: 222 42% 6%;
     --surface: 222 38% 11%;
     --surface-border: 217 32% 17%;
@@ -39,11 +89,6 @@
     --status-green: 151 100% 45%;
     --text-primary: 210 40% 98%;
     --text-muted: 215 16% 47%;
-
-    --font-heading: 'Inter', ui-sans-serif, system-ui, sans-serif;
-    --font-body: 'Inter', ui-sans-serif, system-ui, sans-serif;
-    --font-display: 'JetBrains Mono', ui-monospace, monospace;
-    --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 
     --sidebar-background: 222 42% 6%;
     --sidebar-foreground: 210 40% 98%;

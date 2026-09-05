@@ -201,6 +201,15 @@
       ]
     },
     {
+      "entity_name": "TwilioVulnerabilityAudit",
+      "allowed_operations": [
+        "create",
+        "read",
+        "update",
+        "delete"
+      ]
+    },
+    {
       "function_name": "gatewayMessages",
       "description": "Public /v1/messages CaaS gateway"
     },

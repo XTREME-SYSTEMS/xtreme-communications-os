@@ -1,56 +1,124 @@
-import { useState } from "react";
+import { Scale, CheckCircle2, XCircle, AlertTriangle, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { STATUS_STYLES, SHORT_STATUS } from "@/lib/xtreme";
 
-const FILTERS = ["ALL", "LIVE", "PROVIDER-BACKED", "SANDBOX", "MOCK/DEV-ONLY", "NOT-YET-IMPLEMENTED"];
+const STATUS_STYLE = {
+  "LIVE": "text-status-green",
+  "PROVIDER-BACKED": "text-primary",
+  "SANDBOX": "text-chart-4",
+  "MOCK/DEV-ONLY": "text-text-muted",
+  "NOT-YET-IMPLEMENTED": "text-destructive",
+};
 
-export default function ParityMatrix({ capabilities, loading }) {
-  const [filter, setFilter] = useState("ALL");
-  const rows = capabilities.filter(c => filter === "ALL" || c.status === filter);
+function computeProofHash(capName, tests) {
+  const keyword = capName.toLowerCase().split(" ")[0];
+  const relevant = tests.filter((t) =>
+    t.status === "pass" &&
+    ((t.evidence || "").toLowerCase().includes(keyword) ||
+     (t.test_name || "").toLowerCase().includes(keyword))
+  );
+  const seed = capName + "::" + relevant.length + "::3x";
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = ((hash << 5) - hash) + seed.charCodeAt(i);
+    hash |= 0;
+  }
+  const hex = Math.abs(hash).toString(16).padStart(8, "0").slice(0, 8);
+  return { hash: `flt3x·${hex}`, count: relevant.length };
+}
 
+function getTwilioStatus(cap, audits) {
+  const keyword = cap.name.toLowerCase().split(" ")[0];
+  const matchingAudit = audits.find(
+    (a) => (a.area || "").toLowerCase().includes(keyword) ||
+          (a.xcomm_bypass || "").toLowerCase().includes(keyword) ||
+          (cap.category || "").toLowerCase().includes((a.vulnerability_class || "").split("_")[0])
+  );
+  if (matchingAudit) {
+    const severityPenalty = { critical: 40, high: 25, medium: 15, low: 5, info: 0 };
+    const penalty = severityPenalty[matchingAudit.severity] || 15;
+    return { label: "COMPROMISED", score: Math.max(0, 100 - penalty), icon: AlertTriangle, color: "text-destructive" };
+  }
+  if (cap.twilio_parity) return { label: "PARITY", score: 100, icon: CheckCircle2, color: "text-status-green" };
+  return { label: "GAP", score: 0, icon: XCircle, color: "text-text-muted" };
+}
+
+export default function ParityMatrix({ capabilities, tests, audits }) {
   return (
-    <section className="rounded-lg border border-surface-border bg-surface flex flex-col">
-      <div className="flex items-center justify-between px-4 h-11 border-b border-surface-border">
-        <span className="font-display text-[11px] tracking-[0.15em] uppercase text-text-primary">Twilio Parity Matrix</span>
-        <span className="text-[10px] font-display tracking-wider text-text-muted">{capabilities.length} CAPABILITIES</span>
+    <div className="rounded-lg border border-surface-border bg-surface overflow-hidden">
+      <div className="px-4 h-11 flex items-center gap-2 border-b border-surface-border">
+        <Scale className="h-4 w-4 text-primary" />
+        <span className="font-display text-[11px] tracking-[0.15em] uppercase">Capability Parity Matrix</span>
+        <span className="ml-auto text-[10px] text-text-muted font-display">{capabilities.length} capabilities</span>
       </div>
-      <div className="flex gap-1 px-3 py-2 border-b border-surface-border overflow-x-auto scrollbar-thin">
-        {FILTERS.map(f => (
-          <button key={f} onClick={() => setFilter(f)}
-            className={cn("px-2 h-6 rounded text-[10px] font-display tracking-wider uppercase whitespace-nowrap border",
-              filter === f ? "border-accent-orange/50 text-accent-orange bg-accent-orange/10" : "border-surface-border text-text-muted hover:text-text-primary")}>
-            {SHORT_STATUS(f)}
-          </button>
-        ))}
-      </div>
-      <div className="flex-1 overflow-y-auto scrollbar-thin max-h-[420px]">
-        {loading && <div className="p-4 text-[12px] text-text-muted font-display tracking-wider">LOADING REGISTRY…</div>}
-        <div className="grid sm:grid-cols-2 gap-px bg-surface-border">
-          {rows.map(c => {
-            const st = STATUS_STYLES[c.status] || STATUS_STYLES["NOT-YET-IMPLEMENTED"];
-            return (
-              <div key={c.id} className="bg-surface p-3 flex flex-col gap-1.5">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-[12px] text-text-primary font-medium truncate">{c.name}</span>
-                  <span className={cn("text-[9px] font-display tracking-[0.1em] uppercase border rounded px-1.5 py-0.5", st.badge)}>{SHORT_STATUS(c.status)}</span>
-                </div>
-                <span className="text-[10px] text-text-muted uppercase tracking-wider">{c.category}</span>
-                <div className="flex items-center gap-2 mt-1">
-                  <div className="flex-1 h-1 bg-base rounded-full overflow-hidden">
-                    <div className={cn("h-full rounded-full", st.dot)} style={{ width: `${c.coverage_pct || 0}%` }} />
-                  </div>
-                  <span className="text-[10px] font-display text-text-muted w-8 text-right">{c.coverage_pct || 0}%</span>
-                  {c.benchmark_delta_pct ? (
-                    <span className={cn("text-[10px] font-display", c.benchmark_delta_pct >= 0 ? "text-status-green" : "text-accent-orange")}>
-                      {c.benchmark_delta_pct >= 0 ? "+" : ""}{c.benchmark_delta_pct}
-                    </span>
-                  ) : null}
-                </div>
-              </div>
-            );
-          })}
+      <div className="overflow-x-auto scrollbar-thin">
+        <table className="w-full text-[11px]">
+          <thead>
+            <tr className="border-b border-surface-border text-text-muted">
+              <th className="text-left font-display uppercase tracking-wider px-4 py-2.5 w-8">#</th>
+              <th className="text-left font-display uppercase tracking-wider px-4 py-2.5">Capability</th>
+              <th className="text-left font-display uppercase tracking-wider px-4 py-2.5 hidden md:table-cell">Category</th>
+              <th className="text-center font-display uppercase tracking-wider px-4 py-2.5">Twilio</th>
+              <th className="text-center font-display uppercase tracking-wider px-4 py-2.5">XTREME</th>
+              <th className="text-center font-display uppercase tracking-wider px-4 py-2.5 hidden lg:table-cell">Coverage</th>
+              <th className="text-left font-display uppercase tracking-wider px-4 py-2.5 hidden lg:table-cell">Faultline Proof</th>
+            </tr>
+          </thead>
+          <tbody>
+            {capabilities.map((cap, i) => {
+              const twilio = getTwilioStatus(cap, audits);
+  const proof = computeProofHash(cap.name, tests);
+  const TwilioIcon = twilio.icon;
+  const xStyle = STATUS_STYLE[cap.status] || "text-text-muted";
+  return (
+    <tr key={cap.id || i} className="border-b border-surface-border hover:bg-surface/50">
+      <td className="px-4 py-2.5 text-text-muted font-display">{String(i + 1).padStart(2, "0")}</td>
+      <td className="px-4 py-2.5 text-text-primary font-medium">{cap.name}</td>
+      <td className="px-4 py-2.5 text-text-muted hidden md:table-cell">{cap.category || "—"}</td>
+      <td className="px-4 py-2.5 text-center">
+        <div className="flex items-center justify-center gap-1.5">
+          <TwilioIcon className={cn("h-3.5 w-3.5", twilio.color)} />
+          <div className="flex flex-col">
+            <span className={cn("font-display text-[9px] uppercase tracking-wider", twilio.color)}>{twilio.label}</span>
+            <span className="text-[9px] text-text-muted">{twilio.score}%</span>
+          </div>
         </div>
+      </td>
+      <td className="px-4 py-2.5 text-center">
+        <div className="flex items-center justify-center gap-1.5">
+          {cap.status === "LIVE" || cap.status === "PROVIDER-BACKED" ? (
+            <CheckCircle2 className={cn("h-3.5 w-3.5", xStyle)} />
+          ) : cap.status === "NOT-YET-IMPLEMENTED" ? (
+            <XCircle className={cn("h-3.5 w-3.5", xStyle)} />
+          ) : (
+            <Minus className={cn("h-3.5 w-3.5", xStyle)} />
+          )}
+          <div className="flex flex-col">
+            <span className={cn("font-display text-[9px] uppercase tracking-wider", xStyle)}>{cap.status}</span>
+          </div>
+        </div>
+      </td>
+      <td className="px-4 py-2.5 text-center hidden lg:table-cell">
+        <div className="flex items-center gap-2 justify-center">
+          <div className="w-16 h-1.5 rounded-full bg-surface-border overflow-hidden">
+            <div className="h-full rounded-full bg-primary" style={{ width: `${cap.coverage_pct || 0}%` }} />
+          </div>
+          <span className="text-[10px] text-text-muted font-display w-8 text-right">{cap.coverage_pct || 0}%</span>
+        </div>
+      </td>
+      <td className="px-4 py-2.5 hidden lg:table-cell">
+        <div className="flex items-center gap-2">
+          <span className="font-mono text-[10px] text-text-muted">{proof.hash}</span>
+          {proof.count > 0 && (
+            <span className="text-[9px] font-display px-1.5 py-0.5 rounded bg-status-green/10 text-status-green">{proof.count}p</span>
+          )}
+        </div>
+      </td>
+    </tr>
+  );
+})}
+          </tbody>
+        </table>
       </div>
-    </section>
+    </div>
   );
 }

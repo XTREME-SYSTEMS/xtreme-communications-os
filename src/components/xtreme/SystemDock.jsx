@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
-import { Brain, Factory, ShieldCheck, Globe, EyeOff, Radio, Network, Phone, KeyRound, CreditCard, Radar, Megaphone } from "lucide-react";
+import { Brain, Factory, ShieldCheck, Globe, EyeOff, Radio, Network, Phone, KeyRound, CreditCard, Radar, Megaphone, Scale } from "lucide-react";
+import ThemeToggle from "@/components/xtreme/ThemeToggle";
 import { ENGINE_STYLES } from "@/lib/xtreme";
 
 const NODES = [
@@ -16,6 +17,7 @@ const NODES = [
   { name: "Billing", role: "Usage Meter", icon: CreditCard, route: "/billing" },
   { name: "Route Quality", role: "Cognitive Telemetry", icon: Radar, route: "/routes" },
   { name: "Automations", role: "Workflows + Blasts", icon: Megaphone, route: "/campaigns" },
+  { name: "Parity", role: "Twilio Comparison", icon: Scale, route: "/parity-comparison" },
 ];
 
 export default function SystemDock({ activeNode, onSelect, engineState }) {
@@ -45,8 +47,11 @@ export default function SystemDock({ activeNode, onSelect, engineState }) {
           );
         })}
       </div>
-      <div className="px-4 py-3 border-t border-surface-border text-[10px] font-display tracking-[0.15em] text-text-muted uppercase leading-relaxed">
-        Observe→Plan→Execute→Audit→Repair
+      <div className="px-4 py-3 border-t border-surface-border space-y-2">
+        <ThemeToggle />
+        <div className="text-[10px] font-display tracking-[0.15em] text-text-muted uppercase leading-relaxed">
+          Observe→Plan→Execute→Audit→Repair
+        </div>
       </div>
     </aside>
   );

@@ -1,0 +1,81 @@
+{
+  "name": "SipTrunk",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "tenant_id": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "inbound",
+        "outbound",
+        "bidirectional"
+      ],
+      "default": "bidirectional"
+    },
+    "protocol": {
+      "type": "string",
+      "enum": [
+        "sip",
+        "sips",
+        "iax"
+      ],
+      "default": "sip"
+    },
+    "host": {
+      "type": "string"
+    },
+    "port": {
+      "type": "integer",
+      "default": 5060
+    },
+    "transport": {
+      "type": "string",
+      "enum": [
+        "udp",
+        "tcp",
+        "tls"
+      ],
+      "default": "udp"
+    },
+    "auth_user": {
+      "type": "string"
+    },
+    "auth_secret_ref": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "connected",
+        "disconnected",
+        "pending",
+        "credentials_required"
+      ],
+      "default": "credentials_required"
+    },
+    "channels": {
+      "type": "integer",
+      "default": 1
+    },
+    "codec": {
+      "type": "string",
+      "default": "PCMU"
+    },
+    "enabled": {
+      "type": "boolean",
+      "default": false
+    },
+    "last_registered_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

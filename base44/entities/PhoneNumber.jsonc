@@ -1,0 +1,77 @@
+{
+  "name": "PhoneNumber",
+  "type": "object",
+  "properties": {
+    "e164": {
+      "type": "string"
+    },
+    "tenant_id": {
+      "type": "string"
+    },
+    "country_code": {
+      "type": "string",
+      "default": "US"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "local",
+        "toll_free",
+        "mobile",
+        "shortcode"
+      ],
+      "default": "local"
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "sms",
+          "mms",
+          "voice",
+          "whatsapp"
+        ]
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "available",
+        "assigned",
+        "porting",
+        "released",
+        "reserved",
+        "sandbox"
+      ],
+      "default": "available"
+    },
+    "classification": {
+      "type": "string",
+      "enum": [
+        "LIVE",
+        "PROVIDER-BACKED",
+        "SANDBOX",
+        "MOCK/DEV-ONLY"
+      ],
+      "default": "SANDBOX"
+    },
+    "provider_id": {
+      "type": "string"
+    },
+    "sip_trunk_id": {
+      "type": "string"
+    },
+    "monthly_cost": {
+      "type": "number",
+      "default": 0
+    },
+    "purchased_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "e164"
+  ]
+}

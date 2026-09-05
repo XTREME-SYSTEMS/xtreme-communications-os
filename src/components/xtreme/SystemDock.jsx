@@ -19,6 +19,7 @@ const NODES = [
   { name: "Automations", role: "Workflows + Blasts", icon: Megaphone, route: "/campaigns" },
   { name: "Parity", role: "Twilio Comparison", icon: Scale, route: "/parity-comparison" },
   { name: "Prompt Library", role: "Autonomous 100% Prompts", icon: Library, route: "/prompts" },
+  { name: "Preflight", role: "Audit · Score · Heal · Launch", icon: ShieldCheck, route: "/preflight" },
 ];
 
 export default function SystemDock({ activeNode, onSelect, engineState }) {

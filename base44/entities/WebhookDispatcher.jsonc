@@ -17,6 +17,9 @@
     "secret_hash": {
       "type": "string"
     },
+    "signing_secret": {
+      "type": "string"
+    },
     "status": {
       "type": "string",
       "enum": [

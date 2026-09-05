@@ -309,6 +309,54 @@ DROP POLICY IF EXISTS speech_transcripts_isolation ON public.speech_transcripts;
 CREATE POLICY speech_transcripts_isolation ON public.speech_transcripts FOR ALL USING (tenant_id::text = public.current_tenant_id());
 DROP POLICY IF EXISTS media_attachments_isolation ON public.media_attachments;
 CREATE POLICY media_attachments_isolation ON public.media_attachments FOR ALL USING (tenant_id::text = public.current_tenant_id());
+ALTER TABLE public.webhook_dispatchers ADD COLUMN IF NOT EXISTS signing_secret text;
+CREATE TABLE IF NOT EXISTS public.usage_meters (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid REFERENCES public.tenants(id) ON DELETE CASCADE,
+  channel text NOT NULL,
+  event_type text,
+  units integer NOT NULL DEFAULT 1,
+  unit_cost_cents integer NOT NULL DEFAULT 0,
+  amount_cents integer NOT NULL DEFAULT 0,
+  metered_at timestamptz NOT NULL DEFAULT now(),
+  classification text NOT NULL DEFAULT 'SANDBOX',
+  reference_id text,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS public.billing_accounts (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid REFERENCES public.tenants(id) ON DELETE CASCADE,
+  plan text NOT NULL DEFAULT 'starter',
+  balance_cents integer NOT NULL DEFAULT 0,
+  credit_cents integer NOT NULL DEFAULT 0,
+  billing_cycle_start date,
+  billing_cycle_end date,
+  status text NOT NULL DEFAULT 'active',
+  auto_recharge boolean NOT NULL DEFAULT false,
+  usage_this_cycle_cents integer NOT NULL DEFAULT 0,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS public.invoices (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid REFERENCES public.tenants(id) ON DELETE CASCADE,
+  period_start date,
+  period_end date,
+  total_cents integer NOT NULL DEFAULT 0,
+  line_items jsonb NOT NULL DEFAULT '{}',
+  status text NOT NULL DEFAULT 'draft',
+  issued_at timestamptz,
+  paid_at timestamptz,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE public.usage_meters ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.billing_accounts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.invoices ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS usage_meters_isolation ON public.usage_meters;
+CREATE POLICY usage_meters_isolation ON public.usage_meters FOR ALL USING (tenant_id::text = public.current_tenant_id());
+DROP POLICY IF EXISTS billing_accounts_isolation ON public.billing_accounts;
+CREATE POLICY billing_accounts_isolation ON public.billing_accounts FOR ALL USING (tenant_id::text = public.current_tenant_id());
+DROP POLICY IF EXISTS invoices_isolation ON public.invoices;
+CREATE POLICY invoices_isolation ON public.invoices FOR ALL USING (tenant_id::text = public.current_tenant_id());
 CREATE INDEX IF NOT EXISTS idx_phone_numbers_tenant_e164 ON public.phone_numbers (tenant_id, e164);
 CREATE INDEX IF NOT EXISTS idx_conversations_tenant_identity ON public.conversations (tenant_id, participant_identity);
 CREATE INDEX IF NOT EXISTS idx_conversations_status ON public.conversations (status);
@@ -326,6 +374,10 @@ CREATE INDEX IF NOT EXISTS idx_api_keys_tenant ON public.api_keys (tenant_id, st
 CREATE INDEX IF NOT EXISTS idx_api_routes_tenant_channel ON public.api_routes (tenant_id, channel);
 CREATE INDEX IF NOT EXISTS idx_verifications_tenant_status ON public.verifications (tenant_id, status);
 CREATE INDEX IF NOT EXISTS idx_lookup_results_tenant_e164 ON public.lookup_results (tenant_id, e164);
+CREATE INDEX IF NOT EXISTS idx_usage_meters_tenant_channel ON public.usage_meters (tenant_id, channel);
+CREATE INDEX IF NOT EXISTS idx_usage_meters_metered_at ON public.usage_meters (metered_at);
+CREATE INDEX IF NOT EXISTS idx_billing_accounts_tenant ON public.billing_accounts (tenant_id, status);
+CREATE INDEX IF NOT EXISTS idx_invoices_tenant_status ON public.invoices (tenant_id, status);
 `;
 
 export default async function(req) {

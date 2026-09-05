@@ -1,0 +1,58 @@
+{
+  "name": "UsageMeter",
+  "type": "object",
+  "properties": {
+    "tenant_id": {
+      "type": "string"
+    },
+    "channel": {
+      "type": "string",
+      "enum": [
+        "sms",
+        "mms",
+        "voice",
+        "whatsapp",
+        "verify",
+        "lookup",
+        "number",
+        "payment"
+      ]
+    },
+    "event_type": {
+      "type": "string"
+    },
+    "units": {
+      "type": "integer",
+      "default": 1
+    },
+    "unit_cost_cents": {
+      "type": "integer",
+      "default": 0
+    },
+    "amount_cents": {
+      "type": "integer",
+      "default": 0
+    },
+    "metered_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "classification": {
+      "type": "string",
+      "enum": [
+        "LIVE",
+        "PROVIDER-BACKED",
+        "SANDBOX",
+        "MOCK/DEV-ONLY"
+      ],
+      "default": "SANDBOX"
+    },
+    "reference_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "tenant_id",
+    "channel"
+  ]
+}

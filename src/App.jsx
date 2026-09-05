@@ -12,6 +12,7 @@ import ProviderAbstraction from './pages/ProviderAbstraction';
 import WholesaleCore from './pages/WholesaleCore';
 import NumberManagement from './pages/NumberManagement';
 import DeveloperSettings from './pages/DeveloperSettings';
+import BillingDashboard from './pages/BillingDashboard';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -45,6 +46,7 @@ const AuthenticatedApp = () => {
       <Route path="/core" element={<WholesaleCore />} />
       <Route path="/numbers" element={<NumberManagement />} />
       <Route path="/developers" element={<DeveloperSettings />} />
+      <Route path="/billing" element={<BillingDashboard />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

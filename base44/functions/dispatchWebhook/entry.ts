@@ -1,5 +1,13 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 
+// HMAC-SHA256 signing helper for outbound webhook deliveries.
+async function hmacSha256(secret, payload) {
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey("raw", enc.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const sig = await crypto.subtle.sign("HMAC", key, enc.encode(payload));
+  return Array.from(new Uint8Array(sig)).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
 // Centralized webhook event dispatcher.
 // Pipeline: INGEST -> VALIDATE -> NORMALIZE -> PERSIST -> DISPATCH.
 // Handles delivery receipts, retry with exponential backoff limits, and signature verification.
@@ -40,12 +48,17 @@ export default async function(req) {
     // 5. DISPATCH — fan out to matching tenant webhook dispatchers
     const dispatchers = await base44.asServiceRole.entities.WebhookDispatcher.filter({ tenant_id: tenant.id, status: "active" });
     const deliveryIds = [];
+    const payloadStr = JSON.stringify(normalized);
     for (const d of dispatchers) {
       if (d.events && d.events.length && !d.events.includes(event_type)) continue;
+      let sig = "";
+      if (d.signing_secret) {
+        sig = await hmacSha256(d.signing_secret, payloadStr);
+      }
       const delivery = await base44.asServiceRole.entities.WebhookDelivery.create({
         tenant_id: tenant.id, webhook_dispatcher_id: d.id, event_id: event.id,
         url: d.url, status: "queued", attempts: 0, max_attempts: 5,
-        next_attempt_at: new Date().toISOString(), signature,
+        next_attempt_at: new Date().toISOString(), signature: sig,
       });
       deliveryIds.push(delivery.id);
     }

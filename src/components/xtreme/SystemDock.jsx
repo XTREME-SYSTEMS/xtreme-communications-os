@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
-import { Brain, Factory, ShieldCheck, Globe, EyeOff, Radio, Network, Phone, KeyRound } from "lucide-react";
+import { Brain, Factory, ShieldCheck, Globe, EyeOff, Radio, Network, Phone, KeyRound, CreditCard } from "lucide-react";
 import { ENGINE_STYLES } from "@/lib/xtreme";
 
 const NODES = [
@@ -13,6 +13,7 @@ const NODES = [
   { name: "Wholesale Core", role: "CaaS Gateway", icon: Network, route: "/core" },
   { name: "Number Mgmt", role: "DIDs + SIP", icon: Phone, route: "/numbers" },
   { name: "Dev Keys", role: "API Auth", icon: KeyRound, route: "/developers" },
+  { name: "Billing", role: "Usage Meter", icon: CreditCard, route: "/billing" },
 ];
 
 export default function SystemDock({ activeNode, onSelect, engineState }) {

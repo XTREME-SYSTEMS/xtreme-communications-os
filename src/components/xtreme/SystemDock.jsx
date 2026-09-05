@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
-import { Brain, Factory, ShieldCheck, Globe, EyeOff, Radio, Network, Phone, KeyRound, CreditCard, Radar, Megaphone, Scale } from "lucide-react";
+import { Brain, Factory, ShieldCheck, Globe, EyeOff, Radio, Network, Phone, KeyRound, CreditCard, Radar, Megaphone, Scale, Library } from "lucide-react";
 import ThemeToggle from "@/components/xtreme/ThemeToggle";
 import { ENGINE_STYLES } from "@/lib/xtreme";
 
@@ -18,6 +18,7 @@ const NODES = [
   { name: "Route Quality", role: "Cognitive Telemetry", icon: Radar, route: "/routes" },
   { name: "Automations", role: "Workflows + Blasts", icon: Megaphone, route: "/campaigns" },
   { name: "Parity", role: "Twilio Comparison", icon: Scale, route: "/parity-comparison" },
+  { name: "Prompt Library", role: "Autonomous 100% Prompts", icon: Library, route: "/prompts" },
 ];
 
 export default function SystemDock({ activeNode, onSelect, engineState }) {

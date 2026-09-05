@@ -16,6 +16,7 @@ import BillingDashboard from './pages/BillingDashboard';
 import RouteQuality from './pages/RouteQuality';
 import CampaignAutomation from './pages/CampaignAutomation';
 import ParityComparison from './pages/ParityComparison';
+import PromptLibrary from './pages/PromptLibrary';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -53,6 +54,7 @@ const AuthenticatedApp = () => {
       <Route path="/routes" element={<RouteQuality />} />
       <Route path="/campaigns" element={<CampaignAutomation />} />
       <Route path="/parity-comparison" element={<ParityComparison />} />
+      <Route path="/prompts" element={<PromptLibrary />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

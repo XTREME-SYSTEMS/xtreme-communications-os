@@ -309,6 +309,23 @@ DROP POLICY IF EXISTS speech_transcripts_isolation ON public.speech_transcripts;
 CREATE POLICY speech_transcripts_isolation ON public.speech_transcripts FOR ALL USING (tenant_id::text = public.current_tenant_id());
 DROP POLICY IF EXISTS media_attachments_isolation ON public.media_attachments;
 CREATE POLICY media_attachments_isolation ON public.media_attachments FOR ALL USING (tenant_id::text = public.current_tenant_id());
+CREATE INDEX IF NOT EXISTS idx_phone_numbers_tenant_e164 ON public.phone_numbers (tenant_id, e164);
+CREATE INDEX IF NOT EXISTS idx_conversations_tenant_identity ON public.conversations (tenant_id, participant_identity);
+CREATE INDEX IF NOT EXISTS idx_conversations_status ON public.conversations (status);
+CREATE INDEX IF NOT EXISTS idx_participants_conversation ON public.participants (conversation_id);
+CREATE INDEX IF NOT EXISTS idx_comms_events_status ON public.comms_events (status);
+CREATE INDEX IF NOT EXISTS idx_task_assignments_status_sla ON public.task_assignments (status, sla_due_at);
+CREATE INDEX IF NOT EXISTS idx_task_assignments_agent ON public.task_assignments (agent_id);
+CREATE INDEX IF NOT EXISTS idx_agents_tenant_status ON public.agents (tenant_id, status);
+CREATE INDEX IF NOT EXISTS idx_webhook_events_tenant ON public.webhook_events (tenant_id);
+CREATE INDEX IF NOT EXISTS idx_webhook_deliveries_status ON public.webhook_deliveries (status, next_attempt_at);
+CREATE INDEX IF NOT EXISTS idx_ai_voice_sessions_tenant_status ON public.ai_voice_sessions (tenant_id, status);
+CREATE INDEX IF NOT EXISTS idx_speech_transcripts_session ON public.speech_transcripts (voice_session_id);
+CREATE INDEX IF NOT EXISTS idx_media_attachments_conversation ON public.media_attachments (conversation_id);
+CREATE INDEX IF NOT EXISTS idx_api_keys_tenant ON public.api_keys (tenant_id, status);
+CREATE INDEX IF NOT EXISTS idx_api_routes_tenant_channel ON public.api_routes (tenant_id, channel);
+CREATE INDEX IF NOT EXISTS idx_verifications_tenant_status ON public.verifications (tenant_id, status);
+CREATE INDEX IF NOT EXISTS idx_lookup_results_tenant_e164 ON public.lookup_results (tenant_id, e164);
 `;
 
 export default async function(req) {

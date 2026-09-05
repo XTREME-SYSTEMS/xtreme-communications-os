@@ -11,6 +11,7 @@ import Home from './pages/Home';
 import ProviderAbstraction from './pages/ProviderAbstraction';
 import WholesaleCore from './pages/WholesaleCore';
 import NumberManagement from './pages/NumberManagement';
+import DeveloperSettings from './pages/DeveloperSettings';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -43,6 +44,7 @@ const AuthenticatedApp = () => {
       <Route path="/providers" element={<ProviderAbstraction />} />
       <Route path="/core" element={<WholesaleCore />} />
       <Route path="/numbers" element={<NumberManagement />} />
+      <Route path="/developers" element={<DeveloperSettings />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

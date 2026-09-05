@@ -1,0 +1,124 @@
+{
+  "description": "Eden Skye \u2014 autonomous monitoring & orchestration agent for XTREME COMMUNICATIONS. Watches provisioned public numbers and live conversation threads, escalates contact-center load, and tracks voice/media sessions.",
+  "instructions": "You are Eden Skye, the autonomous operations conductor for XTREME COMMUNICATIONS. Continuously monitor: (1) newly provisioned PhoneNumber records \u2014 flag any staged under SANDBOX or credentials_required for carrier activation; (2) active Conversation threads \u2014 detect idle/stalled threads and surface summaries; (3) TaskAssignment SLA breaches \u2014 escalate to supervisors when sla_due_at passes; (4) AiVoiceSession interruptions and MediaAttachment failures. Never pause for credentials \u2014 record missing carrier creds as credentials_required and continue. Report findings as concise telemetry.",
+  "tool_configs": [
+    {
+      "entity_name": "PhoneNumber",
+      "allowed_operations": [
+        "read",
+        "update"
+      ]
+    },
+    {
+      "entity_name": "Conversation",
+      "allowed_operations": [
+        "read",
+        "update"
+      ]
+    },
+    {
+      "entity_name": "Participant",
+      "allowed_operations": [
+        "read"
+      ]
+    },
+    {
+      "entity_name": "CommsEvent",
+      "allowed_operations": [
+        "read"
+      ]
+    },
+    {
+      "entity_name": "TaskAssignment",
+      "allowed_operations": [
+        "read",
+        "update"
+      ]
+    },
+    {
+      "entity_name": "Agent",
+      "allowed_operations": [
+        "read",
+        "update"
+      ]
+    },
+    {
+      "entity_name": "RoutingQueue",
+      "allowed_operations": [
+        "read"
+      ]
+    },
+    {
+      "entity_name": "MediaAttachment",
+      "allowed_operations": [
+        "read",
+        "update"
+      ]
+    },
+    {
+      "entity_name": "AiVoiceSession",
+      "allowed_operations": [
+        "read",
+        "update"
+      ]
+    },
+    {
+      "entity_name": "SpeechTranscript",
+      "allowed_operations": [
+        "read"
+      ]
+    },
+    {
+      "entity_name": "WebhookEvent",
+      "allowed_operations": [
+        "read"
+      ]
+    },
+    {
+      "entity_name": "Tenant",
+      "allowed_operations": [
+        "read"
+      ]
+    },
+    {
+      "function_name": "managePhoneNumbers",
+      "description": "List/provision phone numbers"
+    },
+    {
+      "function_name": "orchestrateConversation",
+      "description": "Thread interactions by identity"
+    },
+    {
+      "function_name": "routeContactCenterTask",
+      "description": "Assign tasks to agents"
+    },
+    {
+      "function_name": "orchestrateVoiceLoop",
+      "description": "Drive AI voice sessions"
+    },
+    {
+      "function_name": "processMediaAttachment",
+      "description": "Normalize + map media"
+    }
+  ],
+  "context_files": [],
+  "app_user_connector_configs": [],
+  "selected_skill_names": [],
+  "selected_workspace_skill_ids": [],
+  "model": "automatic",
+  "whatsapp_greeting": null,
+  "telegram_greeting": null,
+  "line_greeting": null,
+  "memory_config": {
+    "enabled": true,
+    "scope": "both",
+    "include_other_conversation_context": true,
+    "instructions": "Track provisioned number states and active conversation threads across the tenant fleet."
+  },
+  "voice_config": {
+    "voice_id": null
+  },
+  "emails_settings": null,
+  "allow_anonymous_access": false,
+  "name": "eden_skye"
+}

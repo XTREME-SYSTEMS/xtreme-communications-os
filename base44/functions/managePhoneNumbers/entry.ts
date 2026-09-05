@@ -63,6 +63,45 @@ export default async function(req) {
       });
     }
 
+    // High-volume bulk import from external datasets / CSV scripts. Numbers stage
+    // as SANDBOX (credentials_required) when no live carrier is connected, so they
+    // still integrate into the threading + contact-center engines.
+    if (action === "bulk_provision") {
+      const numbers = Array.isArray(body.numbers) ? body.numbers : [];
+      if (!numbers.length) return Response.json({ error: "numbers array required" }, { status: 400 });
+      const providers = await base44.asServiceRole.entities.Provider.filter({ enabled: true, status: "connected" });
+      const connected = providers[0];
+      const results = [];
+      for (const item of numbers) {
+        const e164 = typeof item === "string" ? item : item.e164;
+        if (!e164) { results.push({ e164: null, status: "skipped", reason: "missing e164" }); continue; }
+        const existing = await base44.asServiceRole.entities.PhoneNumber.filter({ tenant_id: tenant.id, e164 });
+        if (existing.length) { results.push({ e164, status: "exists", number_id: existing[0].id }); continue; }
+        const number = await base44.asServiceRole.entities.PhoneNumber.create({
+          e164, tenant_id: tenant.id,
+          country_code: (typeof item === "object" && item.country_code) || "US",
+          type: (typeof item === "object" && item.type) || "local",
+          capabilities: (typeof item === "object" && item.capabilities) || ["voice", "sms"],
+          status: connected ? "assigned" : "sandbox",
+          classification: connected ? "PROVIDER-BACKED" : "SANDBOX",
+          provider_id: connected ? connected.id : null,
+          monthly_cost: 1.15, purchased_at: new Date().toISOString(),
+        });
+        results.push({ e164, status: number.status, classification: number.classification, number_id: number.id });
+      }
+      await base44.asServiceRole.entities.ProviderLog.create({
+        provider: connected ? connected.name : "sandbox-trunk", channel: "number",
+        event_type: "number.bulk_provision", direction: "system",
+        status: "accepted", message: `bulk import ${results.length} numbers for ${tenant.name}`,
+      });
+      return Response.json({
+        tenant: tenant.name, imported: results.length,
+        classification: connected ? "PROVIDER-BACKED" : "SANDBOX",
+        reason: connected ? null : "credentials_required",
+        results,
+      });
+    }
+
     if (action === "release") {
       const id = body.number_id;
       if (!id) return Response.json({ error: "number_id required" }, { status: 400 });

@@ -1,5 +1,13 @@
 {
-  "name": "untitled",
+  // XTREME COMMUNICATIONS — Project Map
+  // Forces the Base44 compiler to recognize the structural directory breakdown
+  // of the XTREME COMMUNICATIONS entities and background functions.
+  "name": "xtreme-communications",
+  "description": "Enterprise CaaS Infrastructure Subsystem Engine",
+  "entitiesDir": "./entities",
+  "functionsDir": "./functions",
+  "agentsDir": "./agents",
+  "agentSkillsDir": "./agent-skills",
   "site": {
     "installCommand": "npm install",
     "buildCommand": "npm run build",

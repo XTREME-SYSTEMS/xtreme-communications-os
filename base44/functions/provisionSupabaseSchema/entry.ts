@@ -547,6 +547,10 @@ DROP POLICY IF EXISTS twilio_vulnerability_audits_isolation ON public.twilio_vul
 CREATE POLICY twilio_vulnerability_audits_isolation ON public.twilio_vulnerability_audits FOR ALL USING (tenant_id::text = public.current_tenant_id() OR tenant_id IS NULL);
 CREATE INDEX IF NOT EXISTS idx_twilio_vuln_audits_severity ON public.twilio_vulnerability_audits (severity, status);
 CREATE INDEX IF NOT EXISTS idx_twilio_vuln_audits_class ON public.twilio_vulnerability_audits (vulnerability_class);
+ALTER TABLE public.carrier_route_metrics ADD COLUMN IF NOT EXISTS region text;
+ALTER TABLE public.carrier_route_metrics ADD COLUMN IF NOT EXISTS latitude numeric;
+ALTER TABLE public.carrier_route_metrics ADD COLUMN IF NOT EXISTS longitude numeric;
+CREATE INDEX IF NOT EXISTS idx_carrier_route_metrics_region ON public.carrier_route_metrics (region);
 `;
 
 export default async function(req) {

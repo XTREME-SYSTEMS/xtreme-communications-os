@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
-import { ArrowLeft, Radar, AlertTriangle, Gauge, Waves, Brain } from "lucide-react";
+import { ArrowLeft, Radar, AlertTriangle, Gauge, Waves, Brain, Globe } from "lucide-react";
 import RouteQualityChart from "@/components/xtreme/RouteQualityChart";
+import GeoLatencyMap from "@/components/xtreme/GeoLatencyMap";
 
 const ANOMALY_STYLES = {
   none: "text-text-muted",
@@ -30,6 +31,7 @@ export default function RouteQuality() {
   useEffect(() => { load().catch(() => {}); }, [load]);
 
   const anomalies = metrics.filter((m) => m.anomaly_flag);
+  const geoMetrics = metrics.filter((m) => m.latitude && m.longitude);
   const avgLatency = metrics.length ? Math.round(metrics.reduce((s, m) => s + (m.latency_ms || 0), 0) / metrics.length) : 0;
   const avgSuccess = metrics.length ? (Math.round(metrics.reduce((s, m) => s + (m.delivery_success_pct || 0), 0) / metrics.length * 10) / 10) : 100;
   const avgMos = metrics.length ? (Math.round(metrics.reduce((s, m) => s + (m.mos_score || 0), 0) / metrics.length * 100) / 100) : 4.0;
@@ -68,6 +70,19 @@ export default function RouteQuality() {
         <StatCard icon={Waves} label="Delivery Success" value={`${avgSuccess}%`} tone={avgSuccess >= 95 ? "text-status-green" : "text-destructive"} />
         <StatCard icon={Radar} label="Avg MOS" value={avgMos.toFixed(2)} tone={avgMos >= 3.5 ? "text-status-green" : "text-chart-4"} />
         <StatCard icon={AlertTriangle} label="Anomalies" value={anomalies.length} tone={anomalies.length ? "text-destructive" : "text-status-green"} />
+      </div>
+
+      <div className="px-4 lg:px-6 pb-4">
+        <section className="rounded-lg border border-surface-border bg-surface flex flex-col">
+          <div className="flex items-center gap-2 px-4 h-11 border-b border-surface-border">
+            <Globe className="h-3.5 w-3.5 text-accent-orange" />
+            <span className="font-display text-[11px] tracking-[0.15em] uppercase">Geographic Latency Heatmap</span>
+            <span className="ml-auto text-[10px] font-display tracking-wider text-text-muted">{geoMetrics.length} REGIONAL NODES</span>
+          </div>
+          <div className="p-3">
+            {geoMetrics.length ? <GeoLatencyMap metrics={metrics} /> : <div className="h-[420px] flex items-center justify-center text-[11px] text-text-muted font-display tracking-wider">NO GEO METRICS — POPULATE LAT/LNG ON ROUTE METRICS</div>}
+          </div>
+        </section>
       </div>
 
       <div className="px-4 lg:px-6 pb-4 grid lg:grid-cols-3 gap-4">

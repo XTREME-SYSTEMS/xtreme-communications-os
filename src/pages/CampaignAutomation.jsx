@@ -4,22 +4,26 @@ import { base44 } from "@/api/base44Client";
 import { ArrowLeft, Megaphone, Workflow } from "lucide-react";
 import CampaignManager from "@/components/xtreme/CampaignManager";
 import WorkflowDesigner from "@/components/xtreme/WorkflowDesigner";
+import CampaignPerformance from "@/components/xtreme/CampaignPerformance";
+import WorkflowTemplateLibrary from "@/components/xtreme/WorkflowTemplateLibrary";
 
 export default function CampaignAutomation() {
   const [campaigns, setCampaigns] = useState([]);
   const [workflows, setWorkflows] = useState([]);
   const [segments, setSegments] = useState([]);
   const [tenants, setTenants] = useState([]);
+  const [executionLogs, setExecutionLogs] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
-    const [c, w, s, t] = await Promise.all([
+    const [c, w, s, t, el] = await Promise.all([
       base44.entities.Campaign.list("-created_date", 50),
       base44.entities.Workflow.list("-created_date", 50),
       base44.entities.AudienceSegment.list("-created_date", 50),
       base44.entities.Tenant.list("-created_date", 50),
+      base44.entities.WorkflowExecutionLog.list("-created_date", 200),
     ]);
-    setCampaigns(c); setWorkflows(w); setSegments(s); setTenants(t); setLoading(false);
+    setCampaigns(c); setWorkflows(w); setSegments(s); setTenants(t); setExecutionLogs(el); setLoading(false);
   }, []);
 
   useEffect(() => { load().catch(() => setLoading(false)); }, [load]);
@@ -46,6 +50,8 @@ export default function CampaignAutomation() {
             <span className="flex items-center gap-1.5"><Workflow className="h-3.5 w-3.5 text-accent-orange" /> {workflows.length} Workflows</span>
             <span>{segments.length} Segments</span>
           </div>
+          <div className="lg:col-span-2"><CampaignPerformance logs={executionLogs} campaigns={campaigns} /></div>
+          <WorkflowTemplateLibrary tenants={tenants} onMutate={load} />
           <CampaignManager campaigns={campaigns} segments={segments} tenants={tenants} onMutate={load} />
           <WorkflowDesigner workflows={workflows} tenants={tenants} onMutate={load} />
         </div>

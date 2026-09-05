@@ -27,6 +27,15 @@
     "route_id": {
       "type": "string"
     },
+    "region": {
+      "type": "string"
+    },
+    "latitude": {
+      "type": "number"
+    },
+    "longitude": {
+      "type": "number"
+    },
     "latency_ms": {
       "type": "number",
       "default": 0

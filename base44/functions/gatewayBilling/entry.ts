@@ -1,9 +1,11 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 
 // Public /v1/billing gateway. Actions:
-//   get_usage        — aggregate usage meters by channel + account snapshot
-//   list_invoices    — tenant invoice history
-//   generate_invoice — roll up current cycle usage into an issued invoice
+//   get_usage           — aggregate usage meters by channel + account snapshot
+//   list_invoices       — tenant invoice history
+//   generate_invoice   — roll up current cycle usage into an issued invoice
+//   check_telnyx_balance  — GET /v2/balance via Telnyx API v2 Bearer Token
+//   recharge_telnyx       — POST /v2/payment/stored_payment_transactions (auto top-up)
 export default async function(req) {
   try {
     const base44 = createClientFromRequest(req);
@@ -18,6 +20,53 @@ export default async function(req) {
     if (!tenant || tenant.status !== "active") return Response.json({ error: "tenant not active" }, { status: 403 });
 
     const action = body.action || "get_usage";
+
+    // ── Telnyx Balance Check ──
+    if (action === "check_telnyx_balance") {
+      const telnyxKey = process.env.TELNYX_API_KEY;
+      if (!telnyxKey) return Response.json({ error: "TELNYX_API_KEY not configured", status: "credentials_required" }, { status: 503 });
+      const res = await fetch("https://api.telnyx.com/v2/balance", {
+        headers: { Authorization: `Bearer ${telnyxKey}` },
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        if (res.status === 403) return Response.json({ error: "no card on file", status: "credentials_required" }, { status: 403 });
+        return Response.json({ error: "telnyx balance check failed", detail: data }, { status: res.status });
+      }
+      return Response.json({
+        balance: data.data?.balance, currency: data.data?.currency,
+        credit_balance: data.data?.credit_balance, status: "ok",
+      });
+    }
+
+    // ── Telnyx Auto-Recharge ──
+    if (action === "recharge_telnyx") {
+      const telnyxKey = process.env.TELNYX_API_KEY;
+      if (!telnyxKey) return Response.json({ error: "TELNYX_API_KEY not configured", status: "credentials_required" }, { status: 503 });
+      const amountCents = body.amount_cents || 2000;
+      const res = await fetch("https://api.telnyx.com/v2/payment/stored_payment_transactions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${telnyxKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: amountCents / 100, currency: "USD", type: "prepaid" }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        if (res.status === 403) return Response.json({ error: "no card on file", status: "credentials_required" }, { status: 403 });
+        const errCode = data.errors?.[0]?.code;
+        return Response.json({ error: "telnyx recharge failed", detail: data, code: errCode }, { status: res.status });
+      }
+      // Record the recharge as a usage meter event
+      await base44.asServiceRole.entities.UsageMeter.create({
+        tenant_id: tenant.id, channel: "payment", event_type: "auto_recharge",
+        units: 1, unit_cost_cents: amountCents, amount_cents: amountCents,
+        metered_at: new Date().toISOString(), classification: "LIVE",
+        reference_id: data.data?.id || "telnyx_recharge",
+      });
+      return Response.json({
+        status: "recharged", amount_cents: amountCents,
+        transaction_id: data.data?.id, new_balance: data.data?.balance,
+      });
+    }
 
     if (action === "get_usage") {
       const meters = await base44.asServiceRole.entities.UsageMeter.filter({ tenant_id: tenant.id });

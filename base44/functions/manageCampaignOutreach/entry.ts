@@ -151,7 +151,24 @@ export default async function(req) {
         }
         const data = (res && res.data) || res;
         const msgStatus = data && (data.status || data.message_status);
-        const isDelivered = msgStatus === "delivered" || msgStatus === "queued" || msgStatus === "sandbox" || msgStatus === "sent";
+
+        // ── Payment Error Decision Tree ──
+        if (msgStatus === "insufficient_funds" || data.error === "insufficient_funds" || data.code === 20100) {
+          const accounts = await base44.asServiceRole.entities.BillingAccount.filter({ tenant_id: tenant.id });
+          const account = accounts[0];
+          if (account && account.auto_recharge && data.auto_recharge_triggered) {
+            updates.push({ id: r.id, status: "queued", error: "insufficient_funds_auto_recharge", last_attempt_at: new Date().toISOString() });
+            skipped++; continue;
+          }
+          updates.push({ id: r.id, status: "failed", error: "insufficient_funds_no_recharge", last_attempt_at: new Date().toISOString() });
+          failed++; continue;
+        }
+        if (msgStatus === "credentials_required" || data.status === "credentials_required" || data.error === "no card on file") {
+          updates.push({ id: r.id, status: "skipped", error: "credentials_required", last_attempt_at: new Date().toISOString() });
+          skipped++; continue;
+        }
+
+        const isDelivered = msgStatus === "delivered" || msgStatus === "queued" || msgStatus === "sandbox" || msgStatus === "sent" || msgStatus === "recharging";
         sent++;
         sentInWindow++;
         if (isDelivered) delivered++;

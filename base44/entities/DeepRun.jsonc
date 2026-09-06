@@ -1,0 +1,107 @@
+{
+  "name": "DeepRun",
+  "type": "object",
+  "properties": {
+    "spec_id": {
+      "type": "string"
+    },
+    "spec_version": {
+      "type": "string"
+    },
+    "input_hash": {
+      "type": "string",
+      "description": "SHA-256 hash of input \u2014 same hash + same spec version = same result (replayable)"
+    },
+    "state_trace": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "state": {
+            "type": "string"
+          },
+          "entered_at": {
+            "type": "string"
+          },
+          "exited_at": {
+            "type": "string"
+          },
+          "gate_passed": {
+            "type": "boolean"
+          },
+          "llm_output_valid": {
+            "type": "boolean"
+          }
+        }
+      },
+      "default": []
+    },
+    "llm_outputs": {
+      "type": "array",
+      "default": []
+    },
+    "gate_results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "gate": {
+            "type": "string"
+          },
+          "passed": {
+            "type": "boolean"
+          },
+          "score": {
+            "type": "number"
+          },
+          "detail": {
+            "type": "string"
+          }
+        }
+      },
+      "default": []
+    },
+    "aggregate_score": {
+      "type": "number",
+      "default": 0,
+      "description": "0-1 scale. is_approved is true ONLY at 1.00"
+    },
+    "is_approved": {
+      "type": "boolean",
+      "default": false
+    },
+    "credit_cost": {
+      "type": "number",
+      "default": 0
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "running",
+        "completed",
+        "failed",
+        "rejected",
+        "replaying"
+      ],
+      "default": "running"
+    },
+    "error": {
+      "type": "string"
+    },
+    "replay_of": {
+      "type": "string",
+      "description": "ID of the original run this is a replay of"
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "spec_id"
+  ]
+}

@@ -18,6 +18,7 @@ import CampaignAutomation from './pages/CampaignAutomation';
 import ParityComparison from './pages/ParityComparison';
 import PromptLibrary from './pages/PromptLibrary';
 import Preflight from './pages/Preflight';
+import DeepArchitecture from './pages/DeepArchitecture';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -57,6 +58,7 @@ const AuthenticatedApp = () => {
       <Route path="/parity-comparison" element={<ParityComparison />} />
       <Route path="/prompts" element={<PromptLibrary />} />
       <Route path="/preflight" element={<Preflight />} />
+      <Route path="/deep" element={<DeepArchitecture />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

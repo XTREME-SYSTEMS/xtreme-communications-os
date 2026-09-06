@@ -1,0 +1,78 @@
+{
+  "name": "DeepSpec",
+  "type": "object",
+  "properties": {
+    "spec_id": {
+      "type": "string",
+      "description": "Canonical identifier e.g. deep.bootstrap.thin_agent"
+    },
+    "name": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "core_engine",
+        "self_evolution",
+        "build_factory",
+        "discovery",
+        "audit",
+        "self_healing",
+        "intelligence",
+        "monetization"
+      ],
+      "default": "core_engine"
+    },
+    "version": {
+      "type": "string",
+      "default": "1.0.0"
+    },
+    "phase": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "architect",
+        "implement",
+        "build",
+        "validate",
+        "live"
+      ],
+      "default": "draft"
+    },
+    "description": {
+      "type": "string"
+    },
+    "state_count": {
+      "type": "integer",
+      "default": 0
+    },
+    "llm_slot_count": {
+      "type": "integer",
+      "default": 0
+    },
+    "gate_count": {
+      "type": "integer",
+      "default": 0
+    },
+    "credit_budget": {
+      "type": "number",
+      "default": 0
+    },
+    "target_score": {
+      "type": "number",
+      "default": 1
+    },
+    "spec_json": {
+      "type": "object",
+      "description": "The full deterministic state machine spec \u2014 states, transitions, LLM slots, gates"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "spec_id",
+    "name"
+  ]
+}

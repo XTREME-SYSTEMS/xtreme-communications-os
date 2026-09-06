@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
-import { Brain, Factory, ShieldCheck, Globe, EyeOff, Radio, Network, Phone, KeyRound, CreditCard, Radar, Megaphone, Scale, Library } from "lucide-react";
+import { Brain, Factory, ShieldCheck, Globe, EyeOff, Radio, Network, Phone, KeyRound, CreditCard, Radar, Megaphone, Scale, Library, GitBranch } from "lucide-react";
 import ThemeToggle from "@/components/xtreme/ThemeToggle";
 import { ENGINE_STYLES } from "@/lib/xtreme";
 
@@ -20,6 +20,7 @@ const NODES = [
   { name: "Parity", role: "Twilio Comparison", icon: Scale, route: "/parity-comparison" },
   { name: "Prompt Library", role: "Autonomous 100% Prompts", icon: Library, route: "/prompts" },
   { name: "Preflight", role: "Audit · Score · Heal · Launch", icon: ShieldCheck, route: "/preflight" },
+  { name: "DEEP", role: "Deterministic Engine Pipeline", icon: GitBranch, route: "/deep" },
 ];
 
 export default function SystemDock({ activeNode, onSelect, engineState }) {

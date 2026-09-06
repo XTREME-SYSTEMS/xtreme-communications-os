@@ -38,14 +38,27 @@ export default async function(req) {
         error: "TELNYX_API_KEY not configured",
       }, { status: 503 });
 
-      const res = await fetch("https://api.telnyx.com/v2/messages", {
+      // MMS: include media_urls when provided
+      // WhatsApp: Telnyx WhatsApp API uses /whatsapp_messages endpoint
+      const isWhatsApp = channel === "whatsapp";
+      const endpoint = isWhatsApp ? "https://api.telnyx.com/v2/whatsapp_messages" : "https://api.telnyx.com/v2/messages";
+      const payload = isWhatsApp ? {
+        from: body.from || "+18334843799",
+        to: body.to,
+        text: body.body || body.text || "",
+        template: body.template || null,
+        media_urls: body.media_urls || undefined,
+      } : {
+        from: body.from || "+18334843799",
+        to: body.to,
+        text: body.body || body.text || "",
+        media_urls: body.media_urls || undefined,
+        subject: body.subject || undefined,
+      };
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { Authorization: `Bearer ${telnyxKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          from: body.from || "+18334843799",
-          to: body.to,
-          text: body.body || body.text || "",
-        }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
 

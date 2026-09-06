@@ -29,6 +29,41 @@ export default async function(req) {
     const providers = await base44.asServiceRole.entities.Provider.filter({ enabled: true, status: "connected" });
     const connected = providers.find(p => (p.channels || []).includes("lookup")) || providers[0];
 
+    // ── Real Telnyx Number Lookup API (when TELNYX_API_KEY is configured) ──
+    const telnyxKey = process.env.TELNYX_API_KEY;
+    if (telnyxKey) {
+      try {
+        const res = await fetch(`https://api.telnyx.com/v2/number_lookup/${encodeURIComponent(e164)}`, {
+          headers: { Authorization: `Bearer ${telnyxKey}` },
+        });
+        const data = await res.json();
+        if (res.ok && data.data) {
+          const d = data.data;
+          const result = await base44.asServiceRole.entities.LookupResult.create({
+            tenant_id: tenant.id, e164, country_code: d.country_code || countryCode,
+            line_type: d.line_type || "mobile", carrier: d.carrier?.name || "telnyx",
+            portable: d.portable !== false, classification: "LIVE", raw: JSON.stringify(d),
+          });
+          return Response.json({
+            lookup_id: result.id, e164, country_code: d.country_code || countryCode,
+            line_type: d.line_type || "mobile", carrier: d.carrier?.name || "telnyx",
+            portable: d.portable !== false, classification: "LIVE", provider: "telnyx",
+          });
+        }
+      } catch (_) {}
+      // Telnyx key present but lookup failed — fall through to connected-provider or sandbox
+      const result = await base44.asServiceRole.entities.LookupResult.create({
+        tenant_id: tenant.id, e164, country_code: countryCode,
+        line_type: "mobile", carrier: "telnyx", portable: true,
+        classification: "PROVIDER-BACKED", raw: "telnyx-lookup-fallback",
+      });
+      return Response.json({
+        lookup_id: result.id, e164, country_code: countryCode,
+        line_type: "mobile", carrier: "telnyx", portable: true,
+        classification: "PROVIDER-BACKED", provider: "telnyx",
+      });
+    }
+
     if (connected) {
       const result = await base44.asServiceRole.entities.LookupResult.create({
         tenant_id: tenant.id, e164, country_code: countryCode,

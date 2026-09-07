@@ -2,7 +2,7 @@ import { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
-import { MessageSquare, Send, Smartphone } from "lucide-react";
+import { MessageSquare, Send, Smartphone, User } from "lucide-react";
 
 const SCENARIOS = [
   "SMS sales follow-up — sent listing details",
@@ -58,80 +58,129 @@ export default function MessageTestPanel({ personas, numbers }) {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-lg border border-surface-border bg-surface p-4 space-y-3">
+      {/* Configuration */}
+      <div className="tl-panel tl-holographic rounded-xl p-5 space-y-4 relative overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-accent-orange to-transparent" />
         <div className="flex items-center gap-2">
-          <MessageSquare className="h-4 w-4 text-accent-orange" />
-          <span className="font-display text-[11px] tracking-[0.15em] uppercase text-text-primary">AI-to-AI Message Test</span>
+          <div className="relative">
+            <MessageSquare className="h-5 w-5 text-accent-orange" />
+            <div className="absolute -inset-1 rounded-full bg-accent-orange/20 blur-md -z-10" />
+          </div>
+          <div className="flex flex-col">
+            <span className="font-display text-[12px] tracking-[0.15em] uppercase text-text-primary">AI-to-AI Message Test</span>
+            <span className="text-[8px] text-text-muted uppercase tracking-[0.2em]">Closed-Loop SMS & WhatsApp Simulation</span>
+          </div>
+          <div className="ml-auto flex items-center gap-1.5">
+            <span className={cn("h-2 w-2 rounded-full", running ? "bg-accent-orange tl-led" : "bg-status-green tl-led")} />
+            <span className="text-[9px] font-display uppercase tracking-wider text-text-muted">{running ? "Generating" : "Ready"}</span>
+          </div>
         </div>
+
+        {/* Channel selector */}
         <div className="flex gap-2">
           {["sms", "whatsapp"].map(ch => (
             <button key={ch} onClick={() => setChannel(ch)}
-              className={cn("flex-1 h-9 rounded border text-[11px] font-display uppercase tracking-wider transition-colors",
-                channel === ch ? "border-accent-orange bg-accent-orange/10 text-accent-orange" : "border-surface-border text-text-muted")}>
+              className={cn("flex-1 h-10 rounded-lg border text-[11px] font-display uppercase tracking-wider transition-all",
+                channel === ch
+                  ? "border-accent-orange bg-accent-orange/10 text-accent-orange tl-glow-orange"
+                  : "border-surface-border text-text-muted hover:text-text-primary")}>
               {ch === "sms" ? "SMS" : "WhatsApp"}
             </button>
           ))}
         </div>
+
         <div className="grid md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <span className="font-display text-[9px] uppercase tracking-wider text-accent-orange">Agent A (Sender)</span>
+          <div className="space-y-2 rounded-lg border border-accent-orange/20 bg-accent-orange/5 p-3">
+            <div className="flex items-center gap-1.5">
+              <div className="h-6 w-6 rounded-full bg-accent-orange/20 flex items-center justify-center">
+                <User className="h-3 w-3 text-accent-orange" />
+              </div>
+              <span className="font-display text-[9px] uppercase tracking-[0.15em] text-accent-orange">Agent A — Sender</span>
+            </div>
             <select value={personaAId} onChange={e => setPersonaAId(e.target.value)}
-              className="w-full h-9 px-2 rounded border border-surface-border bg-base text-[12px]">
+              className="w-full h-9 px-2 rounded border border-surface-border bg-base/80 text-[12px] focus:border-accent-orange outline-none">
               <option value="">Select persona…</option>
               {personas.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
             <select value={fromNumber} onChange={e => setFromNumber(e.target.value)}
-              className="w-full h-9 px-2 rounded border border-surface-border bg-base text-[12px]">
+              className="w-full h-9 px-2 rounded border border-surface-border bg-base/80 text-[12px] font-mono focus:border-accent-orange outline-none">
               <option value="">From number…</option>
               {numbers.map(n => <option key={n.id} value={n.e164}>{n.e164}</option>)}
             </select>
           </div>
-          <div className="space-y-2">
-            <span className="font-display text-[9px] uppercase tracking-wider text-chart-3">Agent B (Receiver)</span>
+          <div className="space-y-2 rounded-lg border border-chart-3/20 bg-chart-3/5 p-3">
+            <div className="flex items-center gap-1.5">
+              <div className="h-6 w-6 rounded-full bg-chart-3/20 flex items-center justify-center">
+                <User className="h-3 w-3 text-chart-3" />
+              </div>
+              <span className="font-display text-[9px] uppercase tracking-[0.15em] text-chart-3">Agent B — Receiver</span>
+            </div>
             <select value={personaBId} onChange={e => setPersonaBId(e.target.value)}
-              className="w-full h-9 px-2 rounded border border-surface-border bg-base text-[12px]">
+              className="w-full h-9 px-2 rounded border border-surface-border bg-base/80 text-[12px] focus:border-chart-3 outline-none">
               <option value="">Select persona…</option>
               {personas.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
             <select value={toNumber} onChange={e => setToNumber(e.target.value)}
-              className="w-full h-9 px-2 rounded border border-surface-border bg-base text-[12px]">
+              className="w-full h-9 px-2 rounded border border-surface-border bg-base/80 text-[12px] font-mono focus:border-chart-3 outline-none">
               <option value="">To number…</option>
               {numbers.map(n => <option key={n.id} value={n.e164}>{n.e164}</option>)}
             </select>
           </div>
         </div>
+
         <div className="grid md:grid-cols-[2fr_1fr] gap-3">
           <select value={scenario} onChange={e => setScenario(e.target.value)}
-            className="h-9 px-2 rounded border border-surface-border bg-base text-[12px]">
+            className="h-9 px-2 rounded border border-surface-border bg-base/80 text-[12px] focus:border-accent-orange outline-none">
             {SCENARIOS.map(s => <option key={s} value={s}>{s}</option>)}
           </select>
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-display uppercase text-text-muted">Turns:</span>
+          <div className="flex items-center gap-2 px-3 rounded border border-surface-border bg-base/80">
+            <span className="text-[10px] font-display uppercase text-text-muted">Turns</span>
             <input type="range" min="2" max="12" value={maxTurns} onChange={e => setMaxTurns(Number(e.target.value))}
               className="flex-1 accent-accent-orange" />
-            <span className="text-[12px] font-display w-6 text-center">{maxTurns}</span>
+            <span className="text-[12px] font-display w-6 text-center text-accent-orange">{maxTurns}</span>
           </div>
         </div>
+
         <button onClick={runTest} disabled={running}
-          className="w-full h-10 rounded bg-accent-orange text-base font-display uppercase tracking-wider text-[12px] flex items-center justify-center gap-2 hover:opacity-90 disabled:opacity-60">
-          {running ? <><div className="w-4 h-4 border-2 border-base/30 border-t-base rounded-full animate-spin" /> Generating…</> : <><Send className="h-4 w-4" /> Run Message Test</>}
+          className="w-full h-11 rounded-lg bg-accent-orange text-base font-display uppercase tracking-[0.15em] text-[12px] flex items-center justify-center gap-2 hover:opacity-90 disabled:opacity-60 transition-all tl-glow-orange">
+          {running ? (
+            <><div className="w-4 h-4 border-2 border-base/30 border-t-base rounded-full animate-spin" /> Generating…</>
+          ) : (
+            <><Send className="h-4 w-4" /> Initiate Message Test</>
+          )}
         </button>
       </div>
 
+      {/* Results */}
       {turns.length > 0 && (
-        <div className="rounded-lg border border-surface-border bg-surface p-4 space-y-3">
+        <div className="tl-panel rounded-xl p-5 space-y-4 relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-status-green to-transparent" />
           <div className="flex items-center gap-2">
-            <Smartphone className="h-4 w-4 text-status-green" />
-            <span className="font-display text-[11px] tracking-[0.15em] uppercase text-text-primary">Message Thread</span>
-            <span className="ml-auto text-[10px] text-text-muted font-display uppercase">{channel}</span>
+            <div className="relative">
+              <Smartphone className="h-5 w-5 text-status-green" />
+              <div className="absolute -inset-1 rounded-full bg-status-green/20 blur-md -z-10" />
+            </div>
+            <div className="flex flex-col">
+              <span className="font-display text-[12px] tracking-[0.15em] uppercase text-text-primary">Message Thread</span>
+              <span className="text-[8px] text-text-muted uppercase tracking-[0.2em]">{channel.toUpperCase()} · {turns.length} messages</span>
+            </div>
           </div>
-          {summary && <p className="text-[11px] text-text-muted italic">{summary}</p>}
-          <div className="space-y-2 max-h-[400px] overflow-y-auto scrollbar-thin">
+
+          {summary && (
+            <div className="rounded-lg border border-surface-border bg-base/30 p-3">
+              <span className="text-[9px] font-display uppercase tracking-wider text-text-muted">Summary</span>
+              <p className="text-[11px] text-text-primary mt-1 leading-relaxed">{summary}</p>
+            </div>
+          )}
+
+          <div className="space-y-2 max-h-[440px] overflow-y-auto scrollbar-thin">
             {turns.map((t, i) => {
               const isA = t.role === "a";
               return (
-                <div key={i} className={cn("flex", isA ? "justify-start" : "justify-end")}>
-                  <div className={cn("max-w-[70%] rounded-lg px-3 py-2", isA ? "bg-accent-orange/10 border border-accent-orange/20" : "bg-chart-3/10 border border-chart-3/20")}>
+                <div key={i} className={cn("flex tl-fade-in", isA ? "justify-start" : "justify-end")}
+                  style={{ animationDelay: `${i * 0.06}s` }}>
+                  <div className={cn("max-w-[70%] rounded-xl px-3 py-2 border",
+                    isA ? "bg-accent-orange/10 border-accent-orange/20" : "bg-chart-3/10 border-chart-3/20")}>
                     <div className="text-[8px] font-display uppercase tracking-wider text-text-muted mb-0.5">{t.speaker_name}</div>
                     <p className="text-[12px] text-text-primary leading-relaxed">{t.text}</p>
                   </div>

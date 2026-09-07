@@ -131,30 +131,32 @@ export default function MarketingHome() {
         <div className="max-w-4xl mx-auto px-4 text-center">
           <h2 className="text-3xl font-display font-bold text-foreground mb-2">Simple, Transparent Pricing</h2>
           <p className="text-muted-foreground mb-8">Start at $0. Pay only for what you use. No hidden fees.</p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-8">
             {[
-              { name: "Starter", price: "$49", period: "/mo", desc: "For small teams getting started", features: ["1 phone number", "1 AI agent", "500 SMS/mo", "100 voice min/mo", "Email support"] },
-              { name: "Growth", price: "$199", period: "/mo", desc: "For growing businesses", features: ["5 phone numbers", "5 AI agents", "5,000 SMS/mo", "1,000 voice min/mo", "WhatsApp Business", "Priority support"], featured: true },
-              { name: "Enterprise", price: "Custom", period: "", desc: "For high-volume operations", features: ["Unlimited numbers", "Unlimited agents", "Volume pricing", "Dedicated support", "Custom integrations", "SLA guarantee"] },
-            ].map((p) => (
-              <div key={p.name} className={`rounded-xl border p-6 text-left ${p.featured ? "border-primary bg-primary/5 ring-2 ring-primary/20" : "border-border bg-card"}`}>
-                {p.featured && <span className="inline-block px-2 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-medium uppercase tracking-wider mb-3">Most Popular</span>}
-                <h3 className="font-display font-bold text-foreground text-lg">{p.name}</h3>
-                <p className="text-xs text-muted-foreground mb-3">{p.desc}</p>
-                <div className="flex items-baseline gap-0.5 mb-4">
-                  <span className="text-3xl font-display font-bold text-foreground">{p.price}</span>
-                  <span className="text-sm text-muted-foreground">{p.period}</span>
-                </div>
-                <ul className="space-y-1.5 mb-4">
-                  {p.features.map((f) => (
-                    <li key={f} className="flex items-start gap-2 text-sm text-muted-foreground">
-                      <CheckCircle2 className="h-4 w-4 text-primary shrink-0 mt-0.5" /> {f}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
+               { name: "Starter", price: "$49", period: "/mo", desc: "For small teams getting started", features: ["1 phone number", "1 AI voice agent", "500 SMS/mo", "100 voice min/mo", "1,000 emails/mo", "Email support", "Basic analytics"] },
+               { name: "Essential", price: "$99", period: "/mo", desc: "For growing teams", features: ["3 phone numbers", "2 AI voice agents", "2,000 SMS/mo", "500 voice min/mo", "5,000 emails/mo", "Call recording", "Standard support", "Advanced analytics"] },
+               { name: "Professional", price: "$149", period: "/mo", desc: "For scaling businesses", features: ["5 phone numbers", "3 AI voice agents", "4,000 SMS/mo", "800 voice min/mo", "8,000 emails/mo", "WhatsApp Business API", "Custom templates", "Priority support", "Advanced analytics"] },
+               { name: "Growth", price: "$199", period: "/mo", desc: "For growing businesses", features: ["5 phone numbers", "5 AI voice agents", "5,000 SMS/mo", "1,000 voice min/mo", "10,000 emails/mo", "WhatsApp Business API", "Priority support", "Advanced analytics", "Custom templates"], featured: true },
+               { name: "Enterprise", price: "Custom", period: "", desc: "For high-volume operations", features: ["Unlimited numbers", "Unlimited AI agents", "Volume pricing", "Dedicated account manager", "Custom integrations", "SLA guarantee (99.99%)", "White-label dashboard", "24/7 phone support"] },
+             ].map((p) => (
+               <div key={p.name} className={`rounded-xl border p-5 text-left ${p.featured ? "border-primary bg-primary/5 ring-2 ring-primary/20" : "border-border bg-card"}`}>
+                 {p.featured && <span className="inline-block px-2 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-medium uppercase tracking-wider mb-3">Most Popular</span>}
+                 <h3 className="font-display font-bold text-foreground text-lg">{p.name}</h3>
+                 <p className="text-xs text-muted-foreground mb-3">{p.desc}</p>
+                 <div className="flex items-baseline gap-0.5 mb-4">
+                   <span className="text-3xl font-display font-bold text-foreground">{p.price}</span>
+                   <span className="text-sm text-muted-foreground">{p.period}</span>
+                 </div>
+                 <ul className="space-y-1.5 mb-4">
+                   {p.features.map((f) => (
+                     <li key={f} className="flex items-start gap-1.5 text-xs text-muted-foreground">
+                       <CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0 mt-0.5" /> {f}
+                     </li>
+                   ))}
+                 </ul>
+               </div>
+             ))}
+           </div>
           <Link to="/pricing" className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity">
             See Full Pricing <ArrowRight className="h-4 w-4" />
           </Link>

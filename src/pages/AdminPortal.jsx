@@ -210,7 +210,7 @@ export default function AdminPortal() {
               <div className="space-y-2">
                 <div>
                   <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">API Endpoint</p>
-                  <code className="block px-3 py-2 rounded-lg bg-background border border-border text-xs font-mono text-foreground">https://xtreme-comms.base44.app/functions/</code>
+                  <code className="block px-3 py-2 rounded-lg bg-background border border-border text-xs font-mono text-foreground">https://xtreme-communications.com/functions/</code>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Admin API Key</p>

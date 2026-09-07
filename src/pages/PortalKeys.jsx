@@ -190,7 +190,7 @@ export default function PortalKeys() {
       {/* API Info */}
       <div className="mt-6 rounded-xl border border-border bg-card p-5">
         <h2 className="font-medium text-foreground mb-2">API Endpoint</h2>
-        <code className="block px-3 py-2 rounded-lg bg-accent text-xs font-mono text-muted-foreground">https://xtreme-comms.base44.app/functions/{'<function_name>'}</code>
+        <code className="block px-3 py-2 rounded-lg bg-accent text-xs font-mono text-muted-foreground">https://xtreme-communications.com/functions/{'<function_name>'}</code>
         <p className="text-xs text-muted-foreground mt-2">Use your API key in the Authorization header: <code className="text-foreground">Bearer YOUR_API_KEY</code></p>
         <p className="text-xs text-muted-foreground mt-1">Use your Account SID in the <code className="text-foreground">X-Account-SID</code> header.</p>
       </div>

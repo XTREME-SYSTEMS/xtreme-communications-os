@@ -15,7 +15,10 @@ export default function StatusStrip({ parityPct, healthPass, healthTotal, queueC
     <div className="h-14 flex items-center gap-4 px-4 lg:px-6 border-b border-surface-border bg-base/60 backdrop-blur">
       <div className="flex items-center gap-2">
         <span className="h-2 w-2 rounded-full bg-status-green animate-pulse" />
-        <span className="font-display text-[11px] tracking-[0.2em] uppercase text-text-primary">Command Center</span>
+        <div className="flex flex-col">
+          <span className="font-display text-[11px] tracking-[0.2em] uppercase text-text-primary">Command Center</span>
+          <span className="font-display text-[8px] tracking-[0.25em] uppercase text-text-muted">Intelligence In Motion</span>
+        </div>
       </div>
       <div className="hidden sm:flex items-center gap-6 ml-auto">
         <Stat label="Twilio Parity" value={`${parityPct}%`} accent="text-accent-orange" />

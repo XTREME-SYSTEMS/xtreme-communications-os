@@ -27,7 +27,8 @@ function computeProofHash(capName, tests) {
 }
 
 function getTwilioStatus(cap, audits) {
-  const keyword = (cap?.name || "").toLowerCase().split(" ")[0];
+  if (!cap) return { label: "GAP", score: 0, icon: XCircle, color: "text-text-muted" };
+  const keyword = (cap.name || "").toLowerCase().split(" ")[0];
   const safeAudits = Array.isArray(audits) ? audits : [];
   const matchingAudit = safeAudits.find(
     (a) => (a?.area || "").toLowerCase().includes(keyword) ||

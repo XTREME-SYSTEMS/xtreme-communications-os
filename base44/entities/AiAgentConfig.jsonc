@@ -8,6 +8,18 @@
     "name": {
       "type": "string"
     },
+    "provider_name": {
+      "type": "string",
+      "default": "telnyx"
+    },
+    "provider_assistant_id": {
+      "type": "string",
+      "description": "Telnyx AI Assistant ID for managed voice AI"
+    },
+    "provider_texml_app_id": {
+      "type": "string",
+      "description": "TeXML Application ID linked to the AI Assistant for outbound calls"
+    },
     "voice": {
       "type": "string",
       "default": "river"
@@ -32,6 +44,27 @@
     "interruption_enabled": {
       "type": "boolean",
       "default": true
+    },
+    "expressive_mode": {
+      "type": "boolean",
+      "default": true
+    },
+    "noise_suppression": {
+      "type": "string",
+      "enum": [
+        "disabled",
+        "krisp",
+        "deep_filter_net"
+      ],
+      "default": "krisp"
+    },
+    "stt_model": {
+      "type": "string",
+      "default": "deepgram/nova-3"
+    },
+    "llm_model": {
+      "type": "string",
+      "default": "anthropic/claude-haiku-4-5"
     },
     "status": {
       "type": "string",

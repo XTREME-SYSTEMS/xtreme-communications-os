@@ -29,6 +29,59 @@ export default async function(req) {
 
     const callId = "call_" + Math.random().toString(36).slice(2, 12);
 
+    // ── AI ASSISTANT CALL: originate via Telnyx AI Assistant (managed voice AI) ──
+    // Uses /v2/texml/ai_calls/{texml_app_id} — the assistant handles STT/LLM/TTS,
+    // barge-in, noise suppression, and interruptions on Telnyx's infrastructure.
+    if (body.use_ai_assistant || body.assistant_id) {
+      const telnyxKey = process.env.TELNYX_API_KEY;
+      if (!telnyxKey) return Response.json({
+        status: "credentials_required", error: "TELNYX_API_KEY not configured",
+      }, { status: 503 });
+
+      // Resolve the AI assistant config — either passed explicitly or the active default
+      let assistantId = body.assistant_id;
+      let texmlAppId = body.texml_app_id;
+      if (!assistantId || !texmlAppId) {
+        const configs = await base44.asServiceRole.entities.AiAgentConfig.filter({ tenant_id: tenant.id, status: "active" });
+        const aiConfig = configs.find(c => c.provider_assistant_id && c.provider_texml_app_id);
+        if (aiConfig) {
+          assistantId = assistantId || aiConfig.provider_assistant_id;
+          texmlAppId = texmlAppId || aiConfig.provider_texml_app_id;
+        }
+      }
+      if (!assistantId || !texmlAppId) return Response.json({
+        status: "credentials_required", error: "no AI Assistant configured — run provisionAiAssistant first",
+      }, { status: 503 });
+
+      const aiCallRes = await fetch(`https://api.telnyx.com/v2/texml/ai_calls/${texmlAppId}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${telnyxKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          From: from,
+          To: to,
+          AIAssistantId: assistantId,
+          ...(body.machine_detection ? { MachineDetection: "Enable", AsyncAmd: true, DetectionMode: "Premium" } : {}),
+        }),
+      });
+      let aiData = {};
+      try { aiData = await aiCallRes.json(); } catch (_) {}
+
+      if (!aiCallRes.ok) return Response.json({
+        status: "failed", error: aiData?.error?.message || aiData?.errors?.[0]?.detail || "ai call failed",
+      }, { status: aiCallRes.status });
+
+      await base44.asServiceRole.entities.CommsEvent.create({
+        channel: "voice", direction: "outbound", from_addr: from, to_addr: to,
+        status: "ringing", classification: "LIVE",
+        summary: `AI assistant call via Telnyx (assistant: ${assistantId})`,
+      });
+      return Response.json({
+        call_id: aiData.id || callId, status: "ringing", routed_via: "telnyx-ai-assistant",
+        assistant_id: assistantId, texml_app_id: texmlAppId,
+        tenant: tenant.name, classification: "LIVE",
+      });
+    }
+
     if (trunk) {
       await base44.asServiceRole.entities.CommsEvent.create({
         channel: "voice", direction: "outbound", from_addr: from, to_addr: to,

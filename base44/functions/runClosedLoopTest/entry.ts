@@ -187,6 +187,58 @@ Return a JSON object with:
       turns.forEach((turn, i) => { turn.audio_url = audioResults[i]?.url || null; });
     }
 
+    // ── Step 3.5: Score sentiment, quality, and naturalness ──
+    let sentimentTrajectory = [];
+    let sentimentSummary = { positive: 0, neutral: 0, negative: 0, frustrated: 0, confused: 0, dominant: 'neutral' };
+    let qualityScore = 0;
+    let naturalnessScore = 0;
+    let qualityGatePassed = false;
+    let qualityFeedback = '';
+
+    if (turns.length > 0) {
+      try {
+        const scoreRes = await base44.asServiceRole.integrations.Core.InvokeLLM({
+          prompt: `Analyze this ${channel} conversation between two AI agents and score it.
+
+CONVERSATION:
+${turns.map((t, i) => `Turn ${i+1} (${t.speaker_name}): ${t.text}`).join('\n\n')}
+
+SCENARIO: ${scenario}
+
+Analyze:
+1. SENTIMENT: For each turn, classify as positive/neutral/negative/frustrated/confused with a score 0-1
+2. QUALITY (0-100): How well did the conversation achieve its goal? Consider objection handling, email capture, professionalism, clear CTA.
+3. NATURALNESS (0-100): How human did it sound? Consider natural flow, contractions, empathy, avoiding robotic language.
+4. QUALITY_GATE: Pass if quality >= 70 AND naturalness >= 70
+5. FEEDBACK: Specific actionable feedback for improvement
+
+Return JSON.`,
+          response_json_schema: {
+            type: "object",
+            properties: {
+              sentiment_per_turn: { type: "array", items: { type: "object", properties: { turn: { type: "integer" }, label: { type: "string" }, score: { type: "number" } } } },
+              sentiment_summary: { type: "object", properties: { positive: { type: "integer" }, neutral: { type: "integer" }, negative: { type: "integer" }, frustrated: { type: "integer" }, confused: { type: "integer" }, dominant: { type: "string" } } },
+              quality_score: { type: "number" },
+              naturalness_score: { type: "number" },
+              quality_gate_passed: { type: "boolean" },
+              quality_feedback: { type: "string" }
+            },
+            required: ["quality_score", "naturalness_score", "quality_gate_passed"]
+          }
+        });
+        sentimentTrajectory = scoreRes.sentiment_per_turn || [];
+        sentimentSummary = scoreRes.sentiment_summary || sentimentSummary;
+        qualityScore = scoreRes.quality_score || 0;
+        naturalnessScore = scoreRes.naturalness_score || 0;
+        qualityGatePassed = scoreRes.quality_gate_passed || false;
+        qualityFeedback = scoreRes.quality_feedback || '';
+        turns.forEach((t, i) => {
+          const s = sentimentTrajectory[i];
+          if (s) { t.sentiment = s.label; t.sentiment_score = s.score; }
+        });
+      } catch (_) {}
+    }
+
     // ── Step 4: Create Google Calendar event ──
     let calendarEvent = null;
     let calendarEventError = null;
@@ -325,6 +377,23 @@ This notification was generated automatically by the XTREME Test Lab.`;
       });
     } catch (_) {}
 
+    // ── Save test run to TestRun entity ──
+    let testRunId = null;
+    try {
+      const testRun = await base44.asServiceRole.entities.TestRun.create({
+        test_type: channel, scenario,
+        persona_a_name: personaA.name, persona_b_name: personaB.name,
+        channel, turns_count: turns.length, transcript: turns,
+        summary: convRes.summary || '', outcome: convRes.outcome || '',
+        sentiment_trajectory: sentimentTrajectory, sentiment_summary: sentimentSummary,
+        quality_score: qualityScore, naturalness_score: naturalnessScore,
+        quality_gate_passed: qualityGatePassed, quality_feedback: qualityFeedback,
+        scheduling_enabled: enableScheduling,
+        scheduling_result: scheduledSlot ? { slot: scheduledSlot, email: capturedEmail, calendar_event: !!calendarEvent, invite_sent: inviteEmailStatus?.status === 'sent' } : null,
+      });
+      testRunId = testRun.id;
+    } catch (_) {}
+
     return Response.json({
       channel, scenario, turns,
       summary: convRes.summary || "",
@@ -332,6 +401,13 @@ This notification was generated automatically by the XTREME Test Lab.`;
       persona_a: personaA.name, persona_b: personaB.name,
       from_number: fromNumber, to_number: toNumber,
       audio_generated: generateAudio,
+      quality_score: qualityScore,
+      naturalness_score: naturalnessScore,
+      quality_gate_passed: qualityGatePassed,
+      quality_feedback: qualityFeedback,
+      sentiment_trajectory: sentimentTrajectory,
+      sentiment_summary: sentimentSummary,
+      test_run_id: testRunId,
       scheduling: {
         enabled: enableScheduling,
         calendar_date: calendarDate,

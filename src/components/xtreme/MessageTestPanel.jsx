@@ -4,6 +4,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 import { MessageSquare, Send, Smartphone, User } from "lucide-react";
 import SchedulingResults from "./SchedulingResults";
+import QualityScores from "./QualityScores";
 
 const SCENARIOS = [
   "SMS sales follow-up — sent listing details",
@@ -28,6 +29,7 @@ export default function MessageTestPanel({ personas, numbers }) {
   const [turns, setTurns] = useState([]);
   const [summary, setSummary] = useState("");
   const [scheduling, setScheduling] = useState(null);
+  const [qualityData, setQualityData] = useState(null);
 
   const personaA = personas.find(p => p.id === personaAId);
   const personaB = personas.find(p => p.id === personaBId);
@@ -38,6 +40,7 @@ export default function MessageTestPanel({ personas, numbers }) {
     setTurns([]);
     setSummary("");
     setScheduling(null);
+    setQualityData(null);
     try {
       const res = await base44.functions.invoke("runClosedLoopTest", {
         persona_a: personaA,
@@ -54,6 +57,14 @@ export default function MessageTestPanel({ personas, numbers }) {
       setTurns(data.turns || []);
       setSummary(data.summary || "");
       setScheduling(data.scheduling || null);
+      setQualityData({
+        quality_score: data.quality_score,
+        naturalness_score: data.naturalness_score,
+        quality_gate_passed: data.quality_gate_passed,
+        quality_feedback: data.quality_feedback,
+        sentiment_trajectory: data.sentiment_trajectory,
+        sentiment_summary: data.sentiment_summary,
+      });
       toast({ title: "Message test complete", description: `${(data.turns || []).length} messages generated` });
     } catch (e) {
       toast({ title: "Test failed", description: String(e.message || e), variant: "destructive" });
@@ -208,6 +219,7 @@ export default function MessageTestPanel({ personas, numbers }) {
             })}
           </div>
         </div>
+        {qualityData && <QualityScores {...qualityData} />}
         {scheduling && <SchedulingResults scheduling={scheduling} />}
         </>
       )}

@@ -24,6 +24,8 @@ import PersonaStudio from './pages/PersonaStudio';
 import CompanyOverview from './pages/CompanyOverview';
 import CommunicationStudio from './pages/CommunicationStudio';
 import TestLab from './pages/TestLab';
+import DigitalTeam from './pages/DigitalTeam';
+import CampaignConsole from './pages/CampaignConsole';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -69,6 +71,8 @@ const AuthenticatedApp = () => {
       <Route path="/company" element={<CompanyOverview />} />
       <Route path="/comm-studio" element={<CommunicationStudio />} />
       <Route path="/test-lab" element={<TestLab />} />
+      <Route path="/digital-team" element={<DigitalTeam />} />
+      <Route path="/campaign-console" element={<CampaignConsole />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

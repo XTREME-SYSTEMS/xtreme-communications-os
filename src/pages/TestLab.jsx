@@ -6,6 +6,7 @@ import ThemeToggle from "@/components/xtreme/ThemeToggle";
 import VoiceTestPanel from "@/components/xtreme/VoiceTestPanel";
 import MessageTestPanel from "@/components/xtreme/MessageTestPanel";
 import ToolDashboard from "@/components/xtreme/ToolDashboard";
+import TestHistory from "@/components/xtreme/TestHistory";
 
 export default function TestLab() {
   const [tab, setTab] = useState("voice");
@@ -113,6 +114,11 @@ export default function TestLab() {
           {tab === "voice" && <VoiceTestPanel personas={personas} numbers={numbers} />}
           {tab === "message" && <MessageTestPanel personas={personas} numbers={numbers} />}
           {tab === "tools" && <ToolDashboard />}
+        </div>
+
+        {/* Test History — always visible below active tab */}
+        <div className="mt-4">
+          <TestHistory />
         </div>
       </div>
     </div>

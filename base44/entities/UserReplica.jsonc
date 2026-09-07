@@ -1,0 +1,192 @@
+{
+  "name": "UserReplica",
+  "type": "object",
+  "properties": {
+    "full_name": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "phone_number": {
+      "type": "string"
+    },
+    "business_emails": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "social_media_accounts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "platform": {
+            "type": "string"
+          },
+          "handle": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          }
+        }
+      },
+      "default": []
+    },
+    "communication_methods": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "profile_image_url": {
+      "type": "string"
+    },
+    "scraped_summary": {
+      "type": "string",
+      "description": "Summary of all online content found about the person"
+    },
+    "scraped_sources": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "personality_traits": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "sales_techniques": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "communication_style": {
+      "type": "string"
+    },
+    "recommended_tones": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "recommended_messages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "approved": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "default": []
+    },
+    "ai_replica_prompt": {
+      "type": "string",
+      "description": "System prompt for the AI replica"
+    },
+    "ai_replica_status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "training",
+        "active",
+        "archived"
+      ],
+      "default": "draft"
+    },
+    "assistant_preferences": {
+      "type": "object",
+      "properties": {
+        "schedule_appointments": {
+          "type": "boolean",
+          "default": false
+        },
+        "respond_emails": {
+          "type": "boolean",
+          "default": false
+        },
+        "social_media_posting": {
+          "type": "boolean",
+          "default": false
+        },
+        "social_media_responding": {
+          "type": "boolean",
+          "default": false
+        },
+        "social_media_commenting": {
+          "type": "boolean",
+          "default": false
+        },
+        "prospect_scanning": {
+          "type": "boolean",
+          "default": false
+        },
+        "sms_campaigns": {
+          "type": "boolean",
+          "default": false
+        },
+        "email_campaigns": {
+          "type": "boolean",
+          "default": false
+        },
+        "crm_sync": {
+          "type": "boolean",
+          "default": false
+        },
+        "google_sheets_logging": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "default": {}
+    },
+    "connected_accounts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "service": {
+            "type": "string"
+          },
+          "connected": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "default": []
+    },
+    "onboarded": {
+      "type": "boolean",
+      "default": false
+    },
+    "onboarded_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "full_name",
+    "email"
+  ]
+}

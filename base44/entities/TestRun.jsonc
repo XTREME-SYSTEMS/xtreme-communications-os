@@ -1,0 +1,145 @@
+{
+  "name": "TestRun",
+  "type": "object",
+  "properties": {
+    "test_type": {
+      "type": "string",
+      "enum": [
+        "voice",
+        "sms",
+        "mms",
+        "batch",
+        "ab_comparison",
+        "objection_stress",
+        "escalation_trigger"
+      ],
+      "default": "voice"
+    },
+    "scenario": {
+      "type": "string"
+    },
+    "persona_a_name": {
+      "type": "string"
+    },
+    "persona_b_name": {
+      "type": "string"
+    },
+    "channel": {
+      "type": "string",
+      "enum": [
+        "voice",
+        "sms",
+        "mms"
+      ],
+      "default": "voice"
+    },
+    "turns_count": {
+      "type": "integer",
+      "default": 0
+    },
+    "transcript": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "type": "string"
+          },
+          "speaker_name": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "sentiment": {
+            "type": "string"
+          },
+          "sentiment_score": {
+            "type": "number"
+          }
+        }
+      },
+      "default": []
+    },
+    "summary": {
+      "type": "string"
+    },
+    "outcome": {
+      "type": "string"
+    },
+    "sentiment_trajectory": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "turn": {
+            "type": "integer"
+          },
+          "label": {
+            "type": "string"
+          },
+          "score": {
+            "type": "number"
+          }
+        }
+      },
+      "default": []
+    },
+    "sentiment_summary": {
+      "type": "object",
+      "properties": {
+        "positive": {
+          "type": "integer",
+          "default": 0
+        },
+        "neutral": {
+          "type": "integer",
+          "default": 0
+        },
+        "negative": {
+          "type": "integer",
+          "default": 0
+        },
+        "dominant": {
+          "type": "string"
+        }
+      }
+    },
+    "quality_score": {
+      "type": "number",
+      "default": 0,
+      "description": "0-100 overall conversation quality"
+    },
+    "naturalness_score": {
+      "type": "number",
+      "default": 0,
+      "description": "0-100 how human it sounded"
+    },
+    "quality_gate_passed": {
+      "type": "boolean",
+      "default": false
+    },
+    "quality_feedback": {
+      "type": "string"
+    },
+    "scheduling_enabled": {
+      "type": "boolean",
+      "default": false
+    },
+    "scheduling_result": {
+      "type": "object"
+    },
+    "batch_id": {
+      "type": "string",
+      "description": "Groups runs in a batch test"
+    },
+    "batch_index": {
+      "type": "integer",
+      "default": 0
+    }
+  },
+  "required": [
+    "test_type",
+    "scenario"
+  ]
+}

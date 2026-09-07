@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
@@ -16,6 +16,7 @@ const CATEGORIES = ["Retail", "Real Estate", "Healthcare", "Financial Services",
 
 export default function WhatsAppSetup() {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [stepIndex, setStepIndex] = useState(0);
   const [saving, setSaving] = useState(false);
   const [data, setData] = useState({
@@ -29,7 +30,7 @@ export default function WhatsAppSetup() {
   const generateTemplates = async () => {
     setGenerating(true);
     try {
-      const res = await base44.integrations.Core.InvokeLLM({
+      const res = await base44.functions.invoke('generateContent', {
         prompt: `Generate 3 WhatsApp message templates for a ${data.category} business named "${data.business_name}".
 Description: ${data.description || "general business"}
 
@@ -45,7 +46,8 @@ Common WhatsApp templates:
 
 Keep each template under 300 characters. Use {{1}} for variable placeholders.`,
       });
-      const text = typeof res === "string" ? res : JSON.stringify(res);
+      const output = res.data?.output;
+      const text = typeof output === "string" ? output : JSON.stringify(output);
       const matches = text.match(/Template \d+:\s*(.+?)(?=Template \d+:|$)/gs) || [];
       setGeneratedTemplates(matches.map((m, i) => {
         const parts = m.replace(/Template \d+:\s*/, "").split(" - ");
@@ -77,8 +79,7 @@ Keep each template under 300 characters. Use {{1}} for variable placeholders.`,
         });
       }
       toast({ title: "🎉 WhatsApp Business Activated!", description: `${data.business_name} is now connected` });
-      setStepIndex(0);
-      setData({ business_name: "", category: "Retail", description: "", website: "", phone_number: "", email: "", templates: [] });
+      navigate("/portal");
     } catch (e) {
       toast({ title: "Activation failed", description: e.message, variant: "destructive" });
     }

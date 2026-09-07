@@ -1,7 +1,7 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
-import { LayoutDashboard, CheckCircle2, Phone, Brain, KeyRound, Settings, LogOut, ExternalLink, FileText, MessageCircle, ArrowLeftRight } from "lucide-react";
+import { LayoutDashboard, CheckCircle2, Phone, Brain, KeyRound, Settings, LogOut, ExternalLink, FileText, MessageCircle, ArrowLeftRight, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV = [
@@ -14,6 +14,7 @@ const NAV = [
   { path: "/portal/porting", label: "Number Porting", icon: ArrowLeftRight },
   { path: "/portal/keys", label: "API Keys", icon: KeyRound },
   { path: "/portal/settings", label: "Settings", icon: Settings },
+  { path: "/admin-portal", label: "Admin Portal", icon: Shield, external: true },
 ];
 
 export default function PortalLayout() {

@@ -174,11 +174,25 @@ export default function PortalKeys() {
         )}
       </div>
 
+      {/* Account SID */}
+      <div className="mt-6 rounded-xl border border-border bg-card p-5">
+        <h2 className="font-medium text-foreground mb-2">Account SID</h2>
+        <p className="text-xs text-muted-foreground mb-3">Your Account SID identifies your account in API requests. Use it with your API key for authentication.</p>
+        <div className="flex items-center gap-2">
+          <code className="flex-1 px-3 py-2.5 rounded-lg bg-accent border border-border text-xs font-mono text-foreground overflow-x-auto">{user?.id ? `AC${user.id.replace(/-/g, '').slice(0, 32).toUpperCase()}` : "AC— — — —"}</code>
+          <button onClick={() => { navigator.clipboard.writeText(`AC${user?.id?.replace(/-/g, '')?.slice(0, 32)?.toUpperCase() || ""}`); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
+            className="px-4 py-2.5 rounded-lg border border-border text-sm font-medium hover:bg-accent flex items-center gap-2">
+            {copied ? <Check className="h-4 w-4 text-primary" /> : <Copy className="h-4 w-4" />} {copied ? "Copied!" : "Copy"}
+          </button>
+        </div>
+      </div>
+
       {/* API Info */}
       <div className="mt-6 rounded-xl border border-border bg-card p-5">
         <h2 className="font-medium text-foreground mb-2">API Endpoint</h2>
         <code className="block px-3 py-2 rounded-lg bg-accent text-xs font-mono text-muted-foreground">https://xtreme-comms.base44.app/functions/{'<function_name>'}</code>
         <p className="text-xs text-muted-foreground mt-2">Use your API key in the Authorization header: <code className="text-foreground">Bearer YOUR_API_KEY</code></p>
+        <p className="text-xs text-muted-foreground mt-1">Use your Account SID in the <code className="text-foreground">X-Account-SID</code> header.</p>
       </div>
     </div>
   );

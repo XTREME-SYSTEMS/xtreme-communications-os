@@ -36,7 +36,7 @@ export default function TemplateGenerator() {
     setGenerating(true);
     setGenerated(null);
     try {
-      const res = await base44.integrations.Core.InvokeLLM({
+      const res = await base44.functions.invoke('generateContent', {
         prompt: `Generate a ${form.channel} communication template for the ${form.industry} industry.
 Situation: ${form.situation}
 Tone: ${form.tone}
@@ -59,7 +59,8 @@ PSYCHOLOGY_NOTES: [why it works]
 HIGH_RESPONSE_WORDS: [word1, word2, word3]
 WORDS_TO_AVOID: [word1, word2]`,
       });
-      const text = typeof res === "string" ? res : JSON.stringify(res);
+      const output = res.data?.output;
+      const text = typeof output === "string" ? output : JSON.stringify(output);
       const bodyMatch = text.match(/TEMPLATE_BODY:\s*(.+?)(?=PSYCHOLOGY_NOTES:|$)/s);
       const psychMatch = text.match(/PSYCHOLOGY_NOTES:\s*(.+?)(?=HIGH_RESPONSE_WORDS:|$)/s);
       const hrwMatch = text.match(/HIGH_RESPONSE_WORDS:\s*(.+?)(?=WORDS_TO_AVOID:|$)/s);

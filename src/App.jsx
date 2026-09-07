@@ -42,6 +42,7 @@ import PortalKeys from './pages/PortalKeys';
 import PortalSettings from './pages/PortalSettings';
 import PromoAdmin from './pages/PromoAdmin';
 import NumberResale from './pages/NumberResale';
+import AdminPortal from './pages/AdminPortal';
 import TemplateGenerator from './pages/TemplateGenerator';
 import WhatsAppSetup from './pages/WhatsAppSetup';
 import NumberPorting from './pages/NumberPorting';
@@ -77,6 +78,7 @@ function App() {
               {/* Admin */}
               <Route path="/promo-admin" element={<PromoAdmin />} />
               <Route path="/number-resale" element={<NumberResale />} />
+              <Route path="/admin-portal" element={<AdminPortal />} />
               {/* Portal Tools */}
               <Route path="/portal/templates" element={<TemplateGenerator />} />
               <Route path="/portal/whatsapp" element={<WhatsAppSetup />} />

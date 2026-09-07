@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
-import { ArrowRight, ArrowLeft, CheckCircle2, Loader2, Building2, Phone, Brain, Mail, Play, Sparkles, Rocket } from "lucide-react";
+import { ArrowRight, ArrowLeft, CheckCircle2, Loader2, Building2, Phone, Brain, Mail, Play, Sparkles, Rocket, Globe, Search } from "lucide-react";
 
 const STEPS = [
   { step: "welcome", label: "Welcome", icon: Sparkles },
@@ -37,6 +37,8 @@ export default function PortalOnboarding() {
   const [generatedPrompt, setGeneratedPrompt] = useState("");
   const [generating, setGenerating] = useState(false);
   const [templates, setTemplates] = useState(null);
+  const [intelScanning, setIntelScanning] = useState(false);
+  const [intelData, setIntelData] = useState(null);
 
   useEffect(() => { load(); }, [user]);
 
@@ -84,10 +86,28 @@ export default function PortalOnboarding() {
     setSaving(false);
   };
 
+  const scanIntelligence = async () => {
+    setIntelScanning(true);
+    try {
+      const res = await base44.functions.invoke('scrapeCompanyIntelligence', {
+        company_name: data.company_name,
+        website: data.website,
+        industry: data.industry,
+      });
+      const intel = res.data?.intelligence || res.intelligence;
+      setIntelData(intel);
+      setData({ ...data, intelligence: intel });
+      toast({ title: "Intelligence scan complete!", description: "Company and industry data ingested for your AI agent." });
+    } catch (e) {
+      toast({ title: "Scan failed", description: e.message, variant: "destructive" });
+    }
+    setIntelScanning(false);
+  };
+
   const generateAgentPrompt = async () => {
     setGenerating(true);
     try {
-      const res = await base44.integrations.Core.InvokeLLM({
+      const res = await base44.functions.invoke('generateContent', {
         prompt: `Create a system prompt for an AI voice agent with these details:
 Company: ${data.company_name || "the company"}
 Industry: ${data.industry || "general business"}
@@ -104,9 +124,10 @@ The prompt should instruct the AI to:
 5. Transfer to human for complex issues
 6. Stay on brand with the company's industry
 
-Write the actual system prompt text (not meta-description). Keep it under 500 words.`,
+Write the actual system prompt text (not meta-description). Keep it under 500 words.${data.intelligence ? `\n\nUse this company and industry intelligence to inform the prompt:\n${JSON.stringify(data.intelligence.agent_knowledge_base || data.intelligence.company_overview || "").slice(0, 2000)}` : ""}`,
       });
-      setGeneratedPrompt(typeof res === "string" ? res : res.output || JSON.stringify(res));
+      const output = res.data?.output;
+      setGeneratedPrompt(typeof output === "string" ? output : JSON.stringify(output));
     } catch (e) {
       setGeneratedPrompt(`You are ${data.agent_name || "AI Assistant"}, an AI voice agent for ${data.company_name || "the company"}, a ${data.industry || "business"} company. Your role is ${data.use_case || "customer communication"}. Be professional, friendly, and helpful. Greet callers, answer questions, capture contact information, and schedule appointments when requested. If you cannot help, offer to transfer to a human agent.`);
     }
@@ -116,7 +137,7 @@ Write the actual system prompt text (not meta-description). Keep it under 500 wo
   const generateTemplates = async () => {
     setGenerating(true);
     try {
-      const res = await base44.integrations.Core.InvokeLLM({
+      const res = await base44.functions.invoke('generateContent', {
         prompt: `Generate communication templates for a ${data.industry || "business"} company named "${data.company_name || "Company"}".
 Primary use case: ${data.use_case || "customer communication"}
 Tone: ${data.agent_tone || "professional"}
@@ -131,7 +152,8 @@ SMS_TEMPLATE: [content]
 EMAIL_SUBJECT: [content]
 EMAIL_BODY: [content]`,
       });
-      const text = typeof res === "string" ? res : JSON.stringify(res);
+      const output = res.data?.output;
+      const text = typeof output === "string" ? output : JSON.stringify(output);
       const smsMatch = text.match(/SMS_TEMPLATE:\s*(.+?)(?=EMAIL_SUBJECT:|$)/s);
       const subjectMatch = text.match(/EMAIL_SUBJECT:\s*(.+?)(?=EMAIL_BODY:|$)/s);
       const bodyMatch = text.match(/EMAIL_BODY:\s*(.+)/s);
@@ -254,7 +276,7 @@ EMAIL_BODY: [content]`,
             <div>
               <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Channels You Need</label>
               <div className="flex flex-wrap gap-2 mt-1">
-                {["SMS", "Voice", "WhatsApp", "Email"].map(ch => (
+                {["SMS", "MMS", "Voice", "WhatsApp", "Email"].map(ch => (
                   <button key={ch} onClick={() => {
                     const channels = data.channels || [];
                     setData({ ...data, channels: channels.includes(ch) ? channels.filter(c => c !== ch) : [...channels, ch] });
@@ -264,6 +286,36 @@ EMAIL_BODY: [content]`,
                   </button>
                 ))}
               </div>
+            </div>
+            {/* Industry Intelligence Scan */}
+            <div className="rounded-lg border border-primary/30 bg-primary/5 p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Globe className="h-4 w-4 text-primary" />
+                <p className="text-sm font-medium text-foreground">Industry Intelligence Scan</p>
+              </div>
+              <p className="text-xs text-muted-foreground mb-3">Scan your company website and industry to build a knowledge base your AI agent uses during conversations. This ingests sales techniques, marketing strategies, service standards, tools, AI trends, customer service practices, and Q&A.</p>
+              {intelData ? (
+                <div className="space-y-2 mb-3">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-status-green" />
+                    <span className="text-xs text-foreground font-medium">Intelligence ingested</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    {intelData.company_overview && <div className="rounded border border-border bg-background p-2"><span className="text-muted-foreground">Overview:</span> <span className="text-foreground">{intelData.company_overview.slice(0, 80)}...</span></div>}
+                    {intelData.social_media?.length > 0 && <div className="rounded border border-border bg-background p-2"><span className="text-muted-foreground">Social:</span> <span className="text-foreground">{intelData.social_media.length} profiles found</span></div>}
+                    {intelData.common_qa?.length > 0 && <div className="rounded border border-border bg-background p-2"><span className="text-muted-foreground">Q&A:</span> <span className="text-foreground">{intelData.common_qa.length} pairs</span></div>}
+                    {intelData.industry_intelligence?.sales_techniques?.length > 0 && <div className="rounded border border-border bg-background p-2"><span className="text-muted-foreground">Sales:</span> <span className="text-foreground">{intelData.industry_intelligence.sales_techniques.length} techniques</span></div>}
+                  </div>
+                  <button onClick={scanIntelligence} disabled={intelScanning} className="text-xs text-primary hover:underline flex items-center gap-1">
+                    {intelScanning ? <Loader2 className="h-3 w-3 animate-spin" /> : <Search className="h-3 w-3" />} Re-scan
+                  </button>
+                </div>
+              ) : (
+                <button onClick={scanIntelligence} disabled={intelScanning || !data.company_name}
+                  className="w-full px-4 py-2 rounded-lg border border-primary text-primary text-sm font-medium hover:bg-primary/10 disabled:opacity-50 flex items-center justify-center gap-2">
+                  {intelScanning ? <><Loader2 className="h-4 w-4 animate-spin" /> Scanning company & industry...</> : <><Globe className="h-4 w-4" /> Scan Industry Intelligence</>}
+                </button>
+              )}
             </div>
             <div className="flex justify-between pt-2">
               <button onClick={() => setStepIndex(0)} className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground flex items-center gap-1"><ArrowLeft className="h-4 w-4" /> Back</button>

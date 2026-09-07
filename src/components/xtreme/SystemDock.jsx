@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
-import { Brain, Factory, ShieldCheck, Globe, EyeOff, Radio, Network, Phone, KeyRound, CreditCard, Radar, Megaphone, Scale, Library, GitBranch, PhoneCall, Palette, Building2, Sparkles, FlaskConical, UserCog, Mailbox, LayoutDashboard, Tag, ExternalLink } from "lucide-react";
+import { Brain, Factory, ShieldCheck, Globe, EyeOff, Radio, Network, Phone, KeyRound, CreditCard, Radar, Megaphone, Scale, Library, GitBranch, PhoneCall, Palette, Building2, Sparkles, FlaskConical, UserCog, Mailbox, LayoutDashboard, Tag, ExternalLink, Shield } from "lucide-react";
 import ThemeToggle from "@/components/xtreme/ThemeToggle";
 import { ENGINE_STYLES } from "@/lib/xtreme";
 
@@ -32,6 +32,7 @@ const NODES = [
   { name: "Promo Codes", role: "Discount Management", icon: Tag, route: "/promo-admin" },
   { name: "Number Resale", role: "Buy & Resell Numbers", icon: Phone, route: "/number-resale" },
   { name: "Customer Portal", role: "User Dashboard", icon: ExternalLink, route: "/portal" },
+  { name: "Admin Portal", role: "System Administration", icon: Shield, route: "/admin-portal" },
 ];
 
 export default function SystemDock({ activeNode, onSelect, engineState }) {

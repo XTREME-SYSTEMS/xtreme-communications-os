@@ -33,11 +33,8 @@ export default function PortalAgents() {
   const testVoice = async (voiceId) => {
     setTesting(voiceId);
     try {
-      const res = await base44.integrations.Core.GenerateSpeech({
-        text: `Hi! I'm your AI assistant. I'm here to help you with whatever you need. How can I assist you today?`,
-        voice: voiceId,
-      });
-      const url = res.url || res;
+      const res = await base44.functions.invoke('previewVoice', { voice: voiceId });
+      const url = res.data?.url || res.url;
       if (url) {
         const audio = new Audio(url);
         setPlaying(voiceId);
@@ -54,10 +51,11 @@ export default function PortalAgents() {
     if (!form.name) return;
     setForm({ ...form, system_prompt: "Generating..." });
     try {
-      const res = await base44.integrations.Core.InvokeLLM({
+      const res = await base44.functions.invoke('generateContent', {
         prompt: `Write a system prompt for an AI voice agent named "${form.name}". Tone: ${form.tone}. Context: ${form.assigned_context || "general customer communication"}. The agent should greet callers, answer questions, capture contact info, and schedule appointments. Keep under 300 words. Write only the prompt text.`,
       });
-      setForm({ ...form, system_prompt: typeof res === "string" ? res : JSON.stringify(res) });
+      const output = res.data?.output;
+      setForm({ ...form, system_prompt: typeof output === "string" ? output : JSON.stringify(output) });
     } catch (e) {
       setForm({ ...form, system_prompt: `You are ${form.name}, an AI voice agent. Be ${form.tone}. Greet callers professionally, answer questions, capture contact information, and schedule appointments when requested.` });
     }

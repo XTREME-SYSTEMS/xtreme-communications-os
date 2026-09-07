@@ -40,7 +40,7 @@ export default function BillingDashboard() {
         </Link>
         <div className="flex flex-col">
           <span className="font-display text-[12px] tracking-[0.15em] uppercase text-text-primary">Billing · Usage Metering</span>
-          <span className="text-[9px] text-text-muted uppercase tracking-wider">XTREME COMMUNICATIONS · sub-second metering + invoice rollup</span>
+          <span className="text-[9px] text-text-muted uppercase tracking-wider">Strategic Minds AI · sub-second metering + invoice rollup</span>
         </div>
       </div>
       <div className="p-4 lg:p-6 grid lg:grid-cols-3 gap-4">

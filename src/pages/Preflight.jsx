@@ -82,8 +82,8 @@ export default function Preflight() {
           <div className="p-4 space-y-4 pb-20 lg:pb-4">
             <div className="rounded-lg border border-surface-border bg-surface p-4 flex flex-col md:flex-row md:items-center gap-4">
               <div className="flex-1">
-                <h1 className="font-display text-lg tracking-[0.1em] uppercase">Preflight Audit · XTREME vs Twilio</h1>
-                <p className="text-[12px] text-text-muted mt-1">Reverse-engineered capability matrix with an autonomous prompt-creator at every stage. Twilio benchmark on top, XTREME below. Per-row Auto Fix / Heal / Harden / Validate.</p>
+                <h1 className="font-display text-lg tracking-[0.1em] uppercase">Preflight Audit · SMAI vs Twilio</h1>
+                <p className="text-[12px] text-text-muted mt-1">Reverse-engineered capability matrix with an autonomous prompt-creator at every stage. Twilio benchmark on top, SMAI below. Per-row Auto Fix / Heal / Harden / Validate.</p>
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <button onClick={runAutoPilot} disabled={autoPiloting} className="h-10 px-4 rounded border border-accent-orange/50 text-accent-orange font-display tracking-[0.1em] uppercase text-[12px] flex items-center gap-2 disabled:opacity-60">
@@ -115,7 +115,7 @@ export default function Preflight() {
 
             <div>
               <div className="flex items-center gap-2 mb-2">
-                <span className="font-display text-[11px] tracking-[0.15em] uppercase text-text-muted">Capability Matrix · Twilio (top) vs XTREME (bottom)</span>
+                <span className="font-display text-[11px] tracking-[0.15em] uppercase text-text-muted">Capability Matrix · Twilio (top) vs SMAI (bottom)</span>
                 <span className="ml-auto font-display text-[10px] text-text-muted">{capabilities.length} capabilities · {loading ? "loading" : "ready"}</span>
               </div>
               <PreflightMatrix capabilities={capabilities} onResult={onResult} />

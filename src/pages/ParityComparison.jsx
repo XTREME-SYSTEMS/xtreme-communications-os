@@ -33,7 +33,7 @@ export default function ParityComparison() {
         </Link>
         <div className="flex flex-col">
           <span className="font-display text-[12px] tracking-[0.15em] uppercase text-text-primary">Parity Comparison</span>
-          <span className="text-[9px] text-text-muted uppercase tracking-wider">XTREME COMMUNICATIONS vs Twilio · {capabilities.length} capabilities · {passCount} passing tests</span>
+          <span className="text-[9px] text-text-muted uppercase tracking-wider">Strategic Minds AI vs Twilio · {capabilities.length} capabilities · {passCount} passing tests</span>
         </div>
         <div className="ml-auto w-32"><ThemeToggle /></div>
       </div>
@@ -67,7 +67,7 @@ export default function ParityComparison() {
                     </div>
                     <p className="mt-1 text-[11px] text-text-muted">{a.twilio_behavior}</p>
                     {a.xcomm_bypass && (
-                      <p className="mt-1 text-[11px] text-status-green"><span className="font-display uppercase text-[9px] tracking-wider">XCOM Bypass:</span> {a.xcomm_bypass}</p>
+                      <p className="mt-1 text-[11px] text-status-green"><span className="font-display uppercase text-[9px] tracking-wider">SMAI Bypass:</span> {a.xcomm_bypass}</p>
                     )}
                   </div>
                 ))}

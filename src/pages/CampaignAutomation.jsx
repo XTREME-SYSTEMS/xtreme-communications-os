@@ -36,7 +36,7 @@ export default function CampaignAutomation() {
         </Link>
         <div className="flex flex-col">
           <span className="font-display text-[12px] tracking-[0.15em] uppercase text-text-primary">Automations & Campaigns</span>
-          <span className="text-[9px] text-text-muted uppercase tracking-wider">XTREME COMMUNICATIONS · Event-driven workflows + mass outreach engine</span>
+          <span className="text-[9px] text-text-muted uppercase tracking-wider">Strategic Minds AI · Event-driven workflows + mass outreach engine</span>
         </div>
       </div>
       {loading ? (

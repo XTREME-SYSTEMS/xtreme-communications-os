@@ -32,7 +32,7 @@ export default function NumberManagement() {
         </Link>
         <div className="flex flex-col">
           <span className="font-display text-[12px] tracking-[0.15em] uppercase text-text-primary">Number Management</span>
-          <span className="text-[9px] text-text-muted uppercase tracking-wider">XTREME COMMUNICATIONS · DIDs + SIP/trunk routing</span>
+          <span className="text-[9px] text-text-muted uppercase tracking-wider">Strategic Minds AI · DIDs + SIP/trunk routing</span>
         </div>
       </div>
       <div className="p-4 lg:p-6 grid lg:grid-cols-2 gap-4">

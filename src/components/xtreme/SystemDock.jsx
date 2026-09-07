@@ -28,7 +28,7 @@ export default function SystemDock({ activeNode, onSelect, engineState }) {
   return (
     <aside className="hidden lg:flex flex-col w-60 shrink-0 border-r border-surface-border bg-base/60 backdrop-blur">
       <div className="px-4 h-14 flex items-center border-b border-surface-border">
-        <span className="font-display text-[13px] tracking-[0.2em] text-text-primary">XTREME//COMMS</span>
+        <span className="font-display text-[13px] tracking-[0.2em] text-text-primary">STRATEGIC//MINDS</span>
       </div>
       <div className="flex-1 overflow-y-auto scrollbar-thin py-3">
         {NODES.map((n) => {

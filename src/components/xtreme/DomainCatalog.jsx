@@ -152,7 +152,7 @@ export default function DomainCatalog({ capabilities, tests, audits }) {
                       <th className="text-left font-display uppercase tracking-wider px-4 py-2 w-8">#</th>
                       <th className="text-left font-display uppercase tracking-wider px-4 py-2">Capability</th>
                       <th className="text-center font-display uppercase tracking-wider px-4 py-2">Twilio</th>
-                      <th className="text-center font-display uppercase tracking-wider px-4 py-2">XTREME</th>
+                      <th className="text-center font-display uppercase tracking-wider px-4 py-2">SMAI</th>
                       <th className="text-center font-display uppercase tracking-wider px-4 py-2 hidden lg:table-cell">Coverage</th>
                       <th className="text-left font-display uppercase tracking-wider px-4 py-2 hidden lg:table-cell">Faultline Proof</th>
                     </tr>

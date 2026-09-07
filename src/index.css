@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    /* XTREME COMMS — Light Mode Primary */
+    /* Strategic Minds AI — Light Mode Primary */
     --background: 0 0% 100%;
     --foreground: 222 47% 11%;
     --card: 0 0% 100%;
@@ -56,7 +56,7 @@
   }
 
   .dark {
-    /* XTREME COMMS — Dark Mode (toggle) */
+    /* Strategic Minds AI — Dark Mode (toggle) */
     --background: 222 42% 6%;
     --foreground: 210 40% 98%;
     --card: 222 38% 11%;

@@ -70,7 +70,7 @@ export default function ProviderAbstraction() {
         </Link>
         <div className="flex flex-col">
           <span className="font-display text-[12px] tracking-[0.15em] uppercase text-text-primary">Provider Abstraction Layer</span>
-          <span className="text-[9px] text-text-muted uppercase tracking-wider">XTREME COMMUNICATIONS · multi-carrier adapter</span>
+          <span className="text-[9px] text-text-muted uppercase tracking-wider">Strategic Minds AI · multi-carrier adapter</span>
         </div>
         <button onClick={() => { setEditing(null); setShowForm(true); }}
           className="ml-auto flex items-center gap-1.5 h-8 px-3 rounded border border-accent-orange/50 text-accent-orange text-[11px] font-display uppercase tracking-wider hover:bg-accent-orange/10">

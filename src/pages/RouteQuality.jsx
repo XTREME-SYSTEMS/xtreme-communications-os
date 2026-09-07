@@ -61,7 +61,7 @@ export default function RouteQuality() {
         </Link>
         <div className="flex flex-col">
           <span className="font-display text-[12px] tracking-[0.15em] uppercase text-text-primary">Route Quality · Cognitive Telemetry</span>
-          <span className="text-[9px] text-text-muted uppercase tracking-wider">XTREME COMMUNICATIONS · anomaly detection + sentiment analytics</span>
+          <span className="text-[9px] text-text-muted uppercase tracking-wider">Strategic Minds AI · anomaly detection + sentiment analytics</span>
         </div>
       </div>
 

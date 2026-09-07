@@ -27,7 +27,7 @@ export default function DeveloperSettings() {
         </Link>
         <div className="flex flex-col">
           <span className="font-display text-[12px] tracking-[0.15em] uppercase text-text-primary">Developer · API Keys</span>
-          <span className="text-[9px] text-text-muted uppercase tracking-wider">XTREME COMMUNICATIONS · public authentication surface</span>
+          <span className="text-[9px] text-text-muted uppercase tracking-wider">Strategic Minds AI · public authentication surface</span>
         </div>
       </div>
       <div className="p-4 lg:p-6 grid lg:grid-cols-2 gap-4">
@@ -49,7 +49,7 @@ export default function DeveloperSettings() {
             ))}
           </div>
           <div className="mt-auto px-4 py-3 border-t border-surface-border text-[10px] font-display tracking-[0.15em] text-text-muted uppercase leading-relaxed">
-            Authenticate with: Authorization: Bearer xcom_live_…
+            Authenticate with: Authorization: Bearer smai_live_…
           </div>
         </section>
       </div>

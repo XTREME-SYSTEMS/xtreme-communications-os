@@ -58,7 +58,7 @@ export default function ParityMatrix({ capabilities = [], tests = [], audits = [
               <th className="text-left font-display uppercase tracking-wider px-4 py-2.5">Capability</th>
               <th className="text-left font-display uppercase tracking-wider px-4 py-2.5 hidden md:table-cell">Category</th>
               <th className="text-center font-display uppercase tracking-wider px-4 py-2.5">Twilio</th>
-              <th className="text-center font-display uppercase tracking-wider px-4 py-2.5">XTREME</th>
+              <th className="text-center font-display uppercase tracking-wider px-4 py-2.5">SMAI</th>
               <th className="text-center font-display uppercase tracking-wider px-4 py-2.5 hidden lg:table-cell">Coverage</th>
               <th className="text-left font-display uppercase tracking-wider px-4 py-2.5 hidden lg:table-cell">Faultline Proof</th>
             </tr>

@@ -46,7 +46,7 @@ export default function WholesaleCore() {
         </Link>
         <div className="flex flex-col">
           <span className="font-display text-[12px] tracking-[0.15em] uppercase text-text-primary">Wholesale Core</span>
-          <span className="text-[9px] text-text-muted uppercase tracking-wider">XTREME COMMUNICATIONS · CaaS gateway · Supabase system of record</span>
+          <span className="text-[9px] text-text-muted uppercase tracking-wider">Strategic Minds AI · CaaS gateway · Supabase system of record</span>
         </div>
         <button onClick={provision} disabled={provisioning}
           className="ml-auto flex items-center gap-1.5 h-8 px-3 rounded border border-status-green/40 text-status-green text-[11px] font-display uppercase tracking-wider hover:bg-status-green/10 disabled:opacity-50">

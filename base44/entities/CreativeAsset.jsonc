@@ -1,0 +1,60 @@
+{
+  "name": "CreativeAsset",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": [
+        "image",
+        "logo",
+        "hook",
+        "close",
+        "bid",
+        "pricing",
+        "promo",
+        "testimonial"
+      ],
+      "description": "Generator type that produced this asset"
+    },
+    "title": {
+      "type": "string",
+      "description": "Label for this creative asset"
+    },
+    "content": {
+      "type": "string",
+      "description": "Text content for text generators, or image URL for image generators"
+    },
+    "content_type": {
+      "type": "string",
+      "enum": [
+        "text",
+        "image"
+      ],
+      "default": "text"
+    },
+    "company_name": {
+      "type": "string"
+    },
+    "industry": {
+      "type": "string"
+    },
+    "brand_colors": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "context": {
+      "type": "string",
+      "description": "Product/service/context used to generate this asset"
+    },
+    "target_audience": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "type",
+    "title"
+  ]
+}

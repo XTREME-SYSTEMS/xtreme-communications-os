@@ -44,6 +44,7 @@ import PromoAdmin from './pages/PromoAdmin';
 import NumberResale from './pages/NumberResale';
 import AdminPortal from './pages/AdminPortal';
 import TemplateGenerator from './pages/TemplateGenerator';
+import MmsStudio from './pages/MmsStudio';
 import WhatsAppSetup from './pages/WhatsAppSetup';
 import NumberPorting from './pages/NumberPorting';
 import ThankYou from './pages/ThankYou';
@@ -87,6 +88,7 @@ function App() {
               <Route path="/admin-portal" element={<AdminPortal />} />
               {/* Portal Tools */}
               <Route path="/portal/templates" element={<TemplateGenerator />} />
+              <Route path="/portal/mms-studio" element={<MmsStudio />} />
               <Route path="/portal/whatsapp" element={<WhatsAppSetup />} />
               <Route path="/portal/porting" element={<NumberPorting />} />
               {/* XTREME OS — internal dashboard */}

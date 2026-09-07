@@ -67,8 +67,9 @@ function matchDomain(cap) {
 }
 
 function computeProofHash(capName, tests) {
-  const keyword = capName.toLowerCase().split(" ")[0];
-  const relevant = tests.filter(
+  const keyword = (capName || "").toLowerCase().split(" ")[0];
+  const safeTests = Array.isArray(tests) ? tests : [];
+  const relevant = safeTests.filter(
     (t) => t.status === "pass" &&
       ((t.evidence || "").toLowerCase().includes(keyword) ||
        (t.test_name || "").toLowerCase().includes(keyword))
@@ -83,8 +84,10 @@ function computeProofHash(capName, tests) {
 }
 
 function getTwilioStatus(cap, audits) {
-  const keyword = cap.name.toLowerCase().split(" ")[0];
-  const matchingAudit = audits.find(
+  if (!cap) return { label: "GAP", score: 0, icon: XCircle, color: "text-text-muted" };
+  const keyword = (cap.name || "").toLowerCase().split(" ")[0];
+  const safeAudits = Array.isArray(audits) ? audits : [];
+  const matchingAudit = safeAudits.find(
     (a) => (a.area || "").toLowerCase().includes(keyword) ||
           (a.xcomm_bypass || "").toLowerCase().includes(keyword) ||
           (cap.category || "").toLowerCase().includes((a.vulnerability_class || "").split("_")[0])

@@ -4,7 +4,16 @@ import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
-import { Shield, Users, Phone, KeyRound, DollarSign, Activity, Brain, Eye, ArrowLeft, Loader2, CheckCircle2, AlertCircle, RefreshCw } from "lucide-react";
+import { Shield, Users, Phone, KeyRound, DollarSign, Activity, Brain, Eye, ArrowLeft, Loader2, CheckCircle2, AlertCircle, RefreshCw, Plus, Copy, Trash2, X, Check } from "lucide-react";
+
+const ADMIN_SCOPES = ["sms", "mms", "voice", "whatsapp", "email", "numbers", "agents", "lookup", "verify", "billing", "admin"];
+
+function generateApiKey() {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let key = "xck_";
+  for (let i = 0; i < 40; i++) key += chars[Math.floor(Math.random() * chars.length)];
+  return key;
+}
 
 export default function AdminPortal() {
   const { user } = useAuth();
@@ -16,6 +25,11 @@ export default function AdminPortal() {
   const [numbers, setNumbers] = useState([]);
   const [keys, setKeys] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [showKeyForm, setShowKeyForm] = useState(false);
+  const [keyForm, setKeyForm] = useState({ label: "", scopes: ["admin"] });
+  const [newKey, setNewKey] = useState(null);
+  const [creating, setCreating] = useState(false);
+  const [copiedKey, setCopiedKey] = useState(false);
 
   useEffect(() => { load(); }, []);
 
@@ -39,6 +53,47 @@ export default function AdminPortal() {
     } catch (e) { toast({ title: "Load failed", description: e.message, variant: "destructive" }); }
     setLoading(false);
     setRefreshing(false);
+  };
+
+  const toggleScope = (s) => {
+    setKeyForm(prev => ({
+      ...prev,
+      scopes: prev.scopes.includes(s) ? prev.scopes.filter(x => x !== s) : [...prev.scopes, s],
+    }));
+  };
+
+  const handleCreateKey = async () => {
+    if (!keyForm.label.trim()) { toast({ title: "Label required", variant: "destructive" }); return; }
+    setCreating(true);
+    try {
+      const keyValue = generateApiKey();
+      const created = await base44.entities.ApiKey.create({
+        label: keyForm.label.trim(),
+        key_value: keyValue,
+        scopes: keyForm.scopes,
+        status: "active",
+        tenant_id: "admin",
+      });
+      setKeys(prev => [created, ...prev]);
+      setNewKey(keyValue);
+      setKeyForm({ label: "", scopes: ["admin"] });
+      setShowKeyForm(false);
+      setStats(prev => ({ ...prev, keys: prev.keys + 1 }));
+      toast({ title: "API key created", description: "Copy it now — it won't be shown again." });
+    } catch (e) {
+      toast({ title: "Failed to create key", description: e.message, variant: "destructive" });
+    }
+    setCreating(false);
+  };
+
+  const handleRevokeKey = async (id) => {
+    try {
+      await base44.entities.ApiKey.update(id, { status: "revoked" });
+      setKeys(prev => prev.map(k => k.id === id ? { ...k, status: "revoked" } : k));
+      toast({ title: "Key revoked" });
+    } catch (e) {
+      toast({ title: "Revoke failed", description: e.message, variant: "destructive" });
+    }
   };
 
   if (loading) return <div className="flex items-center justify-center h-screen"><Loader2 className="h-8 w-8 text-primary animate-spin" /></div>;
@@ -169,26 +224,91 @@ export default function AdminPortal() {
 
       {/* Keys */}
       {tab === "keys" && (
-        <div className="rounded-xl border border-border bg-card p-5">
-          <h2 className="font-medium text-foreground mb-3">All API Keys ({keys.length})</h2>
-          {keys.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-8">No API keys yet.</p>
-          ) : (
-            <div className="space-y-2">
-              {keys.map(k => (
-                <div key={k.id} className="flex items-center justify-between p-3 rounded-lg border border-border bg-accent/30">
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{k.label}</p>
-                    <p className="text-xs text-muted-foreground font-mono">{k.key_value?.slice(0, 12)}••••</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="flex gap-1">{(k.scopes || []).slice(0, 4).map(s => <span key={s} className="px-1.5 py-0.5 rounded bg-accent text-[9px] text-muted-foreground uppercase">{s}</span>)}</div>
-                    <span className={cn("text-xs", k.status === "active" ? "text-primary" : "text-destructive")}>{k.status}</span>
-                  </div>
-                </div>
-              ))}
+        <div className="space-y-4">
+          {/* New key banner */}
+          {newKey && (
+            <div className="rounded-xl border border-primary bg-primary/5 p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <CheckCircle2 className="h-4 w-4 text-primary" />
+                <span className="text-sm font-medium text-foreground">API Key Created — copy it now</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <code className="flex-1 px-3 py-2 rounded-lg bg-background border border-border text-xs font-mono text-foreground overflow-x-auto">{newKey}</code>
+                <button onClick={() => { navigator.clipboard.writeText(newKey); setCopiedKey(true); setTimeout(() => setCopiedKey(false), 2000); }}
+                  className="px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium flex items-center gap-1.5 shrink-0">
+                  {copiedKey ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />} {copiedKey ? "Copied" : "Copy"}
+                </button>
+              </div>
+              <button onClick={() => setNewKey(null)} className="mt-2 text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"><X className="h-3 w-3" /> Dismiss</button>
             </div>
           )}
+
+          {/* Generate button / form */}
+          <div className="rounded-xl border border-border bg-card p-5">
+            {!showKeyForm ? (
+              <button onClick={() => setShowKeyForm(true)} className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg gold-gradient text-black font-medium hover:opacity-90">
+                <Plus className="h-4 w-4" /> Generate Admin API Key
+              </button>
+            ) : (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="font-medium text-foreground">New API Key</h2>
+                  <button onClick={() => setShowKeyForm(false)} className="text-muted-foreground hover:text-foreground"><X className="h-4 w-4" /></button>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Label *</label>
+                  <input value={keyForm.label} onChange={e => setKeyForm({ ...keyForm, label: e.target.value })}
+                    placeholder="e.g. Vision Cortex, Production, Internal Tool"
+                    className="w-full h-10 px-3 mt-1 rounded-lg border border-border bg-background text-sm focus:border-primary outline-none" />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Scopes</label>
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {ADMIN_SCOPES.map(s => (
+                      <button key={s} onClick={() => toggleScope(s)}
+                        className={cn("px-3 py-1.5 rounded-lg border text-sm capitalize",
+                          keyForm.scopes.includes(s) ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground")}>
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={handleCreateKey} disabled={creating}
+                    className="px-6 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 disabled:opacity-50 flex items-center gap-2">
+                    {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />} Create Key
+                  </button>
+                  <button onClick={() => setShowKeyForm(false)} className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground">Cancel</button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Keys list */}
+          <div className="rounded-xl border border-border bg-card p-5">
+            <h2 className="font-medium text-foreground mb-3">All API Keys ({keys.length})</h2>
+            {keys.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-8">No API keys yet. Generate one above.</p>
+            ) : (
+              <div className="space-y-2">
+                {keys.map(k => (
+                  <div key={k.id} className="flex items-center justify-between p-3 rounded-lg border border-border bg-accent/30">
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-foreground">{k.label}</p>
+                      <p className="text-xs text-muted-foreground font-mono">{k.key_value?.slice(0, 12)}••••</p>
+                    </div>
+                    <div className="flex items-center gap-3 shrink-0">
+                      <div className="flex gap-1">{(k.scopes || []).slice(0, 4).map(s => <span key={s} className="px-1.5 py-0.5 rounded bg-accent text-[9px] text-muted-foreground uppercase">{s}</span>)}{(k.scopes || []).length > 4 && <span className="text-[9px] text-muted-foreground">+{k.scopes.length - 4}</span>}</div>
+                      <span className={cn("text-xs", k.status === "active" ? "text-primary" : "text-destructive")}>{k.status}</span>
+                      {k.status === "active" && (
+                        <button onClick={() => handleRevokeKey(k.id)} className="text-muted-foreground hover:text-destructive" title="Revoke"><Trash2 className="h-3.5 w-3.5" /></button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       )}
 

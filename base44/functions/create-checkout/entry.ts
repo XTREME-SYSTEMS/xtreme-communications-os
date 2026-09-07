@@ -69,45 +69,74 @@ Deno.serve(async (req: Request) => {
     const body = await req.json().catch(() => ({}));
 
     // ===== APP-SPECIFIC =====
-    // Resolve what is being bought AND its price SERVER-SIDE. NEVER trust a price sent by the
-    // client — a buyer can tamper the request body and pay any amount. The client sends only a
-    // product identifier; look up the authoritative price here (a Product entity, a config map,
-    // etc.). For a subscription, set `subscriptionInfo` (frequency/interval/billingCycles).
-    const productId = String(body.productId ?? "");
-    // Quantity is buyer-controlled, so VALIDATE it server-side. Check the RAW value is a positive
-    // integer BEFORE using it — do NOT Math.trunc first, or a fractional POST (e.g. 1.9) silently
-    // passes as 1 and charges a quantity the UI never allowed. For a plan / fixed-entitlement product,
-    // hard-code `1` and ignore the body; for a genuine multi-unit product, also enforce YOUR own max.
-    const quantity = Number(body.quantity ?? 1);
-    if (!Number.isInteger(quantity) || quantity < 1) {
-      return new Response(JSON.stringify({ error: "Invalid quantity" }), { status: 400 });
+    // Server-side product catalog — authoritative prices, NEVER trust client-sent prices.
+    const PRODUCTS: Record<string, { name: string; price: string; subscription?: { frequency: string; interval?: number } }> = {
+      "plan-starter":         { name: "Starter Plan — Monthly",       price: "49.00",  subscription: { frequency: "MONTH" } },
+      "plan-essential":       { name: "Essential Plan — Monthly",     price: "99.00",  subscription: { frequency: "MONTH" } },
+      "plan-professional":    { name: "Professional Plan — Monthly", price: "149.00", subscription: { frequency: "MONTH" } },
+      "plan-growth":          { name: "Growth Plan — Monthly",        price: "199.00", subscription: { frequency: "MONTH" } },
+      "plan-starter-annual":      { name: "Starter Plan — Annual",       price: "39.20",  subscription: { frequency: "YEAR" } },
+      "plan-essential-annual":      { name: "Essential Plan — Annual",     price: "79.20",  subscription: { frequency: "YEAR" } },
+      "plan-professional-annual":  { name: "Professional Plan — Annual",   price: "119.20", subscription: { frequency: "YEAR" } },
+      "plan-growth-annual":         { name: "Growth Plan — Annual",        price: "159.20", subscription: { frequency: "YEAR" } },
+      "payg-sms-1000":         { name: "SMS Credit (1,000 msgs)",         price: "4.00" },
+      "payg-mms-1000":         { name: "MMS Credit (1,000 msgs)",         price: "12.00" },
+      "payg-whatsapp-1000":    { name: "WhatsApp Credit (1,000 min)",     price: "2.50" },
+      "payg-voice-out-1000":   { name: "Outbound Call Credit (1,000 min)",price: "7.00" },
+      "payg-voice-in-1000":    { name: "Inbound Call Credit (1,000 min)",  price: "3.20" },
+      "payg-recording-1000":   { name: "Call Recording Credit (1,000 min)",price: "2.00" },
+      "payg-ai-100":           { name: "Conversational AI Credit (100 min)",price: "5.00" },
+      "payg-stt-1000":         { name: "Speech-to-Text Credit (1,000 min)", price: "7.40" },
+      "payg-tts-100k":         { name: "Text-to-Speech Credit (100K chars)", price: "0.50" },
+      "payg-email-10000":      { name: "Email Credit (10,000 emails)",     price: "13.00" },
+      "payg-local-number":     { name: "Local Phone Number — Monthly",    price: "1.00", subscription: { frequency: "MONTH" } },
+      "payg-tollfree-number": { name: "Toll-Free Phone Number — Monthly",  price: "1.00", subscription: { frequency: "MONTH" } },
+    };
+
+    // Accept either a single product or an array of items (cart).
+    const rawItems: Array<{ productId: string; quantity: number }> = Array.isArray(body.items) && body.items.length > 0
+      ? body.items
+      : [{ productId: String(body.productId ?? ""), quantity: Number(body.quantity ?? 1) }];
+
+    // Validate and resolve each item server-side.
+    const cartItems: Array<{ name: string; quantity: number; price: string; subscriptionInfo?: any }> = [];
+    let total = 0;
+    for (const item of rawItems) {
+      const pid = String(item.productId ?? "");
+      const qty = Number(item.quantity ?? 1);
+      if (!Number.isInteger(qty) || qty < 1) {
+        return new Response(JSON.stringify({ error: "Invalid quantity" }), { status: 400 });
+      }
+      const product = PRODUCTS[pid];
+      if (!product) {
+        return new Response(JSON.stringify({ error: `Unknown product: ${pid}` }), { status: 400 });
+      }
+      // Plans are fixed-entitlement (quantity 1); PAYG credits allow multi-quantity.
+      const effectiveQty = pid.startsWith("plan-") ? 1 : qty;
+      const subInfo = product.subscription
+        ? { subscriptionSettings: { frequency: product.subscription.frequency, ...(product.subscription.interval ? { interval: product.subscription.interval } : {}) }, title: product.name }
+        : undefined;
+      cartItems.push({ name: product.name, quantity: effectiveQty, price: product.price, ...(subInfo ? { subscriptionInfo: subInfo } : {}) });
+      total += parseFloat(product.price) * effectiveQty;
     }
-    // Example — replace with your real trusted product source:
-    //   const product = (await base44.asServiceRole.entities.Product.filter({ id: productId }))[0];
-    //   if (!product) return new Response(JSON.stringify({ error: "Unknown product" }), { status: 400 });
-    //   const productName = product.name; const price = String(product.price); const currency = product.currency ?? "USD";
-    const productName = "Purchase"; // TODO: from your trusted product source
-    const price = "0.00";           // TODO: authoritative per-unit price (major units), resolved server-side
+
+    // Combined values for the Base44Purchase record.
+    const productId = rawItems.map(i => i.productId).join(",");
+    const productName = cartItems.map(i => i.name).join(" + ");
+    const quantity = cartItems.reduce((s, i) => s + i.quantity, 1);
     const currency = "USD";
-    // For a SUBSCRIPTION set this to Wix's subscriptionInfo; leave null for a one-time payment.
-    const subscriptionInfo = null;
-    // Where Wix returns the buyer. Both MUST be real, PUBLICLY reachable routes in this app: the
-    // returning buyer is often anonymous, so a missing or login-gated route strands a paid customer.
-    // Match your router exactly — `/ThankYou`, not `/thank-you`.
+
     const thankYouPath = "/ThankYou";
     const postFlowPath = "/";
     // ===== END APP-SPECIFIC =====
 
-    const total = parseFloat(price) * quantity;
     if (!(total >= 0.5)) {
-      // Wix rejects charges under 0.50 in the charged currency (major units, not cents).
       return new Response(JSON.stringify({ error: "Amount must be at least 0.50" }), { status: 400 });
     }
 
     const constructBody = {
       cart: {
-        items: [{ name: productName, quantity, price, ...(subscriptionInfo ? { subscriptionInfo } : {}) }],
-        // Prefill the signed-in buyer's email if we have one; anonymous buyers enter it on Wix.
+        items: cartItems,
         ...(appUser?.email ? { customerInfo: { email: appUser.email } } : {}),
       },
       callbackUrls: {

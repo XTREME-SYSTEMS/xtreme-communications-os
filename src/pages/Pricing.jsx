@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { base44 } from "@/api/base44Client";
+import { useToast } from "@/components/ui/use-toast";
 import { CheckCircle2, ArrowRight, Tag, X, ShoppingCart, Plus } from "lucide-react";
 import CartDrawer from "@/components/CartDrawer";
 
@@ -74,6 +76,7 @@ const PAYG = [
 ];
 
 export default function Pricing() {
+  const { toast } = useToast();
   const [billing, setBilling] = useState("monthly");
   const [promoCode, setPromoCode] = useState("");
   const [promoApplied, setPromoApplied] = useState(null);
@@ -111,10 +114,20 @@ export default function Pricing() {
     }
   };
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     setCartOpen(false);
-    const cartParam = encodeURIComponent(JSON.stringify(cart));
-    window.location.href = `/register?cart=${cartParam}`;
+    try {
+      const items = cart.map(i => ({ productId: i.id, quantity: i.quantity }));
+      const res = await base44.functions.invoke("create-checkout", { items });
+      const redirectUrl = res.data?.redirectUrl || res.redirectUrl;
+      if (redirectUrl) {
+        window.location.href = redirectUrl;
+      } else {
+        toast({ title: "Checkout error", description: "No redirect URL returned", variant: "destructive" });
+      }
+    } catch (e) {
+      toast({ title: "Checkout failed", description: e.message || "Could not start checkout", variant: "destructive" });
+    }
   };
 
   return (

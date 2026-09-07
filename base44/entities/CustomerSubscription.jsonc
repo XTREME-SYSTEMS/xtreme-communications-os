@@ -6,6 +6,10 @@
       "type": "string",
       "description": "Base44 User ID of the customer"
     },
+    "buyer_email": {
+      "type": "string",
+      "description": "Email of the buyer (for anonymous purchases claimed on signup)"
+    },
     "company_name": {
       "type": "string"
     },
@@ -13,6 +17,8 @@
       "type": "string",
       "enum": [
         "starter",
+        "essential",
+        "professional",
         "growth",
         "enterprise",
         "pay_as_you_go"

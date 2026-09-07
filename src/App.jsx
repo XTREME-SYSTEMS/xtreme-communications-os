@@ -45,6 +45,7 @@ import NumberResale from './pages/NumberResale';
 import TemplateGenerator from './pages/TemplateGenerator';
 import WhatsAppSetup from './pages/WhatsAppSetup';
 import NumberPorting from './pages/NumberPorting';
+import ThankYou from './pages/ThankYou';
 
 function App() {
   return (
@@ -60,6 +61,7 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/ThankYou" element={<ThankYou />} />
 
             {/* Protected routes — auth required */}
             <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>

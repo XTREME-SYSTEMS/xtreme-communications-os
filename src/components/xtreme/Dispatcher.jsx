@@ -2,27 +2,10 @@ import { useEffect, useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
-import { Activity, Square } from "lucide-react";
+import { Activity, Square, RadioTower } from "lucide-react";
 import Waveform from "./Waveform";
 import PersonaSwitcher from "./PersonaSwitcher";
 import { STATUS_STYLES, SHORT_STATUS } from "@/lib/xtreme";
-
-const CHANNELS = ["voice", "sms", "whatsapp", "mms", "rcs", "email"];
-const STATUSES = ["active", "ringing", "completed", "queued", "failed"];
-
-function genEvent() {
-  const ch = CHANNELS[Math.floor(Math.random() * CHANNELS.length)];
-  const dir = Math.random() > 0.5 ? "inbound" : "outbound";
-  const st = STATUSES[Math.floor(Math.random() * STATUSES.length)];
-  return {
-    channel: ch, direction: dir,
-    from_addr: `+1${Math.floor(2000000000 + Math.random() * 7999999999)}`,
-    to_addr: `+1${Math.floor(2000000000 + Math.random() * 7999999999)}`,
-    status: st, classification: "MOCK/DEV-ONLY",
-    duration_sec: ch === "voice" ? Math.floor(Math.random() * 180) : 0,
-    _ts: Date.now(),
-  };
-}
 
 export default function Dispatcher() {
   const { toast } = useToast();
@@ -30,20 +13,18 @@ export default function Dispatcher() {
   const [halted, setHalted] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    let alive = true;
-    base44.entities.CommsEvent.list("-created_date", 8).then(rows => {
-      if (alive) setEvents(rows.map(r => ({ ...r, _ts: new Date(r.created_date).getTime() })));
-      if (alive) setLoading(false);
+  const loadEvents = () => {
+    base44.entities.CommsEvent.list("-created_date", 12).then(rows => {
+      setEvents(rows.map(r => ({ ...r, _ts: new Date(r.created_date).getTime() })));
+      setLoading(false);
     }).catch(() => setLoading(false));
-    return () => { alive = false; };
-  }, []);
+  };
 
   useEffect(() => {
-    if (halted) return;
-    const id = setInterval(() => setEvents(prev => [genEvent(), ...prev].slice(0, 8)), 2200);
-    return () => clearInterval(id);
-  }, [halted]);
+    loadEvents();
+    const unsub = base44.entities.CommsEvent.subscribe(() => loadEvents());
+    return () => { if (typeof unsub === "function") unsub(); };
+  }, []);
 
   const emergencyStop = () => {
     const next = !halted;
@@ -76,6 +57,11 @@ export default function Dispatcher() {
       <div className="grid md:grid-cols-[1fr_280px]">
         <div className="divide-y divide-surface-border max-h-[260px] overflow-y-auto scrollbar-thin">
           {loading && <div className="p-4 text-[12px] text-text-muted font-display tracking-wider">SYNCING STREAM…</div>}
+          {!loading && events.length === 0 && (
+            <div className="p-4 flex items-center gap-2 text-[12px] text-text-muted font-display tracking-wider">
+              <RadioTower className="h-4 w-4" /> NO LIVE EVENTS — AWAITING REAL TRAFFIC
+            </div>
+          )}
           {events.map((e, i) => {
             const st = STATUS_STYLES[e.classification] || STATUS_STYLES["MOCK/DEV-ONLY"];
             return (

@@ -23,6 +23,7 @@ import CallDashboard from './pages/CallDashboard';
 import PersonaStudio from './pages/PersonaStudio';
 import CompanyOverview from './pages/CompanyOverview';
 import CommunicationStudio from './pages/CommunicationStudio';
+import TestLab from './pages/TestLab';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -67,6 +68,7 @@ const AuthenticatedApp = () => {
       <Route path="/personas" element={<PersonaStudio />} />
       <Route path="/company" element={<CompanyOverview />} />
       <Route path="/comm-studio" element={<CommunicationStudio />} />
+      <Route path="/test-lab" element={<TestLab />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

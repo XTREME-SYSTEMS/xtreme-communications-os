@@ -1,10 +1,11 @@
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
-import { Brain, Factory, ShieldCheck, Globe, EyeOff, Radio, Network, Phone, KeyRound, CreditCard, Radar, Megaphone, Scale, Library, GitBranch, PhoneCall, Palette, Building2, Sparkles, FlaskConical, UserCog, Mailbox } from "lucide-react";
+import { Brain, Factory, ShieldCheck, Globe, EyeOff, Radio, Network, Phone, KeyRound, CreditCard, Radar, Megaphone, Scale, Library, GitBranch, PhoneCall, Palette, Building2, Sparkles, FlaskConical, UserCog, Mailbox, LayoutDashboard, Tag, ExternalLink } from "lucide-react";
 import ThemeToggle from "@/components/xtreme/ThemeToggle";
 import { ENGINE_STYLES } from "@/lib/xtreme";
 
 const NODES = [
+  { name: "Dashboard", role: "OS Home", icon: LayoutDashboard, route: "/os" },
   { name: "Vision Cortex", role: "AI Brain", icon: Brain },
   { name: "AutoBuilder", role: "Factory", icon: Factory },
   { name: "Faultline", role: "Eng Control", icon: ShieldCheck },
@@ -28,6 +29,8 @@ const NODES = [
   { name: "Test Lab", role: "AI-to-AI · Voice · Tools", icon: FlaskConical, route: "/test-lab" },
   { name: "Digital Team", role: "AI Replica · Onboarding", icon: UserCog, route: "/digital-team" },
   { name: "Campaigns", role: "Email · SMS · 4K Contacts", icon: Mailbox, route: "/campaign-console" },
+  { name: "Promo Codes", role: "Discount Management", icon: Tag, route: "/promo-admin" },
+  { name: "Customer Portal", role: "User Dashboard", icon: ExternalLink, route: "/portal" },
 ];
 
 export default function SystemDock({ activeNode, onSelect, engineState }) {

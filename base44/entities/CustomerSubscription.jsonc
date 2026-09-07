@@ -1,0 +1,93 @@
+{
+  "name": "CustomerSubscription",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "Base44 User ID of the customer"
+    },
+    "company_name": {
+      "type": "string"
+    },
+    "plan": {
+      "type": "string",
+      "enum": [
+        "starter",
+        "growth",
+        "enterprise",
+        "pay_as_you_go"
+      ],
+      "default": "pay_as_you_go"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "trial",
+        "active",
+        "past_due",
+        "cancelled"
+      ],
+      "default": "trial"
+    },
+    "promo_code": {
+      "type": "string",
+      "description": "Promo code applied at signup"
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "onboarding_completed": {
+      "type": "boolean",
+      "default": false
+    },
+    "onboarding_current_step": {
+      "type": "integer",
+      "default": 0,
+      "description": "Index of the current onboarding step (0-based)"
+    },
+    "onboarding_steps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "step": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "completed": {
+            "type": "boolean",
+            "default": false
+          },
+          "completed_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "default": []
+    },
+    "onboarding_data": {
+      "type": "object",
+      "description": "All data collected during onboarding (company info, agent config, templates, etc.)"
+    },
+    "phone_numbers_count": {
+      "type": "integer",
+      "default": 0
+    },
+    "ai_agents_count": {
+      "type": "integer",
+      "default": 0
+    },
+    "monthly_spend": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "user_id",
+    "plan"
+  ]
+}

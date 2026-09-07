@@ -1,0 +1,75 @@
+{
+  "name": "PromoCode",
+  "type": "object",
+  "properties": {
+    "code": {
+      "type": "string",
+      "description": "The promo code string customers enter at checkout"
+    },
+    "description": {
+      "type": "string",
+      "description": "Internal note about this promo"
+    },
+    "discount_type": {
+      "type": "string",
+      "enum": [
+        "percentage",
+        "fixed_amount",
+        "free_month",
+        "account_credit"
+      ],
+      "default": "percentage"
+    },
+    "discount_value": {
+      "type": "number",
+      "default": 0,
+      "description": "Percentage (0-100), fixed amount in USD, or credit amount"
+    },
+    "max_uses": {
+      "type": "integer",
+      "default": 100,
+      "description": "Maximum total redemptions; 0 = unlimited"
+    },
+    "max_uses_per_customer": {
+      "type": "integer",
+      "default": 1
+    },
+    "used_count": {
+      "type": "integer",
+      "default": 0
+    },
+    "valid_from": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "valid_until": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "applicable_plans": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "starter",
+          "growth",
+          "enterprise",
+          "pay_as_you_go",
+          "all"
+        ]
+      },
+      "default": [
+        "all"
+      ]
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "code",
+    "discount_type",
+    "discount_value"
+  ]
+}

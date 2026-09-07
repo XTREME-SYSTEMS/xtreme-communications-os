@@ -78,7 +78,7 @@ export default function Home() {
             <Dispatcher />
             <div className="grid grid-cols-[3fr_2fr] gap-4">
               <div className="space-y-4">
-                <ParityMatrix capabilities={capabilities} tests={tests} loading={loading} />
+                <ParityMatrix capabilities={capabilities} tests={tests} audits={findings} loading={loading} />
                 <BuildQueue tasks={tasks} loading={loading} onMutate={load} />
               </div>
               <div className="space-y-4">
@@ -109,7 +109,7 @@ export default function Home() {
             )}
             {mobileView === "parity" && (
               <>
-                <ParityMatrix capabilities={capabilities} tests={tests} loading={loading} />
+                <ParityMatrix capabilities={capabilities} tests={tests} audits={findings} loading={loading} />
                 <BuildQueue tasks={tasks} loading={loading} onMutate={load} />
               </>
             )}

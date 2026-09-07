@@ -28,10 +28,11 @@ function computeProofHash(capName, tests) {
 
 function getTwilioStatus(cap, audits) {
   const keyword = (cap?.name || "").toLowerCase().split(" ")[0];
-  const matchingAudit = (Array.isArray(audits) ? audits : []).find(
-    (a) => (a.area || "").toLowerCase().includes(keyword) ||
-          (a.xcomm_bypass || "").toLowerCase().includes(keyword) ||
-          (cap.category || "").toLowerCase().includes((a.vulnerability_class || "").split("_")[0])
+  const safeAudits = Array.isArray(audits) ? audits : [];
+  const matchingAudit = safeAudits.find(
+    (a) => (a?.area || "").toLowerCase().includes(keyword) ||
+           (a?.xcomm_bypass || "").toLowerCase().includes(keyword) ||
+           (cap?.category || "").toLowerCase().includes((a?.vulnerability_class || "").split("_")[0])
   );
   if (matchingAudit) {
     const severityPenalty = { critical: 40, high: 25, medium: 15, low: 5, info: 0 };

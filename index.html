@@ -2,22 +2,27 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="https://base44.com/logo_v2.svg" />
+    <link rel="icon" type="image/png" href="https://media.base44.com/images/public/6a9b71a5d35335afb9198950/6806177bd_LOGO.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#FF6600" />
+    <meta name="theme-color" content="#FFD700" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="SMAI" />
+    <meta name="apple-mobile-web-app-title" content="Xtreme Communications" />
     <link rel="manifest" href="/manifest.json" />
-    <link rel="apple-touch-icon" href="/icon.svg" />
-    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+    <link rel="apple-touch-icon" href="https://media.base44.com/images/public/6a9b71a5d35335afb9198950/6806177bd_LOGO.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
-    <title>Strategic Minds AI — Intelligence In Motion</title>
+    <title>Xtreme Communications — Intelligence For Growth</title>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div id="app-loading" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;background:#0a0a0a;gap:16px;">
+        <img src="https://media.base44.com/images/public/6a9b71a5d35335afb9198950/6806177bd_LOGO.png" alt="Xtreme Communications" style="height:100px;width:100px;object-fit:contain;animation:logo-pulse 2s ease-in-out infinite;" />
+        <span style="color:#FFD700;font-family:monospace;font-size:11px;letter-spacing:3px;text-transform:uppercase;opacity:0.8;">Intelligence For Growth</span>
+      </div>
+      <style>@keyframes logo-pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.6;transform:scale(0.92);}}</style>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

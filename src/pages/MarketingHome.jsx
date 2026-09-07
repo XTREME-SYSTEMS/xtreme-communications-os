@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { MessageSquare, Phone, MessageCircle, Brain, Hash, Mail, Zap, ArrowRight, CheckCircle2, BarChart3, Shield, Globe } from "lucide-react";
+import { MessageSquare, Phone, MessageCircle, Brain, Hash, Mail, ArrowRight, CheckCircle2, BarChart3, Shield, Globe } from "lucide-react";
 
 export default function MarketingHome() {
   return (
@@ -8,10 +8,8 @@ export default function MarketingHome() {
       <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <Zap className="h-4 w-4 text-primary-foreground" />
-            </div>
-            <span className="font-display text-sm tracking-[0.15em] uppercase text-foreground">XTREME Comms</span>
+            <img src="https://media.base44.com/images/public/6a9b71a5d35335afb9198950/6806177bd_LOGO.png" className="h-8 w-8 rounded-lg object-contain" alt="Xtreme Communications" />
+            <span className="font-display text-sm tracking-[0.15em] uppercase text-foreground">Xtreme Communications</span>
           </div>
           <div className="hidden md:flex items-center gap-6">
             <Link to="/pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Pricing</Link>
@@ -220,10 +218,8 @@ export default function MarketingHome() {
       <footer className="border-t border-border py-8">
         <div className="max-w-6xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded bg-primary flex items-center justify-center">
-              <Zap className="h-3 w-3 text-primary-foreground" />
-            </div>
-            <span className="text-sm font-display tracking-wider text-foreground">XTREME Comms</span>
+            <img src="https://media.base44.com/images/public/6a9b71a5d35335afb9198950/6806177bd_LOGO.png" className="h-6 w-6 rounded object-contain" alt="Xtreme Communications" />
+            <span className="text-sm font-display tracking-wider text-foreground">Xtreme Communications</span>
           </div>
           <div className="flex items-center gap-6 text-xs text-muted-foreground">
             <Link to="/pricing">Pricing</Link>
@@ -232,7 +228,7 @@ export default function MarketingHome() {
             <a href="#">Terms</a>
             <a href="#">Privacy</a>
           </div>
-          <p className="text-xs text-muted-foreground">© 2026 XTREME Communications. All rights reserved.</p>
+          <p className="text-xs text-muted-foreground">© 2026 Xtreme Communications. All rights reserved.</p>
         </div>
       </footer>
     </div>

@@ -1,7 +1,7 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
-import { LayoutDashboard, CheckCircle2, Phone, Brain, KeyRound, Settings, Zap, LogOut, ExternalLink } from "lucide-react";
+import { LayoutDashboard, CheckCircle2, Phone, Brain, KeyRound, Settings, LogOut, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV = [
@@ -27,11 +27,9 @@ export default function PortalLayout() {
       <aside className="w-60 shrink-0 border-r border-border bg-card flex flex-col">
         {/* Logo */}
         <div className="h-14 flex items-center gap-2 px-4 border-b border-border">
-          <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
-            <Zap className="h-3.5 w-3.5 text-primary-foreground" />
-          </div>
+          <img src="https://media.base44.com/images/public/6a9b71a5d35335afb9198950/6806177bd_LOGO.png" className="h-8 w-8 rounded-lg object-contain" alt="Xtreme Communications" />
           <div className="flex flex-col">
-            <span className="font-display text-[11px] tracking-[0.15em] uppercase text-foreground">XTREME Comms</span>
+            <span className="font-display text-[11px] tracking-[0.15em] uppercase text-foreground">Xtreme Communications</span>
             <span className="text-[8px] text-muted-foreground uppercase tracking-wider">Customer Portal</span>
           </div>
         </div>

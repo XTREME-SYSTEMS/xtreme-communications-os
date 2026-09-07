@@ -41,6 +41,10 @@ import PortalAgents from './pages/PortalAgents';
 import PortalKeys from './pages/PortalKeys';
 import PortalSettings from './pages/PortalSettings';
 import PromoAdmin from './pages/PromoAdmin';
+import NumberResale from './pages/NumberResale';
+import TemplateGenerator from './pages/TemplateGenerator';
+import WhatsAppSetup from './pages/WhatsAppSetup';
+import NumberPorting from './pages/NumberPorting';
 
 function App() {
   return (
@@ -70,6 +74,11 @@ function App() {
               </Route>
               {/* Admin */}
               <Route path="/promo-admin" element={<PromoAdmin />} />
+              <Route path="/number-resale" element={<NumberResale />} />
+              {/* Portal Tools */}
+              <Route path="/portal/templates" element={<TemplateGenerator />} />
+              <Route path="/portal/whatsapp" element={<WhatsAppSetup />} />
+              <Route path="/portal/porting" element={<NumberPorting />} />
               {/* XTREME OS — internal dashboard */}
               <Route path="/os" element={<Home />} />
               <Route path="/providers" element={<ProviderAbstraction />} />

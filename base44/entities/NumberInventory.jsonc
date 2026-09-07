@@ -1,0 +1,95 @@
+{
+  "name": "NumberInventory",
+  "type": "object",
+  "properties": {
+    "e164": {
+      "type": "string",
+      "description": "Phone number in E.164 format"
+    },
+    "number_type": {
+      "type": "string",
+      "enum": [
+        "local",
+        "toll_free",
+        "mobile"
+      ],
+      "default": "local"
+    },
+    "country_code": {
+      "type": "string",
+      "default": "US"
+    },
+    "area_code": {
+      "type": "string",
+      "description": "Area code for local numbers"
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "sms",
+          "mms",
+          "voice",
+          "whatsapp"
+        ]
+      },
+      "default": [
+        "sms",
+        "voice"
+      ]
+    },
+    "wholesale_cost": {
+      "type": "number",
+      "default": 0,
+      "description": "Cost from provider (what we paid)"
+    },
+    "resale_price": {
+      "type": "number",
+      "default": 0,
+      "description": "Price charged to customer"
+    },
+    "markup_pct": {
+      "type": "number",
+      "default": 0,
+      "description": "Markup percentage over wholesale cost"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "available",
+        "reserved",
+        "sold",
+        "released"
+      ],
+      "default": "available"
+    },
+    "provider_id": {
+      "type": "string",
+      "description": "Provider-side number ID"
+    },
+    "provider_name": {
+      "type": "string",
+      "default": "telnyx"
+    },
+    "purchased_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "sold_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "sold_to_user_id": {
+      "type": "string",
+      "description": "User ID of the customer who purchased"
+    },
+    "sold_to_email": {
+      "type": "string",
+      "description": "Email of the customer who purchased"
+    }
+  },
+  "required": [
+    "e164"
+  ]
+}

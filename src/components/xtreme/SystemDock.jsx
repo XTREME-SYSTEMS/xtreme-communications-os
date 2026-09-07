@@ -30,6 +30,7 @@ const NODES = [
   { name: "Digital Team", role: "AI Replica · Onboarding", icon: UserCog, route: "/digital-team" },
   { name: "Campaigns", role: "Email · SMS · 4K Contacts", icon: Mailbox, route: "/campaign-console" },
   { name: "Promo Codes", role: "Discount Management", icon: Tag, route: "/promo-admin" },
+  { name: "Number Resale", role: "Buy & Resell Numbers", icon: Phone, route: "/number-resale" },
   { name: "Customer Portal", role: "User Dashboard", icon: ExternalLink, route: "/portal" },
 ];
 
@@ -37,10 +38,11 @@ export default function SystemDock({ activeNode, onSelect, engineState }) {
   const navigate = useNavigate();
   return (
     <aside className="hidden lg:flex flex-col w-60 shrink-0 border-r border-surface-border bg-base/60 backdrop-blur">
-      <div className="px-4 h-14 flex items-center border-b border-surface-border">
+      <div className="px-4 h-14 flex items-center gap-2 border-b border-surface-border">
+        <img src="https://media.base44.com/images/public/6a9b71a5d35335afb9198950/6806177bd_LOGO.png" className="h-10 w-10 object-contain" alt="Xtreme Communications" />
         <div className="flex flex-col">
-          <span className="font-display text-[13px] tracking-[0.2em] text-text-primary">STRATEGIC//MINDS</span>
-          <span className="font-display text-[8px] tracking-[0.25em] text-text-muted uppercase">Intelligence In Motion</span>
+          <span className="font-display text-[13px] tracking-[0.2em] text-text-primary">XTREME//COMMS</span>
+          <span className="font-display text-[8px] tracking-[0.25em] text-text-muted uppercase">Intelligence For Growth</span>
         </div>
       </div>
       <div className="flex-1 overflow-y-auto scrollbar-thin py-3">

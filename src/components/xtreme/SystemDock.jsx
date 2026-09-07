@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
-import { Brain, Factory, ShieldCheck, Globe, EyeOff, Radio, Network, Phone, KeyRound, CreditCard, Radar, Megaphone, Scale, Library, GitBranch } from "lucide-react";
+import { Brain, Factory, ShieldCheck, Globe, EyeOff, Radio, Network, Phone, KeyRound, CreditCard, Radar, Megaphone, Scale, Library, GitBranch, PhoneCall, Palette, Building2 } from "lucide-react";
 import ThemeToggle from "@/components/xtreme/ThemeToggle";
 import { ENGINE_STYLES } from "@/lib/xtreme";
 
@@ -21,6 +21,9 @@ const NODES = [
   { name: "Prompt Library", role: "Autonomous 100% Prompts", icon: Library, route: "/prompts" },
   { name: "Preflight", role: "Audit · Score · Heal · Launch", icon: ShieldCheck, route: "/preflight" },
   { name: "DEEP", role: "Deterministic Engine Pipeline", icon: GitBranch, route: "/deep" },
+  { name: "Call Dashboard", role: "Calls · Metrics · Tasks", icon: PhoneCall, route: "/calls" },
+  { name: "Persona Studio", role: "AI Persona Management", icon: Palette, route: "/personas" },
+  { name: "Company", role: "SMAI Ecosystem · 15 Apps", icon: Building2, route: "/company" },
 ];
 
 export default function SystemDock({ activeNode, onSelect, engineState }) {

@@ -19,6 +19,9 @@ import ParityComparison from './pages/ParityComparison';
 import PromptLibrary from './pages/PromptLibrary';
 import Preflight from './pages/Preflight';
 import DeepArchitecture from './pages/DeepArchitecture';
+import CallDashboard from './pages/CallDashboard';
+import PersonaStudio from './pages/PersonaStudio';
+import CompanyOverview from './pages/CompanyOverview';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -59,6 +62,9 @@ const AuthenticatedApp = () => {
       <Route path="/prompts" element={<PromptLibrary />} />
       <Route path="/preflight" element={<Preflight />} />
       <Route path="/deep" element={<DeepArchitecture />} />
+      <Route path="/calls" element={<CallDashboard />} />
+      <Route path="/personas" element={<PersonaStudio />} />
+      <Route path="/company" element={<CompanyOverview />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

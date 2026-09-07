@@ -1,0 +1,56 @@
+{
+  "name": "AgentPersona",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "persona_type": {
+      "type": "string",
+      "enum": [
+        "voice",
+        "email",
+        "phone",
+        "social_media"
+      ],
+      "default": "voice"
+    },
+    "voice_id": {
+      "type": "string",
+      "description": "Telnyx Ultra voice UUID for voice personas"
+    },
+    "system_prompt": {
+      "type": "string"
+    },
+    "personality_traits": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "tone": {
+      "type": "string"
+    },
+    "assigned_context": {
+      "type": "string",
+      "description": "Situation or job this persona is assigned to (e.g. sales calls, support emails)"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    },
+    "is_default": {
+      "type": "boolean",
+      "default": false
+    },
+    "avatar_color": {
+      "type": "string",
+      "default": "#ff6b00"
+    }
+  },
+  "required": [
+    "name",
+    "persona_type"
+  ]
+}

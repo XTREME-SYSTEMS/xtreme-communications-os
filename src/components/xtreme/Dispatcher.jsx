@@ -4,6 +4,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 import { Activity, Square } from "lucide-react";
 import Waveform from "./Waveform";
+import PersonaSwitcher from "./PersonaSwitcher";
 import { STATUS_STYLES, SHORT_STATUS } from "@/lib/xtreme";
 
 const CHANNELS = ["voice", "sms", "whatsapp", "mms", "rcs", "email"];
@@ -62,12 +63,15 @@ export default function Dispatcher() {
           <span className="font-display text-[11px] tracking-[0.15em] uppercase text-text-primary">Live Communications Dispatcher</span>
           <span className={cn("ml-2 h-1.5 w-1.5 rounded-full", halted ? "bg-accent-orange" : "bg-status-green animate-pulse")} />
         </div>
-        <button onClick={emergencyStop}
-          className={cn("flex items-center gap-1.5 px-3 h-8 rounded text-[11px] font-display tracking-[0.1em] uppercase border transition-colors",
-            halted ? "border-status-green/40 text-status-green hover:bg-status-green/10" : "border-accent-orange/50 text-accent-orange hover:bg-accent-orange/10")}>
-          {halted ? <Activity className="h-3.5 w-3.5" /> : <Square className="h-3.5 w-3.5" />}
-          {halted ? "Resume" : "Emergency Stop"}
-        </button>
+        <div className="flex items-center gap-2">
+          <PersonaSwitcher />
+          <button onClick={emergencyStop}
+            className={cn("flex items-center gap-1.5 px-3 h-8 rounded text-[11px] font-display tracking-[0.1em] uppercase border transition-colors",
+              halted ? "border-status-green/40 text-status-green hover:bg-status-green/10" : "border-accent-orange/50 text-accent-orange hover:bg-accent-orange/10")}>
+            {halted ? <Activity className="h-3.5 w-3.5" /> : <Square className="h-3.5 w-3.5" />}
+            {halted ? "Resume" : "Emergency Stop"}
+          </button>
+        </div>
       </div>
       <div className="grid md:grid-cols-[1fr_280px]">
         <div className="divide-y divide-surface-border max-h-[260px] overflow-y-auto scrollbar-thin">

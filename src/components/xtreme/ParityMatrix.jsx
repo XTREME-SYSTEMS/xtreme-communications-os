@@ -26,7 +26,7 @@ function computeProofHash(capName, tests) {
   return { hash: `flt3x·${hex}`, count: relevant.length };
 }
 
-function getTwilioStatus(cap, audits) {
+function getTwilioStatus(cap, audits = []) {
   if (!cap) return { label: "GAP", score: 0, icon: XCircle, color: "text-text-muted" };
   const keyword = (cap.name || "").toLowerCase().split(" ")[0];
   const safeAudits = Array.isArray(audits) ? audits : [];

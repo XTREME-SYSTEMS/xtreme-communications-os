@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 import { MessageSquare, Send, Smartphone, User } from "lucide-react";
+import SchedulingResults from "./SchedulingResults";
 
 const SCENARIOS = [
   "SMS sales follow-up — sent listing details",
@@ -22,9 +23,11 @@ export default function MessageTestPanel({ personas, numbers }) {
   const [scenario, setScenario] = useState(SCENARIOS[0]);
   const [channel, setChannel] = useState("sms");
   const [maxTurns, setMaxTurns] = useState(6);
+  const [enableScheduling, setEnableScheduling] = useState(true);
   const [running, setRunning] = useState(false);
   const [turns, setTurns] = useState([]);
   const [summary, setSummary] = useState("");
+  const [scheduling, setScheduling] = useState(null);
 
   const personaA = personas.find(p => p.id === personaAId);
   const personaB = personas.find(p => p.id === personaBId);
@@ -34,6 +37,7 @@ export default function MessageTestPanel({ personas, numbers }) {
     setRunning(true);
     setTurns([]);
     setSummary("");
+    setScheduling(null);
     try {
       const res = await base44.functions.invoke("runClosedLoopTest", {
         persona_a: personaA,
@@ -42,12 +46,14 @@ export default function MessageTestPanel({ personas, numbers }) {
         scenario,
         max_turns: maxTurns,
         generate_audio: false,
+        enable_scheduling: enableScheduling,
         from_number: fromNumber,
         to_number: toNumber,
       });
       const data = res.data || res;
       setTurns(data.turns || []);
       setSummary(data.summary || "");
+      setScheduling(data.scheduling || null);
       toast({ title: "Message test complete", description: `${(data.turns || []).length} messages generated` });
     } catch (e) {
       toast({ title: "Test failed", description: String(e.message || e), variant: "destructive" });
@@ -141,6 +147,18 @@ export default function MessageTestPanel({ personas, numbers }) {
           </div>
         </div>
 
+        {/* Scheduling toggle */}
+        <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-accent-orange/20 bg-accent-orange/5">
+          <button onClick={() => setEnableScheduling(!enableScheduling)}
+            className={cn("relative h-5 w-9 rounded-full transition-colors", enableScheduling ? "bg-accent-orange" : "bg-surface-border")}>
+            <span className="absolute top-0.5 h-4 w-4 rounded-full bg-base transition-all" style={{ left: enableScheduling ? '18px' : '2px' }} />
+          </button>
+          <div className="flex flex-col">
+            <span className="text-[10px] font-display uppercase tracking-wider text-accent-orange">Real Google Calendar Scheduling</span>
+            <span className="text-[8px] text-text-muted">Checks calendar · creates event · sends invite · notifies human</span>
+          </div>
+        </div>
+
         <button onClick={runTest} disabled={running}
           className="w-full h-11 rounded-lg bg-accent-orange text-base font-display uppercase tracking-[0.15em] text-[12px] flex items-center justify-center gap-2 hover:opacity-90 disabled:opacity-60 transition-all tl-glow-orange">
           {running ? (
@@ -153,6 +171,7 @@ export default function MessageTestPanel({ personas, numbers }) {
 
       {/* Results */}
       {turns.length > 0 && (
+        <>
         <div className="tl-panel rounded-xl p-5 space-y-4 relative overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-status-green to-transparent" />
           <div className="flex items-center gap-2">
@@ -189,6 +208,8 @@ export default function MessageTestPanel({ personas, numbers }) {
             })}
           </div>
         </div>
+        {scheduling && <SchedulingResults scheduling={scheduling} />}
+        </>
       )}
     </div>
   );

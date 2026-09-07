@@ -1,0 +1,119 @@
+{
+  "name": "CommunicationTemplate",
+  "type": "object",
+  "properties": {
+    "industry": {
+      "type": "string",
+      "default": "universal"
+    },
+    "channel": {
+      "type": "string",
+      "enum": [
+        "voice",
+        "sms",
+        "mms",
+        "whatsapp",
+        "email",
+        "facebook",
+        "snapchat",
+        "instagram",
+        "linkedin",
+        "twitter",
+        "tiktok",
+        "discord",
+        "rcs",
+        "universal"
+      ],
+      "default": "universal"
+    },
+    "situation": {
+      "type": "string",
+      "enum": [
+        "sales",
+        "marketing",
+        "follow_up",
+        "outreach",
+        "response",
+        "comment",
+        "objection_handling",
+        "qualification",
+        "closing",
+        "appointment",
+        "nurture",
+        "re_engagement"
+      ],
+      "default": "sales"
+    },
+    "tone": {
+      "type": "string",
+      "enum": [
+        "professional",
+        "casual",
+        "urgent",
+        "empathetic",
+        "authoritative",
+        "friendly",
+        "persuasive",
+        "consultative",
+        "energetic",
+        "calm"
+      ],
+      "default": "professional"
+    },
+    "gender_preference": {
+      "type": "string",
+      "enum": [
+        "male",
+        "female",
+        "neutral"
+      ],
+      "default": "female"
+    },
+    "persona_id": {
+      "type": "string",
+      "description": "Linked AgentPersona ID"
+    },
+    "template_body": {
+      "type": "string"
+    },
+    "psychology_notes": {
+      "type": "string",
+      "description": "Why this template works \u2014 psychological triggers, response drivers"
+    },
+    "high_response_words": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "words_to_avoid": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "effectiveness_score": {
+      "type": "number",
+      "default": 0,
+      "description": "0-100 predicted effectiveness based on industry research"
+    },
+    "target_audience": {
+      "type": "string"
+    },
+    "compliance_notes": {
+      "type": "string"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "industry",
+    "channel",
+    "situation",
+    "template_body"
+  ]
+}

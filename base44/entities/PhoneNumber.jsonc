@@ -69,6 +69,28 @@
     "purchased_at": {
       "type": "string",
       "format": "date-time"
+    },
+    "route_url": {
+      "type": "string",
+      "description": "Website URL this number routes to"
+    },
+    "route_label": {
+      "type": "string",
+      "description": "Friendly name for the routed website/business"
+    },
+    "route_type": {
+      "type": "string",
+      "enum": [
+        "website",
+        "webhook",
+        "api",
+        "none"
+      ],
+      "default": "none"
+    },
+    "assigned_persona_id": {
+      "type": "string",
+      "description": "AgentPersona ID assigned to this number"
     }
   },
   "required": [

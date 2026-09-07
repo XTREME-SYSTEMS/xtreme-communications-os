@@ -22,6 +22,7 @@ import DeepArchitecture from './pages/DeepArchitecture';
 import CallDashboard from './pages/CallDashboard';
 import PersonaStudio from './pages/PersonaStudio';
 import CompanyOverview from './pages/CompanyOverview';
+import CommunicationStudio from './pages/CommunicationStudio';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -65,6 +66,7 @@ const AuthenticatedApp = () => {
       <Route path="/calls" element={<CallDashboard />} />
       <Route path="/personas" element={<PersonaStudio />} />
       <Route path="/company" element={<CompanyOverview />} />
+      <Route path="/comm-studio" element={<CommunicationStudio />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

@@ -1,0 +1,81 @@
+{
+  "name": "AvatarConfig",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "provider": {
+      "type": "string",
+      "enum": [
+        "heygen",
+        "d_id",
+        "synthesia",
+        "creatify",
+        "deepbrain",
+        "kling",
+        "custom"
+      ],
+      "default": "heygen"
+    },
+    "avatar_id": {
+      "type": "string",
+      "description": "Provider-side avatar ID or model reference"
+    },
+    "gender": {
+      "type": "string",
+      "enum": [
+        "male",
+        "female",
+        "neutral"
+      ],
+      "default": "female"
+    },
+    "voice_id": {
+      "type": "string",
+      "description": "Provider voice ID or Telnyx Ultra voice UUID"
+    },
+    "persona_id": {
+      "type": "string",
+      "description": "Linked AgentPersona ID"
+    },
+    "preview_url": {
+      "type": "string",
+      "description": "URL to preview image or video of the avatar"
+    },
+    "api_key_secret_name": {
+      "type": "string",
+      "description": "Name of the secret storing the provider API key"
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "video",
+          "photo",
+          "live_stream",
+          "voice_clone",
+          "real_time",
+          "custom_avatar"
+        ]
+      },
+      "default": [
+        "video"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "draft",
+        "archived"
+      ],
+      "default": "draft"
+    }
+  },
+  "required": [
+    "name",
+    "provider"
+  ]
+}

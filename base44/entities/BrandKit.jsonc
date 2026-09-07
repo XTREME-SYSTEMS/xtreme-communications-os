@@ -1,0 +1,51 @@
+{
+  "name": "BrandKit",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Brand or company name"
+    },
+    "logo_url": {
+      "type": "string",
+      "description": "Logo image URL"
+    },
+    "primary_color": {
+      "type": "string",
+      "default": "#ff6b00",
+      "description": "Primary brand color hex"
+    },
+    "secondary_color": {
+      "type": "string",
+      "default": "#1a1a2e"
+    },
+    "accent_color": {
+      "type": "string",
+      "default": "#ffd700"
+    },
+    "font_heading": {
+      "type": "string",
+      "default": "Inter"
+    },
+    "font_body": {
+      "type": "string",
+      "default": "Inter"
+    },
+    "tagline": {
+      "type": "string"
+    },
+    "industry": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "is_default": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

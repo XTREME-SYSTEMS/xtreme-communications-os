@@ -45,6 +45,9 @@ import NumberResale from './pages/NumberResale';
 import AdminPortal from './pages/AdminPortal';
 import TemplateGenerator from './pages/TemplateGenerator';
 import MmsStudio from './pages/MmsStudio';
+import TestingStudio from './pages/TestingStudio';
+import BrandKit from './pages/BrandKit';
+import AgentMemory from './pages/AgentMemory';
 import WhatsAppSetup from './pages/WhatsAppSetup';
 import NumberPorting from './pages/NumberPorting';
 import ThankYou from './pages/ThankYou';
@@ -81,6 +84,9 @@ function App() {
                 <Route path="/portal/agents" element={<PortalAgents />} />
                 <Route path="/portal/keys" element={<PortalKeys />} />
                 <Route path="/portal/settings" element={<PortalSettings />} />
+                <Route path="/portal/testing-studio" element={<TestingStudio />} />
+                <Route path="/portal/brand-kit" element={<BrandKit />} />
+                <Route path="/portal/agent-memory" element={<AgentMemory />} />
               </Route>
               {/* Admin */}
               <Route path="/promo-admin" element={<PromoAdmin />} />

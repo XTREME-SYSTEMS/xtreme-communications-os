@@ -301,6 +301,9 @@ export default function Pricing() {
                   { feature: "Dedicated manager", s: "—", e: "—", p: "—", g: "—", ent: "✓" },
                   { feature: "SLA guarantee", s: "—", e: "—", p: "—", g: "—", ent: "99.99%" },
                   { feature: "White-label", s: "—", e: "—", p: "—", g: "—", ent: "✓" },
+                  { feature: "Testing Studio", s: "✓", e: "✓", p: "✓", g: "✓", ent: "✓" },
+                  { feature: "Brand Kit", s: "—", e: "✓", p: "✓", g: "✓", ent: "✓" },
+                  { feature: "Agent Memory", s: "—", e: "—", p: "✓", g: "✓", ent: "✓" },
                 ].map((row) => (
                   <tr key={row.feature} className="border-b border-border/50">
                     <td className="py-2.5 text-foreground">{row.feature}</td>

@@ -1,0 +1,110 @@
+{
+  "name": "TestSession",
+  "type": "object",
+  "properties": {
+    "test_type": {
+      "type": "string",
+      "enum": [
+        "sms",
+        "mms",
+        "email",
+        "voice",
+        "e2e"
+      ],
+      "default": "sms"
+    },
+    "agent_id": {
+      "type": "string",
+      "description": "AgentPersona ID used in the test"
+    },
+    "agent_name": {
+      "type": "string"
+    },
+    "from_number": {
+      "type": "string",
+      "description": "Sending phone number"
+    },
+    "to_number": {
+      "type": "string",
+      "description": "Receiving phone number for the test"
+    },
+    "to_email": {
+      "type": "string",
+      "description": "Receiving email for email/e2e tests"
+    },
+    "template_id": {
+      "type": "string"
+    },
+    "template_body": {
+      "type": "string"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "Attached image URL for MMS tests"
+    },
+    "messages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "direction": {
+            "type": "string",
+            "enum": [
+              "outbound",
+              "inbound"
+            ]
+          },
+          "channel": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          },
+          "image_url": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "default": []
+    },
+    "transcript": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "speaker": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "default": []
+    },
+    "result": {
+      "type": "string",
+      "enum": [
+        "pass",
+        "fail",
+        "pending",
+        "in_progress"
+      ],
+      "default": "pending"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "test_type"
+  ]
+}

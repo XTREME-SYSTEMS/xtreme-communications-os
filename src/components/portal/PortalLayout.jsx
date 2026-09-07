@@ -1,7 +1,7 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
-import { LayoutDashboard, CheckCircle2, Phone, Brain, KeyRound, Settings, LogOut, ExternalLink, FileText, MessageCircle, ArrowLeftRight, Shield, Sparkles } from "lucide-react";
+import { LayoutDashboard, CheckCircle2, Phone, Brain, KeyRound, Settings, LogOut, ExternalLink, FileText, MessageCircle, ArrowLeftRight, Shield, Sparkles, FlaskConical, Palette } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV = [
@@ -11,6 +11,9 @@ const NAV = [
   { path: "/portal/agents", label: "AI Agents", icon: Brain },
   { path: "/portal/templates", label: "Templates", icon: FileText },
   { path: "/portal/mms-studio", label: "MMS Creative Studio", icon: Sparkles },
+  { path: "/portal/testing-studio", label: "Testing Studio", icon: FlaskConical },
+  { path: "/portal/brand-kit", label: "Brand Kit", icon: Palette },
+  { path: "/portal/agent-memory", label: "Agent Memory", icon: Brain },
   { path: "/portal/whatsapp", label: "WhatsApp Setup", icon: MessageCircle },
   { path: "/portal/porting", label: "Number Porting", icon: ArrowLeftRight },
   { path: "/portal/keys", label: "API Keys", icon: KeyRound },

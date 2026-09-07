@@ -24,6 +24,10 @@ export default function AdminPortal() {
   const [subscriptions, setSubscriptions] = useState([]);
   const [numbers, setNumbers] = useState([]);
   const [keys, setKeys] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteRole, setInviteRole] = useState("user");
+  const [inviting, setInviting] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [showKeyForm, setShowKeyForm] = useState(false);
   const [keyForm, setKeyForm] = useState({ label: "", scopes: ["admin"] });
@@ -36,15 +40,17 @@ export default function AdminPortal() {
   const load = async () => {
     setRefreshing(true);
     try {
-      const [subs, nums, kList, agents] = await Promise.all([
+      const [subs, nums, kList, agents, userList] = await Promise.all([
         base44.entities.CustomerSubscription.list('-created_date', 100).catch(() => []),
         base44.entities.PhoneNumber.list('-created_date', 100).catch(() => []),
         base44.entities.ApiKey.list('-created_date', 100).catch(() => []),
         base44.entities.AgentPersona.list('-created_date', 100).catch(() => []),
+        base44.entities.User.list('-created_date', 200).catch(() => []),
       ]);
       setSubscriptions(subs || []);
       setNumbers(nums || []);
       setKeys(kList || []);
+      setUsers(userList || []);
       const revenue = (subs || []).filter(s => s.status === "active").reduce((sum, s) => {
         const planPrices = { starter: 49, essential: 99, professional: 149, growth: 199, enterprise: 499, pay_as_you_go: 0 };
         return sum + (planPrices[s.plan] || 0);
@@ -96,6 +102,26 @@ export default function AdminPortal() {
     }
   };
 
+  const handleInvite = async () => {
+    if (!inviteEmail.trim()) { toast({ title: "Email required", variant: "destructive" }); return; }
+    setInviting(true);
+    try {
+      await base44.users.inviteUser(inviteEmail.trim(), inviteRole);
+      toast({ title: "Invitation sent", description: `${inviteEmail} invited as ${inviteRole}` });
+      setInviteEmail("");
+      await load();
+    } catch (e) { toast({ title: "Invite failed", description: e.message, variant: "destructive" }); }
+    setInviting(false);
+  };
+
+  const handleRoleChange = async (id, newRole) => {
+    try {
+      await base44.entities.User.update(id, { role: newRole });
+      setUsers(prev => prev.map(u => u.id === id ? { ...u, role: newRole } : u));
+      toast({ title: "Role updated", description: `User is now ${newRole}` });
+    } catch (e) { toast({ title: "Update failed", description: e.message, variant: "destructive" }); }
+  };
+
   if (loading) return <div className="flex items-center justify-center h-screen"><Loader2 className="h-8 w-8 text-primary animate-spin" /></div>;
 
   const TABS = [
@@ -103,6 +129,7 @@ export default function AdminPortal() {
     { id: "users", label: "Subscriptions", icon: Users },
     { id: "numbers", label: "Phone Numbers", icon: Phone },
     { id: "keys", label: "API Keys", icon: KeyRound },
+    { id: "team", label: "Team & Emails", icon: Users },
     { id: "vision", label: "Vision Cortex", icon: Eye },
   ];
 
@@ -303,6 +330,62 @@ export default function AdminPortal() {
                       {k.status === "active" && (
                         <button onClick={() => handleRevokeKey(k.id)} className="text-muted-foreground hover:text-destructive" title="Revoke"><Trash2 className="h-3.5 w-3.5" /></button>
                       )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Team & Emails */}
+      {tab === "team" && (
+        <div className="space-y-4">
+          {/* Invite form */}
+          <div className="rounded-xl border border-border bg-card p-5">
+            <h2 className="font-medium text-foreground mb-3">Invite Team Member</h2>
+            <div className="flex gap-2">
+              <input value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} placeholder="colleague@company.com"
+                className="flex-1 h-10 px-3 rounded-lg border border-border bg-background text-sm focus:border-primary outline-none" />
+              <select value={inviteRole} onChange={e => setInviteRole(e.target.value)}
+                className="h-10 px-3 rounded-lg border border-border bg-background text-sm focus:border-primary outline-none">
+                <option value="user">User</option>
+                <option value="admin">Admin</option>
+              </select>
+              <button onClick={handleInvite} disabled={inviting}
+                className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 disabled:opacity-50 flex items-center gap-2">
+                {inviting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />} Invite
+              </button>
+            </div>
+          </div>
+
+          {/* Users list */}
+          <div className="rounded-xl border border-border bg-card p-5">
+            <h2 className="font-medium text-foreground mb-3">All Team Members ({users.length})</h2>
+            {users.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-8">No users yet. Invite team members above.</p>
+            ) : (
+              <div className="space-y-2">
+                {users.map(u => (
+                  <div key={u.id} className="flex items-center justify-between p-3 rounded-lg border border-border bg-accent/30">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-medium text-primary">
+                        {u.full_name?.[0] || u.email?.[0]?.toUpperCase() || "U"}
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-foreground">{u.full_name || "Unknown"}</p>
+                        <p className="text-xs text-muted-foreground">{u.email}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <select value={u.role || "user"} onChange={e => handleRoleChange(u.id, e.target.value)}
+                        className={cn("h-8 px-2 rounded-lg border text-xs font-medium",
+                          u.role === "admin" ? "border-primary text-primary bg-primary/10" : "border-border text-muted-foreground")}>
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                      </select>
+                      {u.role === "admin" && <Shield className="h-3.5 w-3.5 text-primary" />}
                     </div>
                   </div>
                 ))}

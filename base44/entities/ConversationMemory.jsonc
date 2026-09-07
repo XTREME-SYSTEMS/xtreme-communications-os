@@ -1,0 +1,101 @@
+{
+  "name": "ConversationMemory",
+  "type": "object",
+  "properties": {
+    "agent_id": {
+      "type": "string",
+      "description": "AgentPersona ID involved in the conversation"
+    },
+    "agent_name": {
+      "type": "string"
+    },
+    "channel": {
+      "type": "string",
+      "enum": [
+        "voice",
+        "sms",
+        "mms",
+        "email",
+        "whatsapp"
+      ],
+      "default": "voice"
+    },
+    "contact_name": {
+      "type": "string",
+      "description": "Name of the person the agent spoke with"
+    },
+    "contact_phone": {
+      "type": "string"
+    },
+    "contact_email": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string",
+      "description": "AI-generated summary of the conversation"
+    },
+    "action_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "item": {
+            "type": "string"
+          },
+          "done": {
+            "type": "boolean",
+            "default": false
+          },
+          "due_date": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "default": []
+    },
+    "notes": {
+      "type": "string",
+      "description": "Agent's notes for the user to review"
+    },
+    "sentiment": {
+      "type": "string",
+      "enum": [
+        "positive",
+        "neutral",
+        "negative",
+        "mixed"
+      ],
+      "default": "neutral"
+    },
+    "outcome": {
+      "type": "string",
+      "enum": [
+        "completed",
+        "follow_up_needed",
+        "escalated",
+        "no_action",
+        "converted"
+      ],
+      "default": "completed"
+    },
+    "duration_sec": {
+      "type": "integer",
+      "default": 0
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "new",
+        "reviewed",
+        "archived"
+      ],
+      "default": "new"
+    }
+  },
+  "required": [
+    "agent_name",
+    "channel",
+    "summary"
+  ]
+}

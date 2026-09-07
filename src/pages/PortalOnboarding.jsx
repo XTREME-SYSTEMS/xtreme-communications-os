@@ -483,7 +483,7 @@ EMAIL_BODY: [content]`,
             <div className="rounded-lg border border-primary/30 bg-primary/5 p-4">
               <Play className="h-5 w-5 text-primary mb-2" />
               <p className="text-sm text-foreground font-medium">Ready to test!</p>
-              <p className="text-xs text-muted-foreground mt-1">After completing setup, you can test your AI agent in the AI Agents page and send messages from your dashboard.</p>
+              <p className="text-xs text-muted-foreground mt-1">After completing setup, use the Testing Studio to test your AI agent with a phone mockup, desktop email mockup, voice conversations, and end-to-end loops — all from your dashboard.</p>
             </div>
             <div className="flex justify-between pt-2">
               <button onClick={() => setStepIndex(4)} className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground flex items-center gap-1"><ArrowLeft className="h-4 w-4" /> Back</button>

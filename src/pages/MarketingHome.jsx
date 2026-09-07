@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { MessageSquare, Phone, MessageCircle, Brain, Hash, Mail, ArrowRight, CheckCircle2, BarChart3, Shield, Globe } from "lucide-react";
+import { MessageSquare, Phone, MessageCircle, Brain, Hash, Mail, ArrowRight, CheckCircle2, BarChart3, Shield, Globe, FlaskConical, Palette, MemoryStick } from "lucide-react";
 
 export default function MarketingHome() {
   return (
@@ -89,6 +89,9 @@ export default function MarketingHome() {
               { icon: Brain, title: "AI Voice Agents", desc: "Deploy conversational AI that handles calls autonomously. Natural voices, interruption handling, tool use.", color: "text-chart-4" },
               { icon: Hash, title: "Phone Numbers", desc: "Search, buy, and port local, toll-free, and international numbers instantly via API or dashboard.", color: "text-chart-5" },
               { icon: Mail, title: "Email Automation", desc: "Transactional and marketing email with templates, tracking, and AI-generated content.", color: "text-primary" },
+              { icon: FlaskConical, title: "Testing Studio", desc: "Phone mockup, desktop email mockup, AI voice testing with dual-agent mock conversations, and end-to-end loop testing — all from your dashboard.", color: "text-chart-2" },
+              { icon: Palette, title: "Brand Kit", desc: "Save your brand identity — colors, fonts, tagline — and feed it into all creative generators for consistent, on-brand assets.", color: "text-chart-3" },
+              { icon: MemoryStick, title: "Agent Memory", desc: "Your AI agents report back after every conversation with summaries, action items, and notes for you to review.", color: "text-chart-4" },
             ].map((f) => (
               <div key={f.title} className="rounded-xl border border-border bg-card p-5 hover:border-primary/30 transition-colors">
                 <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3">

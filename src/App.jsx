@@ -47,6 +47,9 @@ import TemplateGenerator from './pages/TemplateGenerator';
 import WhatsAppSetup from './pages/WhatsAppSetup';
 import NumberPorting from './pages/NumberPorting';
 import ThankYou from './pages/ThankYou';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
+import AcceptableUse from './pages/AcceptableUse';
 
 function App() {
   return (
@@ -63,6 +66,9 @@ function App() {
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/ThankYou" element={<ThankYou />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<TermsOfService />} />
+            <Route path="/acceptable-use" element={<AcceptableUse />} />
 
             {/* Protected routes — auth required */}
             <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>

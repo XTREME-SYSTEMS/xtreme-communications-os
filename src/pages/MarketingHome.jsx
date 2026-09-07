@@ -227,8 +227,9 @@ export default function MarketingHome() {
             <Link to="/pricing">Pricing</Link>
             <Link to="/login">Sign In</Link>
             <Link to="/register">Sign Up</Link>
-            <a href="#">Terms</a>
-            <a href="#">Privacy</a>
+            <Link to="/terms">Terms</Link>
+            <Link to="/privacy">Privacy</Link>
+            <Link to="/acceptable-use">Acceptable Use</Link>
           </div>
           <p className="text-xs text-muted-foreground">© 2026 Xtreme Communications. All rights reserved.</p>
         </div>

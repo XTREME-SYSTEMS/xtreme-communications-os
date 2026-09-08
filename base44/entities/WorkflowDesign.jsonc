@@ -1,0 +1,85 @@
+{
+  "name": "WorkflowDesign",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "channel_type": {
+      "type": "string",
+      "enum": [
+        "mobile",
+        "voice",
+        "whatsapp",
+        "email",
+        "custom"
+      ],
+      "default": "mobile"
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "agent",
+              "time_window",
+              "script",
+              "template",
+              "message",
+              "image",
+              "day_of_week",
+              "delay",
+              "condition",
+              "branch"
+            ]
+          },
+          "label": {
+            "type": "string"
+          },
+          "config": {
+            "type": "object"
+          }
+        }
+      },
+      "default": []
+    },
+    "assigned_agent_id": {
+      "type": "string"
+    },
+    "assigned_agent_name": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "active",
+        "archived"
+      ],
+      "default": "draft"
+    },
+    "category": {
+      "type": "string"
+    },
+    "test_result": {
+      "type": "object"
+    },
+    "is_template": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "name",
+    "channel_type"
+  ]
+}

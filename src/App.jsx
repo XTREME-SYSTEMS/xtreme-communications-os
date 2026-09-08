@@ -48,6 +48,9 @@ import MmsStudio from './pages/MmsStudio';
 import TestingStudio from './pages/TestingStudio';
 import BrandKit from './pages/BrandKit';
 import AgentMemory from './pages/AgentMemory';
+import WorkflowGenerator from './pages/WorkflowGenerator';
+import ContentLibrary from './pages/ContentLibrary';
+import GoogleWorkspace from './pages/GoogleWorkspace';
 import WhatsAppSetup from './pages/WhatsAppSetup';
 import NumberPorting from './pages/NumberPorting';
 import ThankYou from './pages/ThankYou';
@@ -87,6 +90,9 @@ function App() {
                 <Route path="/portal/testing-studio" element={<TestingStudio />} />
                 <Route path="/portal/brand-kit" element={<BrandKit />} />
                 <Route path="/portal/agent-memory" element={<AgentMemory />} />
+                <Route path="/portal/workflow-generator" element={<WorkflowGenerator />} />
+                <Route path="/portal/content-library" element={<ContentLibrary />} />
+                <Route path="/portal/google-workspace" element={<GoogleWorkspace />} />
               </Route>
               {/* Admin */}
               <Route path="/promo-admin" element={<PromoAdmin />} />

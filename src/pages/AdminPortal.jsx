@@ -4,7 +4,8 @@ import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
-import { Shield, Users, Phone, KeyRound, DollarSign, Activity, Brain, Eye, ArrowLeft, Loader2, CheckCircle2, AlertCircle, RefreshCw, Plus, Copy, Trash2, X, Check } from "lucide-react";
+import { Shield, Users, Phone, PhoneCall, KeyRound, DollarSign, Activity, Brain, Eye, ArrowLeft, Loader2, CheckCircle2, AlertCircle, RefreshCw, Plus, Copy, Trash2, X, Check } from "lucide-react";
+import LiveCallViewer from "@/components/admin/LiveCallViewer";
 
 const ADMIN_SCOPES = ["sms", "mms", "voice", "whatsapp", "email", "numbers", "agents", "lookup", "verify", "billing", "admin"];
 
@@ -131,6 +132,7 @@ export default function AdminPortal() {
     { id: "keys", label: "API Keys", icon: KeyRound },
     { id: "team", label: "Team & Emails", icon: Users },
     { id: "vision", label: "Vision Cortex", icon: Eye },
+    { id: "calls", label: "Live Calls", icon: PhoneCall },
   ];
 
   return (
@@ -158,6 +160,9 @@ export default function AdminPortal() {
           </button>
         ))}
       </div>
+
+      {/* Live Calls */}
+      {tab === "calls" && <LiveCallViewer />}
 
       {/* Overview */}
       {tab === "overview" && (

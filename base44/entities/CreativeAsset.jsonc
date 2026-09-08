@@ -12,7 +12,14 @@
         "bid",
         "pricing",
         "promo",
-        "testimonial"
+        "testimonial",
+        "emoji",
+        "gif",
+        "joke",
+        "social_media",
+        "video",
+        "human_image",
+        "uploaded"
       ],
       "description": "Generator type that produced this asset"
     },
@@ -22,13 +29,14 @@
     },
     "content": {
       "type": "string",
-      "description": "Text content for text generators, or image URL for image generators"
+      "description": "Text content for text generators, or image/video URL for media generators"
     },
     "content_type": {
       "type": "string",
       "enum": [
         "text",
-        "image"
+        "image",
+        "video"
       ],
       "default": "text"
     },
@@ -51,6 +59,17 @@
     },
     "target_audience": {
       "type": "string"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "prompt_used": {
+      "type": "string",
+      "description": "The prompt that generated this asset, for reproducibility"
     }
   },
   "required": [

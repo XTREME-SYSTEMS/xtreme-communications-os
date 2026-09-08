@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
 import { cn } from "@/lib/utils";
-import { Phone, Brain, MessageSquare, DollarSign, TrendingUp, ArrowRight, CheckCircle2, Circle, Clock, Play, KeyRound } from "lucide-react";
+import { Phone, Brain, MessageSquare, DollarSign, TrendingUp, ArrowRight, CheckCircle2, Circle, Clock, Play, KeyRound, BookOpen, GitBranch, HardDrive, Radio, Share2, Sparkles } from "lucide-react";
 
 const ONBOARDING_STEPS = [
   { step: "welcome", label: "Welcome", desc: "Account created" },
@@ -155,7 +155,7 @@ export default function Portal() {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3">
         <Link to="/portal/numbers" className="rounded-xl border border-border bg-card p-5 hover:border-primary/30 transition-colors group">
           <Phone className="h-6 w-6 text-primary mb-2" />
           <h3 className="font-medium text-foreground mb-1">Buy a Phone Number</h3>
@@ -168,11 +168,41 @@ export default function Portal() {
           <p className="text-xs text-muted-foreground">Build a conversational AI with natural voice and test it live.</p>
           <span className="text-xs text-primary flex items-center gap-1 mt-2 group-hover:gap-2 transition-all">Create <ArrowRight className="h-3 w-3" /></span>
         </Link>
-        <Link to="/portal/keys" className="rounded-xl border border-border bg-card p-5 hover:border-primary/30 transition-colors group">
-          <KeyRound className="h-6 w-6 text-chart-3 mb-2" />
-          <h3 className="font-medium text-foreground mb-1">Get API Keys</h3>
-          <p className="text-xs text-muted-foreground">Generate API keys to integrate communications into your apps.</p>
-          <span className="text-xs text-primary flex items-center gap-1 mt-2 group-hover:gap-2 transition-all">Create key <ArrowRight className="h-3 w-3" /></span>
+        <Link to="/portal/live-monitoring" className="rounded-xl border border-border bg-card p-5 hover:border-primary/30 transition-colors group">
+          <Radio className="h-6 w-6 text-chart-3 mb-2" />
+          <h3 className="font-medium text-foreground mb-1">Live Monitoring</h3>
+          <p className="text-xs text-muted-foreground">Watch active calls with live transcripts and audio in real-time.</p>
+          <span className="text-xs text-primary flex items-center gap-1 mt-2 group-hover:gap-2 transition-all">Monitor <ArrowRight className="h-3 w-3" /></span>
+        </Link>
+        <Link to="/portal/xtreme-social" className="rounded-xl border border-border bg-card p-5 hover:border-primary/30 transition-colors group">
+          <Share2 className="h-6 w-6 text-chart-4 mb-2" />
+          <h3 className="font-medium text-foreground mb-1">Xtreme Social</h3>
+          <p className="text-xs text-muted-foreground">AI social media content for all platforms with scheduling.</p>
+          <span className="text-xs text-primary flex items-center gap-1 mt-2 group-hover:gap-2 transition-all">Create <ArrowRight className="h-3 w-3" /></span>
+        </Link>
+        <Link to="/portal/workflow-generator" className="rounded-xl border border-border bg-card p-5 hover:border-primary/30 transition-colors group">
+          <GitBranch className="h-6 w-6 text-chart-5 mb-2" />
+          <h3 className="font-medium text-foreground mb-1">Workflow Generator</h3>
+          <p className="text-xs text-muted-foreground">Build multi-channel communication workflows with drag-and-drop.</p>
+          <span className="text-xs text-primary flex items-center gap-1 mt-2 group-hover:gap-2 transition-all">Build <ArrowRight className="h-3 w-3" /></span>
+        </Link>
+        <Link to="/portal/content-library" className="rounded-xl border border-border bg-card p-5 hover:border-primary/30 transition-colors group">
+          <Sparkles className="h-6 w-6 text-primary mb-2" />
+          <h3 className="font-medium text-foreground mb-1">Content Library</h3>
+          <p className="text-xs text-muted-foreground">AI-generated images, videos, social posts, and creative assets.</p>
+          <span className="text-xs text-primary flex items-center gap-1 mt-2 group-hover:gap-2 transition-all">Generate <ArrowRight className="h-3 w-3" /></span>
+        </Link>
+        <Link to="/portal/google-workspace" className="rounded-xl border border-border bg-card p-5 hover:border-primary/30 transition-colors group">
+          <HardDrive className="h-6 w-6 text-chart-2 mb-2" />
+          <h3 className="font-medium text-foreground mb-1">Google Workspace</h3>
+          <p className="text-xs text-muted-foreground">Sync intelligence, templates, and schedules to Google.</p>
+          <span className="text-xs text-primary flex items-center gap-1 mt-2 group-hover:gap-2 transition-all">Connect <ArrowRight className="h-3 w-3" /></span>
+        </Link>
+        <Link to="/portal/core-docs" className="rounded-xl border border-border bg-card p-5 hover:border-primary/30 transition-colors group">
+          <BookOpen className="h-6 w-6 text-chart-3 mb-2" />
+          <h3 className="font-medium text-foreground mb-1">Core Docs</h3>
+          <p className="text-xs text-muted-foreground">Complete system documentation and API reference.</p>
+          <span className="text-xs text-primary flex items-center gap-1 mt-2 group-hover:gap-2 transition-all">Read <ArrowRight className="h-3 w-3" /></span>
         </Link>
       </div>
 

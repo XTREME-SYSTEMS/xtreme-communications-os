@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { MessageSquare, Phone, MessageCircle, Brain, Hash, Mail, ArrowRight, CheckCircle2, BarChart3, Shield, Globe, FlaskConical, Palette, MemoryStick } from "lucide-react";
+import { MessageSquare, Phone, MessageCircle, Brain, Hash, Mail, ArrowRight, CheckCircle2, BarChart3, Shield, Globe, FlaskConical, Palette, MemoryStick, GitBranch, Sparkles, HardDrive, Radio, Share2, BookOpen } from "lucide-react";
 
 export default function MarketingHome() {
   return (
@@ -38,8 +38,9 @@ export default function MarketingHome() {
             <span className="text-primary">AI Agents</span> — One Platform
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-            Buy phone numbers, deploy AI voice agents, and automate SMS, MMS, WhatsApp, and email —
-            all from a single dashboard with a simple API. Live in 5 minutes.
+            Buy phone numbers, deploy AI voice agents, automate SMS, MMS, WhatsApp, and email —
+            plus workflow automation, creative content generation, Google Workspace sync, live monitoring,
+            and social media management. All from a single dashboard. Live in 5 minutes.
           </p>
           <div className="flex items-center justify-center gap-3 mb-8">
             <Link to="/register" className="px-6 py-3 rounded-lg bg-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity flex items-center gap-2">
@@ -64,7 +65,7 @@ export default function MarketingHome() {
             { value: "10M+", label: "Messages Sent" },
             { value: "99.99%", label: "Uptime SLA" },
             { value: "5 min", label: "To First Call" },
-            { value: "100+", label: "Businesses" },
+            { value: "6", label: "Google Integrations" },
           ].map((s) => (
             <div key={s.label}>
               <p className="text-2xl font-display font-bold text-foreground">{s.value}</p>
@@ -92,6 +93,12 @@ export default function MarketingHome() {
               { icon: FlaskConical, title: "Testing Studio", desc: "Phone mockup, desktop email mockup, AI voice testing with dual-agent mock conversations, and end-to-end loop testing — all from your dashboard.", color: "text-chart-2" },
               { icon: Palette, title: "Brand Kit", desc: "Save your brand identity — colors, fonts, tagline — and feed it into all creative generators for consistent, on-brand assets.", color: "text-chart-3" },
               { icon: MemoryStick, title: "Agent Memory", desc: "Your AI agents report back after every conversation with summaries, action items, and notes for you to review.", color: "text-chart-4" },
+              { icon: GitBranch, title: "Workflow Generator", desc: "Drag-and-drop workflow builder for multi-channel communications. 5 channel types, 9 step types, AI-powered testing, and agent assignment.", color: "text-chart-5" },
+              { icon: Sparkles, title: "Content Library", desc: "AI-generated images, lifelike human photos, emoji sets, GIFs, jokes, social media posts, and videos — all saved to your creative library.", color: "text-primary" },
+              { icon: HardDrive, title: "Google Workspace Sync", desc: "Auto-sync intelligence, templates, agent schedules, and action items to Google Drive, Gmail, Calendar, Tasks, Docs, and Sheets.", color: "text-chart-2" },
+              { icon: Radio, title: "Live Monitoring", desc: "Real-time call monitoring dashboard with live transcripts, audio playback, and agent performance metrics. Watch your AI agents communicate live.", color: "text-chart-3" },
+              { icon: Share2, title: "Xtreme Social", desc: "AI-powered social media content generation and scheduling across Facebook, Instagram, TikTok, X/Twitter, Snapchat, and LinkedIn.", color: "text-chart-4" },
+              { icon: BookOpen, title: "Core Documentation", desc: "Complete system reference covering all entities, backend functions, integrations, API endpoints, and architecture — built right into the admin portal.", color: "text-chart-5" },
             ].map((f) => (
               <div key={f.title} className="rounded-xl border border-border bg-card p-5 hover:border-primary/30 transition-colors">
                 <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3">
@@ -114,11 +121,11 @@ export default function MarketingHome() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {[
-              { num: "01", title: "Create Account", desc: "Sign up with email. Get instant access to your dashboard and API keys." },
-              { num: "02", title: "Get a Number", desc: "Search and buy a local or toll-free phone number in seconds." },
-              { num: "03", title: "Set Up AI Agent", desc: "Choose a voice, write a prompt, and deploy your AI assistant." },
-              { num: "04", title: "Go Live", desc: "Start sending SMS, making calls, and automating conversations." },
-            ].map((s) => (
+               { num: "01", title: "Create Account", desc: "Sign up with email. Get instant access to your dashboard, API keys, and onboarding wizard." },
+               { num: "02", title: "Get a Number & Agent", desc: "Search and buy a phone number, then create your AI agent with a natural voice and system prompt." },
+               { num: "03", title: "Connect & Sync", desc: "Link Google Workspace for auto-sync. Build workflows, generate content, and set up templates." },
+               { num: "04", title: "Go Live & Monitor", desc: "Start sending SMS, making calls, and automating conversations. Watch it all live in real-time." },
+             ].map((s) => (
               <div key={s.num} className="relative">
                 <div className="text-4xl font-display font-bold text-primary/20 mb-2">{s.num}</div>
                 <h3 className="font-semibold text-foreground mb-1">{s.title}</h3>
@@ -139,8 +146,8 @@ export default function MarketingHome() {
                { name: "Starter", price: "$49", period: "/mo", desc: "For small teams getting started", features: ["1 phone number", "1 AI voice agent", "500 SMS/mo", "100 voice min/mo", "1,000 emails/mo", "Email support", "Basic analytics"] },
                { name: "Essential", price: "$99", period: "/mo", desc: "For growing teams", features: ["3 phone numbers", "2 AI voice agents", "2,000 SMS/mo", "500 voice min/mo", "5,000 emails/mo", "Call recording", "Standard support", "Advanced analytics"] },
                { name: "Professional", price: "$149", period: "/mo", desc: "For scaling businesses", features: ["5 phone numbers", "3 AI voice agents", "4,000 SMS/mo", "800 voice min/mo", "8,000 emails/mo", "WhatsApp Business API", "Custom templates", "Priority support", "Advanced analytics"] },
-               { name: "Growth", price: "$199", period: "/mo", desc: "For growing businesses", features: ["5 phone numbers", "5 AI voice agents", "5,000 SMS/mo", "1,000 voice min/mo", "10,000 emails/mo", "WhatsApp Business API", "Priority support", "Advanced analytics", "Custom templates"], featured: true },
-               { name: "Enterprise", price: "Custom", period: "", desc: "For high-volume operations", features: ["Unlimited numbers", "Unlimited AI agents", "Volume pricing", "Dedicated account manager", "Custom integrations", "SLA guarantee (99.99%)", "White-label dashboard", "24/7 phone support"] },
+               { name: "Growth", price: "$199", period: "/mo", desc: "For growing businesses", features: ["5 phone numbers", "5 AI voice agents", "5,000 SMS/mo", "1,000 voice min/mo", "10,000 emails/mo", "WhatsApp Business API", "Workflow Generator", "Content Library", "Google Workspace Sync", "Live Monitoring", "Xtreme Social", "Priority support", "Advanced analytics", "Custom templates"], featured: true },
+               { name: "Enterprise", price: "Custom", period: "", desc: "For high-volume operations", features: ["Unlimited numbers", "Unlimited AI agents", "Volume pricing", "All features included", "Dedicated account manager", "Custom integrations", "SLA guarantee (99.99%)", "White-label dashboard", "24/7 phone support"] },
              ].map((p) => (
                <div key={p.name} className={`rounded-xl border p-5 text-left ${p.featured ? "border-primary bg-primary/5 ring-2 ring-primary/20" : "border-border bg-card"}`}>
                  {p.featured && <span className="inline-block px-2 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-medium uppercase tracking-wider mb-3">Most Popular</span>}
@@ -171,10 +178,13 @@ export default function MarketingHome() {
         <div className="max-w-4xl mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
-              { icon: Shield, title: "Enterprise-Grade Security", desc: "Encrypted at rest and in transit. SOC2 compliant. Token-based auth with scoped API keys." },
-              { icon: Globe, title: "Global Reach", desc: "Numbers in 100+ countries. Carrier-grade infrastructure with redundant routing." },
-              { icon: BarChart3, title: "Real-Time Analytics", desc: "Track every message, call, and conversation. Delivery rates, latency, cost — all visible." },
-            ].map((f) => (
+               { icon: Shield, title: "Enterprise-Grade Security", desc: "Encrypted at rest and in transit. SOC2 compliant. Token-based auth with scoped API keys." },
+               { icon: Globe, title: "Global Reach", desc: "Numbers in 100+ countries. Carrier-grade infrastructure with redundant routing." },
+               { icon: BarChart3, title: "Real-Time Analytics & Monitoring", desc: "Track every message, call, and conversation. Live monitoring with transcripts, audio playback, and delivery metrics." },
+               { icon: HardDrive, title: "Google Workspace Sync", desc: "Auto-sync intelligence, templates, agent schedules, and action items to Drive, Gmail, Calendar, Tasks, Docs, and Sheets." },
+               { icon: GitBranch, title: "Workflow Automation", desc: "Drag-and-drop workflow builder for multi-channel communications with AI-powered testing and agent assignment." },
+               { icon: Share2, title: "Social Media Management", desc: "AI-generated content for Facebook, Instagram, TikTok, X/Twitter, Snapchat, and LinkedIn with scheduling." },
+             ].map((f) => (
               <div key={f.title} className="text-center">
                 <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
                   <f.icon className="h-6 w-6 text-primary" />
@@ -198,6 +208,11 @@ export default function MarketingHome() {
               { q: "Can I use my existing number?", a: "Yes. We support number porting from all major US carriers. The porting process typically takes 2-10 business days." },
               { q: "What AI voices are available?", a: "We offer 20+ natural voices through Telnyx Ultra, including warm, professional, energetic, and calm styles. You can test each before deploying." },
               { q: "Is there a minimum monthly spend?", a: "No. Pay-as-you-go starts at $0. Monthly plans are optional and include bundled usage with overages at published rates." },
+              { q: "Can I sync with Google Workspace?", a: "Yes. Connect your Google Drive, Gmail, Calendar, Tasks, Docs, and Sheets to auto-sync intelligence, templates, agent schedules, and action items across your workspace." },
+              { q: "Can I monitor calls in real-time?", a: "Yes. The Live Monitoring dashboard shows active calls with live transcripts and audio playback. Watch your AI agents communicate as it happens." },
+              { q: "Does it support social media?", a: "Yes. Xtreme Social generates AI-powered content for Facebook, Instagram, TikTok, X/Twitter, Snapchat, and LinkedIn with scheduling and brand kit integration." },
+              { q: "Can I build custom workflows?", a: "Yes. The Workflow Generator provides drag-and-drop workflow building with 5 channel types and 9 step types, plus AI-powered testing before deployment." },
+              { q: "Is there documentation available?", a: "Yes. The Core Documentation page in the admin portal provides a complete system reference covering all entities, backend functions, integrations, and API endpoints." },
             ].map((f) => (
               <div key={f.q} className="rounded-lg border border-border bg-card p-4">
                 <h3 className="font-medium text-foreground mb-1">{f.q}</h3>

@@ -1,7 +1,7 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
-import { LayoutDashboard, CheckCircle2, Phone, Brain, KeyRound, Settings, LogOut, ExternalLink, FileText, MessageCircle, ArrowLeftRight, Shield, Sparkles, FlaskConical, Palette, HardDrive, GitBranch } from "lucide-react";
+import { LayoutDashboard, CheckCircle2, Phone, Brain, KeyRound, Settings, LogOut, ExternalLink, FileText, MessageCircle, ArrowLeftRight, Shield, Sparkles, FlaskConical, Palette, HardDrive, GitBranch, Share2, Radio, BookOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV = [
@@ -17,8 +17,11 @@ const NAV = [
   { path: "/portal/google-workspace", label: "Google Workspace", icon: HardDrive },
   { path: "/portal/workflow-generator", label: "Workflow Generator", icon: GitBranch },
   { path: "/portal/content-library", label: "Content Library", icon: Sparkles },
+  { path: "/portal/xtreme-social", label: "Xtreme Social", icon: Share2 },
+  { path: "/portal/live-monitoring", label: "Live Monitoring", icon: Radio },
   { path: "/portal/whatsapp", label: "WhatsApp Setup", icon: MessageCircle },
   { path: "/portal/porting", label: "Number Porting", icon: ArrowLeftRight },
+  { path: "/portal/core-docs", label: "Core Docs", icon: BookOpen },
   { path: "/portal/keys", label: "API Keys", icon: KeyRound },
   { path: "/portal/settings", label: "Settings", icon: Settings },
   { path: "/admin-portal", label: "Admin Portal", icon: Shield, external: true },

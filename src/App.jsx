@@ -51,6 +51,9 @@ import AgentMemory from './pages/AgentMemory';
 import WorkflowGenerator from './pages/WorkflowGenerator';
 import ContentLibrary from './pages/ContentLibrary';
 import GoogleWorkspace from './pages/GoogleWorkspace';
+import XtremeSocial from './pages/XtremeSocial';
+import LiveMonitoring from './pages/LiveMonitoring';
+import CoreDocs from './pages/CoreDocs';
 import WhatsAppSetup from './pages/WhatsAppSetup';
 import NumberPorting from './pages/NumberPorting';
 import ThankYou from './pages/ThankYou';
@@ -93,11 +96,15 @@ function App() {
                 <Route path="/portal/workflow-generator" element={<WorkflowGenerator />} />
                 <Route path="/portal/content-library" element={<ContentLibrary />} />
                 <Route path="/portal/google-workspace" element={<GoogleWorkspace />} />
+                <Route path="/portal/xtreme-social" element={<XtremeSocial />} />
+                <Route path="/portal/live-monitoring" element={<LiveMonitoring />} />
+                <Route path="/portal/core-docs" element={<CoreDocs />} />
               </Route>
               {/* Admin */}
               <Route path="/promo-admin" element={<PromoAdmin />} />
               <Route path="/number-resale" element={<NumberResale />} />
               <Route path="/admin-portal" element={<AdminPortal />} />
+              <Route path="/core-docs" element={<CoreDocs />} />
               {/* Portal Tools */}
               <Route path="/portal/templates" element={<TemplateGenerator />} />
               <Route path="/portal/mms-studio" element={<MmsStudio />} />

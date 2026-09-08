@@ -35,7 +35,7 @@ const PLANS = [
     price: 199,
     period: "/mo",
     desc: "For growing businesses that need more channels and agents",
-    features: ["5 phone numbers included", "5 AI voice agents", "5,000 SMS / month", "1,000 voice minutes / month", "10,000 emails / month", "WhatsApp Business API", "Priority support", "Advanced analytics", "Custom templates"],
+    features: ["5 phone numbers included", "5 AI voice agents", "5,000 SMS / month", "1,000 voice minutes / month", "10,000 emails / month", "WhatsApp Business API", "Workflow Generator", "Content Library", "Google Workspace Sync", "Live Monitoring", "Xtreme Social", "Priority support", "Advanced analytics", "Custom templates"],
     cta: "Add to Cart",
     featured: true,
   },
@@ -44,7 +44,7 @@ const PLANS = [
     price: null,
     period: "",
     desc: "For high-volume operations with custom needs",
-    features: ["Unlimited phone numbers", "Unlimited AI agents", "Volume-based pricing", "Dedicated account manager", "Custom integrations", "SLA guarantee (99.99%)", "On-premise option", "White-label dashboard", "24/7 phone support"],
+    features: ["Unlimited phone numbers", "Unlimited AI agents", "Volume-based pricing", "All features included", "Dedicated account manager", "Custom integrations", "SLA guarantee (99.99%)", "On-premise option", "White-label dashboard", "24/7 phone support"],
     cta: "Contact Sales",
   },
 ];
@@ -304,6 +304,12 @@ export default function Pricing() {
                   { feature: "Testing Studio", s: "✓", e: "✓", p: "✓", g: "✓", ent: "✓" },
                   { feature: "Brand Kit", s: "—", e: "✓", p: "✓", g: "✓", ent: "✓" },
                   { feature: "Agent Memory", s: "—", e: "—", p: "✓", g: "✓", ent: "✓" },
+                  { feature: "Workflow Generator", s: "—", e: "—", p: "—", g: "✓", ent: "✓" },
+                  { feature: "Content Library", s: "—", e: "—", p: "—", g: "✓", ent: "✓" },
+                  { feature: "Google Workspace Sync", s: "—", e: "—", p: "—", g: "✓", ent: "✓" },
+                  { feature: "Live Monitoring", s: "—", e: "—", p: "—", g: "✓", ent: "✓" },
+                  { feature: "Xtreme Social", s: "—", e: "—", p: "—", g: "✓", ent: "✓" },
+                  { feature: "Core Documentation", s: "✓", e: "✓", p: "✓", g: "✓", ent: "✓" },
                 ].map((row) => (
                   <tr key={row.feature} className="border-b border-border/50">
                     <td className="py-2.5 text-foreground">{row.feature}</td>
@@ -316,6 +322,30 @@ export default function Pricing() {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      </div>
+
+      {/* FAQ */}
+      <div className="py-16 border-t border-border">
+        <div className="max-w-3xl mx-auto px-4">
+          <h2 className="text-2xl font-display font-bold text-foreground text-center mb-8">Pricing FAQ</h2>
+          <div className="space-y-3">
+            {[
+              { q: "What's included in the Workflow Generator?", a: "The Workflow Generator provides drag-and-drop workflow building with 5 channel types (Mobile, Voice, WhatsApp, Email, Custom) and 9 step types (AI Agent, Time Window, Day of Week, Delay, Script, Template, Message, Image, Condition). Available on Growth and Enterprise plans." },
+              { q: "What does Content Library include?", a: "AI-generated images, lifelike human photos, emoji sets, GIFs, jokes, social media posts, and videos. All generated content is saved to your CreativeAsset library for reuse. Available on Growth and Enterprise plans." },
+              { q: "How does Google Workspace sync work?", a: "Connect your Google Drive, Gmail, Calendar, Tasks, Docs, and Sheets to auto-sync intelligence reports, communication templates, agent schedules, and action items. Auto-sync runs in the background. Available on Growth and Enterprise plans." },
+              { q: "Can I monitor calls in real-time?", a: "Yes. The Live Monitoring dashboard shows active calls with live transcripts, audio playback, and agent performance metrics. Auto-refreshes every 3 seconds. Available on Growth and Enterprise plans." },
+              { q: "What is Xtreme Social?", a: "AI-powered social media content generation and scheduling across Facebook, Instagram, TikTok, X/Twitter, Snapchat, and LinkedIn. Generate posts, captions, hashtags, and video scripts with your brand kit. Available on Growth and Enterprise plans." },
+              { q: "Is the Core Documentation available on all plans?", a: "Yes. The Core Documentation page — covering all entities, backend functions, integrations, and API endpoints — is available on all plans including Starter and Pay-As-You-Go." },
+              { q: "Can I switch plans anytime?", a: "Yes. Upgrade or downgrade at any time. Changes are prorated automatically. Cancel anytime with no penalty." },
+              { q: "Do unused credits roll over?", a: "Pay-as-you-go credits never expire. Monthly plan included usage resets each billing cycle. Overages are billed at published pay-as-you-go rates." },
+            ].map((f) => (
+              <div key={f.q} className="rounded-lg border border-border bg-card p-4">
+                <h3 className="font-medium text-foreground mb-1 text-sm">{f.q}</h3>
+                <p className="text-xs text-muted-foreground">{f.a}</p>
+              </div>
+            ))}
           </div>
         </div>
       </div>

@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
-import { Shield, Users, Phone, PhoneCall, KeyRound, DollarSign, Activity, Brain, Eye, ArrowLeft, Loader2, CheckCircle2, AlertCircle, RefreshCw, Plus, Copy, Trash2, X, Check } from "lucide-react";
+import { Shield, Users, Phone, PhoneCall, KeyRound, DollarSign, Activity, Brain, Eye, ArrowLeft, Loader2, CheckCircle2, AlertCircle, RefreshCw, Plus, Copy, Trash2, X, Check, BookOpen, ExternalLink } from "lucide-react";
 import LiveCallViewer from "@/components/admin/LiveCallViewer";
 
 const ADMIN_SCOPES = ["sms", "mms", "voice", "whatsapp", "email", "numbers", "agents", "lookup", "verify", "billing", "admin"];
@@ -133,6 +133,7 @@ export default function AdminPortal() {
     { id: "team", label: "Team & Emails", icon: Users },
     { id: "vision", label: "Vision Cortex", icon: Eye },
     { id: "calls", label: "Live Calls", icon: PhoneCall },
+    { id: "docs", label: "Core Docs", icon: BookOpen },
   ];
 
   return (
@@ -163,6 +164,36 @@ export default function AdminPortal() {
 
       {/* Live Calls */}
       {tab === "calls" && <LiveCallViewer />}
+
+      {/* Core Docs */}
+      {tab === "docs" && (
+        <div className="rounded-xl border border-border bg-card p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <BookOpen className="h-5 w-5 text-primary" />
+            <h2 className="font-display font-bold text-foreground">Core Documentation</h2>
+          </div>
+          <p className="text-sm text-muted-foreground mb-4">Complete system reference for XTREME Communications OS — covering all entities, backend functions, integrations, API endpoints, and architecture.</p>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4">
+            {[
+              { label: "Data Entities", count: "30+", desc: "All stored data models" },
+              { label: "Backend Functions", count: "46+", desc: "Server-side operations" },
+              { label: "Integrations", count: "14+", desc: "Connected services" },
+              { label: "Communication Channels", count: "5", desc: "Voice, SMS, WhatsApp, Email, Social" },
+              { label: "AI Features", count: "6+", desc: "Agents, templates, testing, replicas" },
+              { label: "Creative Tools", count: "8+", desc: "Images, videos, social, brand" },
+            ].map(s => (
+              <div key={s.label} className="rounded-lg border border-border bg-accent/30 p-3">
+                <p className="text-2xl font-display font-bold text-primary">{s.count}</p>
+                <p className="text-xs font-medium text-foreground">{s.label}</p>
+                <p className="text-[10px] text-muted-foreground">{s.desc}</p>
+              </div>
+            ))}
+          </div>
+          <a href="/core-docs" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90">
+            <BookOpen className="h-4 w-4" /> Open Full Documentation <ExternalLink className="h-3.5 w-3.5" />
+          </a>
+        </div>
+      )}
 
       {/* Overview */}
       {tab === "overview" && (

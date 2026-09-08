@@ -5,6 +5,7 @@ import { base44 } from "@/api/base44Client";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 import { ArrowRight, ArrowLeft, CheckCircle2, Loader2, Building2, Phone, Brain, Mail, Play, Sparkles, Rocket, Globe, Search } from "lucide-react";
+import OnboardingCallTest from "@/components/onboarding/OnboardingCallTest";
 
 const STEPS = [
   { step: "welcome", label: "Welcome", icon: Sparkles },
@@ -38,8 +39,6 @@ export default function PortalOnboarding() {
   const [generating, setGenerating] = useState(false);
   const [templates, setTemplates] = useState(null);
   const [intelScanning, setIntelScanning] = useState(false);
-  const [testCall, setTestCall] = useState(null);
-  const [testCalling, setTestCalling] = useState(false);
   const [intelData, setIntelData] = useState(null);
 
   useEffect(() => { load(); }, [user]);
@@ -482,29 +481,14 @@ EMAIL_BODY: [content]`,
                 <span className="text-sm text-foreground">Templates generated for {data.industry}</span>
               </div>
             </div>
-            <div className="rounded-lg border border-primary/30 bg-primary/5 p-4">
-              <Play className="h-5 w-5 text-primary mb-2" />
-              <p className="text-sm text-foreground font-medium">Phone Call Simulation</p>
-              <p className="text-xs text-muted-foreground mt-1 mb-3">Run a quick simulation to verify your AI agent ({data.agent_name || "your agent"}) responds correctly for {data.company_name || "your business"}.</p>
-              <button onClick={async () => {
-                setTestCalling(true); setTestCall(null);
-                try {
-                  const res = await base44.functions.invoke("generateContent", {
-                    prompt: `Simulate a brief phone call to ${data.agent_name || "AI Agent"}, a ${data.agent_tone || "professional and friendly"} AI agent for ${data.company_name || "the company"}, a ${data.industry || "business"} company. The caller is a potential customer asking about ${data.use_case || "your services"}. Write a 4-turn conversation (caller and agent alternating). Keep it natural and brief.\n\nFormat:\nCaller: ...\n${data.agent_name || "Agent"}: ...\nCaller: ...\n${data.agent_name || "Agent"}: ...`
-                  });
-                  setTestCall(res.data?.output || res.output || "Simulation complete");
-                } catch (e) { setTestCall("Simulation failed: " + e.message); }
-                setTestCalling(false);
-              }} disabled={testCalling || !data.agent_name}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 disabled:opacity-50">
-                {testCalling ? <><Loader2 className="h-4 w-4 animate-spin" /> Simulating call...</> : <><Phone className="h-4 w-4" /> Run Phone Simulation</>}
-              </button>
-              {testCall && (
-                <div className="mt-3 p-3 rounded-lg bg-background border border-border">
-                  <pre className="text-xs text-foreground whitespace-pre-wrap font-mono">{testCall}</pre>
-                </div>
-              )}
-            </div>
+            <OnboardingCallTest
+              agentName={data.agent_name}
+              agentVoice={data.agent_voice}
+              companyName={data.company_name}
+              industry={data.industry}
+              useCase={data.use_case}
+              agentTone={data.agent_tone}
+            />
             <div className="flex justify-between pt-2">
               <button onClick={() => setStepIndex(4)} className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground flex items-center gap-1"><ArrowLeft className="h-4 w-4" /> Back</button>
               <button onClick={() => saveStep("test", data)} disabled={saving}

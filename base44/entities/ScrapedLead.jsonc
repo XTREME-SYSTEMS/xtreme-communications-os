@@ -1,0 +1,92 @@
+{
+  "name": "ScrapedLead",
+  "type": "object",
+  "properties": {
+    "business_name": {
+      "type": "string"
+    },
+    "address": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "website": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "industry": {
+      "type": "string"
+    },
+    "location": {
+      "type": "string"
+    },
+    "keyword": {
+      "type": "string"
+    },
+    "radius_miles": {
+      "type": "number",
+      "default": 25
+    },
+    "rating": {
+      "type": "number",
+      "default": 0
+    },
+    "review_count": {
+      "type": "integer",
+      "default": 0
+    },
+    "google_reviews": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "author": {
+            "type": "string"
+          },
+          "rating": {
+            "type": "number"
+          },
+          "text": {
+            "type": "string"
+          }
+        }
+      },
+      "default": []
+    },
+    "enriched": {
+      "type": "boolean",
+      "default": false
+    },
+    "enrichment_data": {
+      "type": "object",
+      "description": "Extra enriched data (social, employees, revenue, tech stack)"
+    },
+    "selected": {
+      "type": "boolean",
+      "default": false
+    },
+    "ingested_to_crm": {
+      "type": "boolean",
+      "default": false
+    },
+    "crm_contact_id": {
+      "type": "string"
+    },
+    "scraped_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "latitude": {
+      "type": "number"
+    },
+    "longitude": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "business_name"
+  ]
+}

@@ -309,6 +309,14 @@ export default function Pricing() {
                   { feature: "Google Workspace Sync", s: "—", e: "—", p: "—", g: "✓", ent: "✓" },
                   { feature: "Live Monitoring", s: "—", e: "—", p: "—", g: "✓", ent: "✓" },
                   { feature: "Xtreme Social", s: "—", e: "—", p: "—", g: "✓", ent: "✓" },
+                  { feature: "XTREME CRM", s: "—", e: "✓", p: "✓", g: "✓", ent: "✓" },
+                  { feature: "Lead Scraper", s: "—", e: "—", p: "✓", g: "✓", ent: "✓" },
+                  { feature: "Breeze AI Copilot", s: "—", e: "✓", p: "✓", g: "✓", ent: "✓" },
+                  { feature: "Coupon Generator", s: "—", e: "—", p: "✓", g: "✓", ent: "✓" },
+                  { feature: "Business Cards", s: "—", e: "—", p: "✓", g: "✓", ent: "✓" },
+                  { feature: "Company Showcase", s: "—", e: "—", p: "—", g: "✓", ent: "✓" },
+                  { feature: "Link Builder & QR", s: "—", e: "—", p: "✓", g: "✓", ent: "✓" },
+                  { feature: "HubSpot Sync", s: "—", e: "—", p: "✓", g: "✓", ent: "✓" },
                   { feature: "Core Documentation", s: "✓", e: "✓", p: "✓", g: "✓", ent: "✓" },
                 ].map((row) => (
                   <tr key={row.feature} className="border-b border-border/50">
@@ -338,6 +346,11 @@ export default function Pricing() {
               { q: "Can I monitor calls in real-time?", a: "Yes. The Live Monitoring dashboard shows active calls with live transcripts, audio playback, and agent performance metrics. Auto-refreshes every 3 seconds. Available on Growth and Enterprise plans." },
               { q: "What is Xtreme Social?", a: "AI-powered social media content generation and scheduling across Facebook, Instagram, TikTok, X/Twitter, Snapchat, and LinkedIn. Generate posts, captions, hashtags, and video scripts with your brand kit. Available on Growth and Enterprise plans." },
               { q: "Is the Core Documentation available on all plans?", a: "Yes. The Core Documentation page — covering all entities, backend functions, integrations, and API endpoints — is available on all plans including Starter and Pay-As-You-Go." },
+              { q: "What is XTREME CRM?", a: "A full AI-assisted CRM built into the platform. Manage contacts with lifecycle stages, send bulk multi-channel outreach (SMS, MMS, email, voice, WhatsApp), set automated follow-ups, sync with HubSpot, and track your pipeline. Available on Essential and above." },
+              { q: "How does the Lead Scraper work?", a: "Search for businesses by industry, location, keyword, and radius. The AI finds real businesses with ratings, reviews, and contact info. Enrich each lead with social profiles, revenue, and decision makers — then one-click ingest into your CRM. Available on Professional and above." },
+              { q: "What is Breeze AI Copilot?", a: "A floating AI chat assistant available on every page. It can read your CRM contacts, suggest actions, draft messages, and help execute workflows. Available on Essential and above." },
+              { q: "Can I create coupons and offers?", a: "Yes. The Coupon Generator creates coupons with AI-generated visuals, QR codes, smart links, and voice script injection — so your AI agent can mention offers during calls. Available on Professional and above." },
+              { q: "Does it sync with HubSpot?", a: "Yes. XTREME CRM has bidirectional HubSpot sync — push contacts to HubSpot or pull them back. Available on Professional and above." },
               { q: "Can I switch plans anytime?", a: "Yes. Upgrade or downgrade at any time. Changes are prorated automatically. Cancel anytime with no penalty." },
               { q: "Do unused credits roll over?", a: "Pay-as-you-go credits never expire. Monthly plan included usage resets each billing cycle. Overages are billed at published pay-as-you-go rates." },
             ].map((f) => (

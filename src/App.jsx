@@ -56,6 +56,12 @@ import LiveMonitoring from './pages/LiveMonitoring';
 import CoreDocs from './pages/CoreDocs';
 import WhatsAppSetup from './pages/WhatsAppSetup';
 import NumberPorting from './pages/NumberPorting';
+import XtremeCrm from './pages/XtremeCrm';
+import LeadScraper from './pages/LeadScraper';
+import CouponGenerator from './pages/CouponGenerator';
+import BusinessCardGenerator from './pages/BusinessCardGenerator';
+import CompanyShowcase from './pages/CompanyShowcase';
+import LinkBuilder from './pages/LinkBuilder';
 import ThankYou from './pages/ThankYou';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
@@ -99,6 +105,12 @@ function App() {
                 <Route path="/portal/xtreme-social" element={<XtremeSocial />} />
                 <Route path="/portal/live-monitoring" element={<LiveMonitoring />} />
                 <Route path="/portal/core-docs" element={<CoreDocs />} />
+                <Route path="/portal/crm" element={<XtremeCrm />} />
+                <Route path="/portal/lead-scraper" element={<LeadScraper />} />
+                <Route path="/portal/coupons" element={<CouponGenerator />} />
+                <Route path="/portal/business-cards" element={<BusinessCardGenerator />} />
+                <Route path="/portal/company-showcase" element={<CompanyShowcase />} />
+                <Route path="/portal/link-builder" element={<LinkBuilder />} />
               </Route>
               {/* Admin */}
               <Route path="/promo-admin" element={<PromoAdmin />} />

@@ -1,0 +1,50 @@
+{
+  "name": "SmartLink",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "target_url": {
+      "type": "string",
+      "description": "Where the link redirects to"
+    },
+    "offer_text": {
+      "type": "string",
+      "description": "Promotional offer description"
+    },
+    "visual_image_url": {
+      "type": "string",
+      "description": "AI-generated visual for the link"
+    },
+    "qr_code_url": {
+      "type": "string"
+    },
+    "short_code": {
+      "type": "string",
+      "description": "Unique short code"
+    },
+    "short_url": {
+      "type": "string",
+      "description": "Full short URL"
+    },
+    "clicks": {
+      "type": "integer",
+      "default": 0
+    },
+    "linked_coupon_id": {
+      "type": "string"
+    },
+    "linked_business_card_id": {
+      "type": "string"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "title",
+    "target_url"
+  ]
+}

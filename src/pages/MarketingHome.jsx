@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { MessageSquare, Phone, MessageCircle, Brain, Hash, Mail, ArrowRight, CheckCircle2, BarChart3, Shield, Globe, FlaskConical, Palette, MemoryStick, GitBranch, Sparkles, HardDrive, Radio, Share2, BookOpen } from "lucide-react";
+import { MessageSquare, Phone, MessageCircle, Brain, Hash, Mail, ArrowRight, CheckCircle2, BarChart3, Shield, Globe, FlaskConical, Palette, MemoryStick, GitBranch, Sparkles, HardDrive, Radio, Share2, BookOpen, Users, Tag, Building2, Link2, CreditCard, Search, Zap } from "lucide-react";
 
 export default function MarketingHome() {
   return (
@@ -98,6 +98,13 @@ export default function MarketingHome() {
               { icon: HardDrive, title: "Google Workspace Sync", desc: "Auto-sync intelligence, templates, agent schedules, and action items to Google Drive, Gmail, Calendar, Tasks, Docs, and Sheets.", color: "text-chart-2" },
               { icon: Radio, title: "Live Monitoring", desc: "Real-time call monitoring dashboard with live transcripts, audio playback, and agent performance metrics. Watch your AI agents communicate live.", color: "text-chart-3" },
               { icon: Share2, title: "Xtreme Social", desc: "AI-powered social media content generation and scheduling across Facebook, Instagram, TikTok, X/Twitter, Snapchat, and LinkedIn.", color: "text-chart-4" },
+              { icon: Users, title: "XTREME CRM", desc: "AI-assisted contact management with lifecycle stages, bulk multi-channel outreach, automated follow-ups, HubSpot sync, and full pipeline tracking.", color: "text-primary" },
+              { icon: Search, title: "Lead Scraper", desc: "Find businesses by industry, location, keyword, and radius. Enrich with social profiles, revenue, and decision makers. One-click ingest to CRM.", color: "text-chart-2" },
+              { icon: Zap, title: "Breeze AI Copilot", desc: "Floating AI chat assistant with read/write/execute capability. Ask it to find contacts, draft messages, and execute workflows — right from any page.", color: "text-chart-3" },
+              { icon: Tag, title: "Coupon Generator", desc: "Create coupons with AI-generated visuals, QR codes, smart links, and voice script injection — so your AI agent can mention offers mid-call.", color: "text-chart-4" },
+              { icon: CreditCard, title: "Digital Business Cards", desc: "10 professionally designed card styles using your brand assets. vCard download, QR code, and shareable link for every card.", color: "text-chart-5" },
+              { icon: Building2, title: "Company Showcase", desc: "AI-generated company highlights package from scraped intelligence and Google reviews. Shareable via SMS, MMS, and email.", color: "text-primary" },
+              { icon: Link2, title: "Link Builder & QR Codes", desc: "Create smart links with AI-generated visuals and QR codes for offers, coupons, and business cards. Track clicks and engagement.", color: "text-chart-2" },
               { icon: BookOpen, title: "Core Documentation", desc: "Complete system reference covering all entities, backend functions, integrations, API endpoints, and architecture — built right into the admin portal.", color: "text-chart-5" },
             ].map((f) => (
               <div key={f.title} className="rounded-xl border border-border bg-card p-5 hover:border-primary/30 transition-colors">
@@ -213,6 +220,11 @@ export default function MarketingHome() {
               { q: "Does it support social media?", a: "Yes. Xtreme Social generates AI-powered content for Facebook, Instagram, TikTok, X/Twitter, Snapchat, and LinkedIn with scheduling and brand kit integration." },
               { q: "Can I build custom workflows?", a: "Yes. The Workflow Generator provides drag-and-drop workflow building with 5 channel types and 9 step types, plus AI-powered testing before deployment." },
               { q: "Is there documentation available?", a: "Yes. The Core Documentation page in the admin portal provides a complete system reference covering all entities, backend functions, integrations, and API endpoints." },
+              { q: "Does it include a CRM?", a: "Yes. XTREME CRM is built in — AI-assisted contact management with lifecycle stages, bulk multi-channel outreach (SMS, MMS, email, voice, WhatsApp), automated follow-ups, HubSpot sync, and pipeline tracking." },
+              { q: "Can I scrape leads?", a: "Yes. The Lead Scraper finds businesses by industry, location, keyword, and radius. Enrich each lead with social profiles, revenue, decision makers, and competitors — then one-click ingest into your CRM." },
+              { q: "Is there an AI assistant built in?", a: "Yes. Breeze AI Copilot is a floating chat assistant available on every page. It can read your CRM, suggest actions, draft messages, and help execute workflows." },
+              { q: "Can I create coupons and offers?", a: "Yes. The Coupon Generator creates coupons with AI-generated visuals, QR codes, smart links, and voice script injection — so your AI agent can mention offers during calls." },
+              { q: "Can I create digital business cards?", a: "Yes. Choose from 10 professionally designed styles using your brand assets. Each card includes a vCard download, QR code, and shareable link." },
             ].map((f) => (
               <div key={f.q} className="rounded-lg border border-border bg-card p-4">
                 <h3 className="font-medium text-foreground mb-1">{f.q}</h3>

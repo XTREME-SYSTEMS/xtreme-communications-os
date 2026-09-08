@@ -1,0 +1,83 @@
+{
+  "name": "Coupon",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "code": {
+      "type": "string"
+    },
+    "discount_type": {
+      "type": "string",
+      "enum": [
+        "percentage",
+        "fixed_amount",
+        "bogo",
+        "free_item",
+        "free_shipping"
+      ],
+      "default": "percentage"
+    },
+    "discount_value": {
+      "type": "number",
+      "default": 0
+    },
+    "valid_until": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "AI-generated coupon visual"
+    },
+    "qr_code_url": {
+      "type": "string"
+    },
+    "smart_link_url": {
+      "type": "string",
+      "description": "Short link to redeem"
+    },
+    "distribution_channels": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "sms",
+          "mms",
+          "email",
+          "whatsapp",
+          "voice"
+        ]
+      },
+      "default": []
+    },
+    "voice_script_injection": {
+      "type": "string",
+      "description": "Text the AI agent can speak to mention this coupon"
+    },
+    "used_count": {
+      "type": "integer",
+      "default": 0
+    },
+    "max_uses": {
+      "type": "integer",
+      "default": 0,
+      "description": "0 = unlimited"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    },
+    "brand_kit_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "title",
+    "discount_type"
+  ]
+}

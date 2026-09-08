@@ -7,12 +7,16 @@ export default async function(req) {
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await req.json();
-    const { type, prompt } = body;
+    const { type, prompt, existing_image_urls } = body;
 
     if (!prompt) return Response.json({ error: 'Prompt required' }, { status: 400 });
 
     if (type === 'image') {
-      const result = await base44.asServiceRole.integrations.Core.GenerateImage({ prompt });
+      const params = { prompt };
+      if (existing_image_urls && existing_image_urls.length > 0) {
+        params.existing_image_urls = existing_image_urls;
+      }
+      const result = await base44.asServiceRole.integrations.Core.GenerateImage(params);
       return Response.json({ url: result.url });
     }
 

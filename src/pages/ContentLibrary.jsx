@@ -25,7 +25,9 @@ export default function ContentLibrary() {
   const [results, setResults] = useState([]);
   const [library, setLibrary] = useState([]);
   const [search, setSearch] = useState("");
+  const [refImageUrl, setRefImageUrl] = useState("");
   const fileRef = useRef(null);
+  const refImageRef = useRef(null);
 
   useEffect(() => { loadLibrary(); }, []);
   const loadLibrary = async () => { const a = await base44.entities.CreativeAsset.list("-created_date", 60).catch(() => []); setLibrary(a || []); };
@@ -37,7 +39,11 @@ export default function ContentLibrary() {
       const gen = GENERATORS.find((g) => g.id === activeGen);
       if (gen.content_type === "image" || gen.content_type === "video") {
         const prompt = buildPrompt(gen.type, context, industry, audience);
-        const res = await base44.functions.invoke("generateCreativeMedia", { type: gen.content_type, prompt });
+        const params = { type: gen.content_type, prompt };
+        if (refImageUrl) {
+          params.existing_image_urls = [refImageUrl];
+        }
+        const res = await base44.functions.invoke("generateCreativeMedia", params);
         const url = res.data?.url || res.url;
         const asset = await base44.entities.CreativeAsset.create({ type: gen.type, title: context.slice(0, 50), content: url, content_type: gen.content_type, context, industry, target_audience: audience, prompt_used: prompt });
         setResults((prev) => [{ id: asset.id, content: url, title: asset.title, type: gen.type, content_type: gen.content_type }, ...prev]);
@@ -51,6 +57,17 @@ export default function ContentLibrary() {
       loadLibrary();
       toast({ title: "Content generated" });
     } catch (e) { toast({ title: "Generation failed", description: e.message, variant: "destructive" }); }
+    setGenerating(false);
+  };
+
+  const handleRefUpload = async (e) => {
+    const file = e.target.files?.[0]; if (!file) return;
+    setGenerating(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setRefImageUrl(file_url);
+      toast({ title: "Reference photo uploaded", description: "Now generate to create a new version based on this photo." });
+    } catch (err) { toast({ title: "Upload failed", description: err.message, variant: "destructive" }); }
     setGenerating(false);
   };
 
@@ -86,7 +103,7 @@ export default function ContentLibrary() {
         {/* Generator tabs */}
         <div className="w-48 shrink-0 border-r border-border bg-card p-2 space-y-1">
           {GENERATORS.map((g) => (
-            <button key={g.id} onClick={() => { setActiveGen(g.id); setResults([]); }}
+            <button key={g.id} onClick={() => { setActiveGen(g.id); setResults([]); setRefImageUrl(""); }}
               className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${activeGen === g.id ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground hover:bg-accent"}`}>
               <g.icon className="h-4 w-4" /> {g.label}
             </button>
@@ -110,6 +127,23 @@ export default function ContentLibrary() {
               <div><label className="text-xs font-medium text-muted-foreground mb-1 block">Context / Topic</label><textarea value={context} onChange={(e) => setContext(e.target.value)} rows={3} placeholder="What is this content about?" className="w-full p-2.5 rounded-lg border border-border bg-background text-sm resize-none" /></div>
               <div><label className="text-xs font-medium text-muted-foreground mb-1 block">Industry (optional)</label><input value={industry} onChange={(e) => setIndustry(e.target.value)} placeholder="e.g. Real Estate" className="w-full h-9 px-2.5 rounded-lg border border-border bg-background text-sm" /></div>
               <div><label className="text-xs font-medium text-muted-foreground mb-1 block">Target Audience (optional)</label><input value={audience} onChange={(e) => setAudience(e.target.value)} placeholder="e.g. Home buyers" className="w-full h-9 px-2.5 rounded-lg border border-border bg-background text-sm" /></div>
+              {activeGen === "human" && (
+                <div className="rounded-lg border border-primary/30 bg-primary/5 p-3">
+                  <p className="text-xs font-medium text-primary mb-1.5 flex items-center gap-1.5"><User className="h-3.5 w-3.5" /> Reference Photo (optional)</p>
+                  <p className="text-[10px] text-muted-foreground mb-2">Upload a photo of yourself to generate a new AI version based on your likeness.</p>
+                  {refImageUrl ? (
+                    <div className="flex items-center gap-2">
+                      <img src={refImageUrl} alt="ref" className="h-12 w-12 rounded-lg object-cover" />
+                      <button onClick={() => setRefImageUrl("")} className="text-xs text-destructive hover:underline">Remove</button>
+                    </div>
+                  ) : (
+                    <button onClick={() => refImageRef.current?.click()} disabled={generating} className="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg border border-dashed border-border text-xs text-muted-foreground hover:bg-accent">
+                      <Upload className="h-3.5 w-3.5" /> Upload your photo
+                    </button>
+                  )}
+                  <input ref={refImageRef} type="file" accept="image/*" className="hidden" onChange={handleRefUpload} />
+                </div>
+              )}
               <button onClick={generate} disabled={generating} className="w-full flex items-center justify-center gap-2 h-10 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 disabled:opacity-50">
                 {generating ? <><Loader2 className="h-4 w-4 animate-spin" /> Generating...</> : <><Sparkles className="h-4 w-4" /> Generate</>}
               </button>

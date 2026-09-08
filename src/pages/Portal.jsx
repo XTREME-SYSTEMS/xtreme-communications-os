@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
 import { cn } from "@/lib/utils";
-import { Phone, Brain, MessageSquare, DollarSign, TrendingUp, ArrowRight, CheckCircle2, Circle, Clock, Play, KeyRound, BookOpen, GitBranch, HardDrive, Radio, Share2, Sparkles } from "lucide-react";
+import { Phone, Brain, MessageSquare, DollarSign, TrendingUp, ArrowRight, CheckCircle2, Circle, Clock, Play, KeyRound, BookOpen, GitBranch, HardDrive, Radio, Share2, Sparkles, Users, Tag, Building2, Link2, CreditCard, Search } from "lucide-react";
 
 const ONBOARDING_STEPS = [
   { step: "welcome", label: "Welcome", desc: "Account created" },
@@ -20,6 +20,7 @@ export default function Portal() {
   const [subscription, setSubscription] = useState(null);
   const [numbers, setNumbers] = useState([]);
   const [agents, setAgents] = useState([]);
+  const [crmContacts, setCrmContacts] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => { load(); }, [user]);
@@ -44,12 +45,14 @@ export default function Portal() {
       setSubscription(sub);
 
       // Load related data
-      const [nums, ags] = await Promise.all([
+      const [nums, ags, crm] = await Promise.all([
         base44.entities.PhoneNumber.filter({ assigned_persona_id: { $exists: true } }).catch(() => []),
         base44.entities.AgentPersona.list('-created_date', 20).catch(() => []),
+        base44.entities.XtremeCrmContact.list('-created_date', 200).catch(() => []),
       ]);
       setNumbers(nums || []);
       setAgents(ags || []);
+      setCrmContacts((crm || []).length);
     } catch (e) {
       console.error(e);
     }
@@ -141,7 +144,7 @@ export default function Portal() {
         {[
           { label: "Phone Numbers", value: numbers.length, icon: Phone, color: "text-primary" },
           { label: "AI Agents", value: agents.length, icon: Brain, color: "text-chart-2" },
-          { label: "Messages Sent", value: 0, icon: MessageSquare, color: "text-chart-3" },
+          { label: "CRM Contacts", value: crmContacts, icon: Users, color: "text-chart-3" },
           { label: "Monthly Spend", value: `$${(subscription?.monthly_spend || 0).toFixed(2)}`, icon: DollarSign, color: "text-chart-4" },
         ].map((s) => (
           <div key={s.label} className="rounded-xl border border-border bg-card p-4">
@@ -155,12 +158,18 @@ export default function Portal() {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3">
-        <Link to="/portal/numbers" className="rounded-xl border border-border bg-card p-5 hover:border-primary/30 transition-colors group">
-          <Phone className="h-6 w-6 text-primary mb-2" />
-          <h3 className="font-medium text-foreground mb-1">Buy a Phone Number</h3>
-          <p className="text-xs text-muted-foreground">Search local or toll-free numbers and provision instantly.</p>
-          <span className="text-xs text-primary flex items-center gap-1 mt-2 group-hover:gap-2 transition-all">Get started <ArrowRight className="h-3 w-3" /></span>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+        <Link to="/portal/crm" className="rounded-xl border border-primary/30 bg-primary/5 p-5 hover:border-primary/50 transition-colors group">
+          <Users className="h-6 w-6 text-primary mb-2" />
+          <h3 className="font-medium text-foreground mb-1">XTREME CRM</h3>
+          <p className="text-xs text-muted-foreground">AI-assisted contact management with HubSpot sync.</p>
+          <span className="text-xs text-primary flex items-center gap-1 mt-2 group-hover:gap-2 transition-all">Open CRM <ArrowRight className="h-3 w-3" /></span>
+        </Link>
+        <Link to="/portal/lead-scraper" className="rounded-xl border border-border bg-card p-5 hover:border-primary/30 transition-colors group">
+          <Search className="h-6 w-6 text-chart-2 mb-2" />
+          <h3 className="font-medium text-foreground mb-1">Lead Scraper</h3>
+          <p className="text-xs text-muted-foreground">Find businesses by industry, location, keyword. Enrich & ingest to CRM.</p>
+          <span className="text-xs text-primary flex items-center gap-1 mt-2 group-hover:gap-2 transition-all">Scrape <ArrowRight className="h-3 w-3" /></span>
         </Link>
         <Link to="/portal/agents" className="rounded-xl border border-border bg-card p-5 hover:border-primary/30 transition-colors group">
           <Brain className="h-6 w-6 text-chart-2 mb-2" />
@@ -174,11 +183,29 @@ export default function Portal() {
           <p className="text-xs text-muted-foreground">Watch active calls with live transcripts and audio in real-time.</p>
           <span className="text-xs text-primary flex items-center gap-1 mt-2 group-hover:gap-2 transition-all">Monitor <ArrowRight className="h-3 w-3" /></span>
         </Link>
-        <Link to="/portal/xtreme-social" className="rounded-xl border border-border bg-card p-5 hover:border-primary/30 transition-colors group">
-          <Share2 className="h-6 w-6 text-chart-4 mb-2" />
-          <h3 className="font-medium text-foreground mb-1">Xtreme Social</h3>
-          <p className="text-xs text-muted-foreground">AI social media content for all platforms with scheduling.</p>
+        <Link to="/portal/coupons" className="rounded-xl border border-border bg-card p-5 hover:border-primary/30 transition-colors group">
+          <Tag className="h-6 w-6 text-chart-4 mb-2" />
+          <h3 className="font-medium text-foreground mb-1">Coupon Generator</h3>
+          <p className="text-xs text-muted-foreground">Create coupons with AI visuals, QR codes, and voice script injection.</p>
           <span className="text-xs text-primary flex items-center gap-1 mt-2 group-hover:gap-2 transition-all">Create <ArrowRight className="h-3 w-3" /></span>
+        </Link>
+        <Link to="/portal/business-cards" className="rounded-xl border border-border bg-card p-5 hover:border-primary/30 transition-colors group">
+          <CreditCard className="h-6 w-6 text-chart-5 mb-2" />
+          <h3 className="font-medium text-foreground mb-1">Business Cards</h3>
+          <p className="text-xs text-muted-foreground">10 digital card styles with vCard, QR code, and shareable links.</p>
+          <span className="text-xs text-primary flex items-center gap-1 mt-2 group-hover:gap-2 transition-all">Design <ArrowRight className="h-3 w-3" /></span>
+        </Link>
+        <Link to="/portal/company-showcase" className="rounded-xl border border-border bg-card p-5 hover:border-primary/30 transition-colors group">
+          <Building2 className="h-6 w-6 text-primary mb-2" />
+          <h3 className="font-medium text-foreground mb-1">Company Showcase</h3>
+          <p className="text-xs text-muted-foreground">AI-generated highlights from company intelligence + Google reviews.</p>
+          <span className="text-xs text-primary flex items-center gap-1 mt-2 group-hover:gap-2 transition-all">Generate <ArrowRight className="h-3 w-3" /></span>
+        </Link>
+        <Link to="/portal/link-builder" className="rounded-xl border border-border bg-card p-5 hover:border-primary/30 transition-colors group">
+          <Link2 className="h-6 w-6 text-chart-2 mb-2" />
+          <h3 className="font-medium text-foreground mb-1">Link Builder</h3>
+          <p className="text-xs text-muted-foreground">Smart links with AI visuals and QR codes for offers and coupons.</p>
+          <span className="text-xs text-primary flex items-center gap-1 mt-2 group-hover:gap-2 transition-all">Build <ArrowRight className="h-3 w-3" /></span>
         </Link>
         <Link to="/portal/workflow-generator" className="rounded-xl border border-border bg-card p-5 hover:border-primary/30 transition-colors group">
           <GitBranch className="h-6 w-6 text-chart-5 mb-2" />
@@ -192,17 +219,17 @@ export default function Portal() {
           <p className="text-xs text-muted-foreground">AI-generated images, videos, social posts, and creative assets.</p>
           <span className="text-xs text-primary flex items-center gap-1 mt-2 group-hover:gap-2 transition-all">Generate <ArrowRight className="h-3 w-3" /></span>
         </Link>
-        <Link to="/portal/google-workspace" className="rounded-xl border border-border bg-card p-5 hover:border-primary/30 transition-colors group">
-          <HardDrive className="h-6 w-6 text-chart-2 mb-2" />
-          <h3 className="font-medium text-foreground mb-1">Google Workspace</h3>
-          <p className="text-xs text-muted-foreground">Sync intelligence, templates, and schedules to Google.</p>
-          <span className="text-xs text-primary flex items-center gap-1 mt-2 group-hover:gap-2 transition-all">Connect <ArrowRight className="h-3 w-3" /></span>
+        <Link to="/portal/xtreme-social" className="rounded-xl border border-border bg-card p-5 hover:border-primary/30 transition-colors group">
+          <Share2 className="h-6 w-6 text-chart-4 mb-2" />
+          <h3 className="font-medium text-foreground mb-1">Xtreme Social</h3>
+          <p className="text-xs text-muted-foreground">AI social media content for all platforms with scheduling.</p>
+          <span className="text-xs text-primary flex items-center gap-1 mt-2 group-hover:gap-2 transition-all">Create <ArrowRight className="h-3 w-3" /></span>
         </Link>
-        <Link to="/portal/core-docs" className="rounded-xl border border-border bg-card p-5 hover:border-primary/30 transition-colors group">
-          <BookOpen className="h-6 w-6 text-chart-3 mb-2" />
-          <h3 className="font-medium text-foreground mb-1">Core Docs</h3>
-          <p className="text-xs text-muted-foreground">Complete system documentation and API reference.</p>
-          <span className="text-xs text-primary flex items-center gap-1 mt-2 group-hover:gap-2 transition-all">Read <ArrowRight className="h-3 w-3" /></span>
+        <Link to="/portal/numbers" className="rounded-xl border border-border bg-card p-5 hover:border-primary/30 transition-colors group">
+          <Phone className="h-6 w-6 text-primary mb-2" />
+          <h3 className="font-medium text-foreground mb-1">Buy a Phone Number</h3>
+          <p className="text-xs text-muted-foreground">Search local or toll-free numbers and provision instantly.</p>
+          <span className="text-xs text-primary flex items-center gap-1 mt-2 group-hover:gap-2 transition-all">Get started <ArrowRight className="h-3 w-3" /></span>
         </Link>
       </div>
 

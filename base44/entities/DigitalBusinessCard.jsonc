@@ -1,0 +1,73 @@
+{
+  "name": "DigitalBusinessCard",
+  "type": "object",
+  "properties": {
+    "full_name": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "company": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "website": {
+      "type": "string"
+    },
+    "logo_url": {
+      "type": "string"
+    },
+    "card_style": {
+      "type": "integer",
+      "default": 1,
+      "description": "1-10 design template"
+    },
+    "primary_color": {
+      "type": "string",
+      "default": "#ff6b00"
+    },
+    "secondary_color": {
+      "type": "string",
+      "default": "#1a1a2e"
+    },
+    "vcard_url": {
+      "type": "string",
+      "description": "Downloadable vCard file"
+    },
+    "qr_code_url": {
+      "type": "string"
+    },
+    "share_url": {
+      "type": "string",
+      "description": "Public shareable link"
+    },
+    "social_links": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "platform": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          }
+        }
+      },
+      "default": []
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "full_name"
+  ]
+}

@@ -1,0 +1,80 @@
+{
+  "name": "CompanyShowcase",
+  "type": "object",
+  "properties": {
+    "company_name": {
+      "type": "string"
+    },
+    "website_url": {
+      "type": "string"
+    },
+    "intelligence_summary": {
+      "type": "string",
+      "description": "AI-generated company summary from scraped data"
+    },
+    "highlights": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Key selling points / highlights"
+    },
+    "reviews": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "author": {
+            "type": "string"
+          },
+          "rating": {
+            "type": "number"
+          },
+          "text": {
+            "type": "string"
+          }
+        }
+      },
+      "default": []
+    },
+    "avg_rating": {
+      "type": "number",
+      "default": 0
+    },
+    "generated_image_url": {
+      "type": "string",
+      "description": "AI-generated showcase visual"
+    },
+    "showcase_url": {
+      "type": "string",
+      "description": "Public shareable showcase link"
+    },
+    "qr_code_url": {
+      "type": "string"
+    },
+    "distribution_channels": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "sms",
+          "mms",
+          "email",
+          "whatsapp"
+        ]
+      },
+      "default": []
+    },
+    "brand_kit_id": {
+      "type": "string"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "company_name"
+  ]
+}

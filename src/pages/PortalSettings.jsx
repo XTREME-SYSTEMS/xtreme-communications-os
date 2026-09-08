@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
-import { ArrowLeft, User, Mail, CreditCard, LogOut, Bell, Shield } from "lucide-react";
+import { ArrowLeft, User, Mail, CreditCard, LogOut, Bell, Shield, Phone, Palette, Brain, HardDrive, MessageCircle, ArrowLeftRight, BookOpen, KeyRound, ChevronRight } from "lucide-react";
 
 export default function PortalSettings() {
   const { user, logout } = useAuth();
@@ -67,10 +67,29 @@ export default function PortalSettings() {
         </div>
       </div>
 
-      {/* Security */}
+      {/* Setup & Configuration — one-and-done items */}
       <div className="rounded-xl border border-border bg-card p-5 mb-4">
-        <h2 className="font-medium text-foreground mb-4 flex items-center gap-2"><Shield className="h-4 w-4 text-primary" /> Security</h2>
-        <Link to="/portal/keys" className="text-sm text-primary font-medium hover:underline">Manage API Keys →</Link>
+        <h2 className="font-medium text-foreground mb-4 flex items-center gap-2"><Shield className="h-4 w-4 text-primary" /> Setup & Configuration</h2>
+        <p className="text-xs text-muted-foreground mb-3">One-time setup tools and configuration pages</p>
+        <div className="space-y-1">
+          {[
+            { to: "/portal/numbers", icon: Phone, label: "Phone Numbers" },
+            { to: "/portal/brand-kit", icon: Palette, label: "Brand Kit" },
+            { to: "/portal/agent-memory", icon: Brain, label: "Agent Memory" },
+            { to: "/portal/google-workspace", icon: HardDrive, label: "Google Workspace Sync" },
+            { to: "/portal/whatsapp", icon: MessageCircle, label: "WhatsApp Setup" },
+            { to: "/portal/porting", icon: ArrowLeftRight, label: "Number Porting" },
+            { to: "/portal/core-docs", icon: BookOpen, label: "Core Documentation" },
+            { to: "/portal/keys", icon: KeyRound, label: "API Keys" },
+          ].map(item => (
+            <Link key={item.to} to={item.to}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-accent transition-colors">
+              <item.icon className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm text-foreground flex-1">{item.label}</span>
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            </Link>
+          ))}
+        </div>
       </div>
 
       {/* Logout */}

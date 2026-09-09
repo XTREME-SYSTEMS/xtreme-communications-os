@@ -7,6 +7,7 @@ services:
     volumes:
       - ./:/app
       - /app/node_modules
+      - base44-cli-auth:/root/.base44
     ports:
       - "3000:5173"
     env_file:
@@ -20,3 +21,6 @@ services:
         base44 dev
       '
     restart: unless-stopped
+
+volumes:
+  base44-cli-auth:

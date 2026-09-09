@@ -4,14 +4,20 @@
   "startCommand": "docker compose -f docker-compose.base44.yml up -d",
   "secrets": [
     {
-      "name": "BASE44_API_KEY",
-      "description": "Base44 workspace API key (starts with b44k_). Find it in the Base44 dashboard under Settings > API Keys.",
+      "name": "B44_APP_ID",
+      "description": "The Base44 app ID for this project. Find it in the Builder URL: app.base44.com/apps/<id>/...",
       "requiredAtBoot": true,
       "generatedForDevelopment": false
     },
     {
-      "name": "B44_APP_ID",
-      "description": "The Base44 app ID for this project. Find it in the Builder URL: app.base44.com/apps/<id>/...",
+      "name": "BASE44_API_KEY",
+      "description": "Base44 workspace API key. Find it in the Base44 dashboard under Settings > API Keys.",
+      "requiredAtBoot": false,
+      "generatedForDevelopment": false
+    },
+    {
+      "name": "VITE_BASE44_API_KEY",
+      "description": "Same Base44 API key with VITE_ prefix so Vite exposes it to client-side code for SDK authentication.",
       "requiredAtBoot": true,
       "generatedForDevelopment": false
     }

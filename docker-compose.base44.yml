@@ -15,7 +15,7 @@ services:
       - /run/base44/app.env
     command: >
       sh -c '
-        npm install --no-audit --no-fund &&
+        npm install --legacy-peer-deps --no-audit --no-fund &&
         npm install -g base44@latest &&
         printf "{\"id\": \"%s\"}\n" "$$B44_APP_ID" > base44/.app.jsonc &&
         base44 dev

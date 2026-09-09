@@ -1,3 +1,8 @@
+---
+name: autonomous-build
+description: Execution doctrine for the app_builder agent to achieve 100% completion in the XCOMM Parity Matrix.
+---
+
 # Autonomous Build Skill — XTREME COMMUNICATIONS
 
 > Execution doctrine for the `app_builder` agent. The agent runs this cycle continuously

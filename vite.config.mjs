@@ -19,6 +19,11 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     allowedHosts: true,
+    hmr: process.env.BASE44_PUBLIC_HOST_SUFFIX ? {
+      protocol: 'wss',
+      host: `3000-${process.env.BASE44_PUBLIC_HOST_SUFFIX}`,
+      clientPort: 443,
+    } : undefined,
     watch: {
       usePolling: true,
       interval: 100,

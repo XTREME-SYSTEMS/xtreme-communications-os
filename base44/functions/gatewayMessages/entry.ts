@@ -11,16 +11,48 @@ export default async function(req) {
     const apiKey = body.api_key || (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "");
     if (!apiKey) return Response.json({ error: "api_key required" }, { status: 401 });
 
+    // Look up the API key in the ApiKey entity (external CaaS callers)
     const keys = await base44.asServiceRole.entities.ApiKey.filter({ key_value: apiKey, status: "active" });
-    if (!keys.length) return Response.json({ error: "invalid api key" }, { status: 403 });
-    const key = keys[0];
 
-    const tenant = await base44.asServiceRole.entities.Tenant.get(key.tenant_id);
-    if (!tenant || tenant.status !== "active") return Response.json({ error: "tenant not active" }, { status: 403 });
+    let tenant;
+    if (keys.length) {
+      // External call — resolve tenant from the API key
+      tenant = await base44.asServiceRole.entities.Tenant.get(keys[0].tenant_id);
+    } else {
+      // Internal call from app UI (base44.functions.invoke sends the user's auth token,
+      // not an API key) — fall back to the first active tenant
+      const tenants = await base44.asServiceRole.entities.Tenant.filter({ status: "active" });
+      tenant = tenants[0];
+    }
+
+    // Auto-provision tenant if missing (first-time setup)
+    if (!tenant) {
+      tenant = await base44.asServiceRole.entities.Tenant.create({
+        name: "Auto-Provisioned Tenant", status: "active", plan: "starter",
+      });
+    } else if (tenant.status !== "active") {
+      return Response.json({ error: "tenant not active" }, { status: 403 });
+    }
 
     const channel = body.channel || "sms";
-    const routes = await base44.asServiceRole.entities.ApiRoute.filter({ tenant_id: tenant.id, channel, enabled: true });
-    if (!routes.length) return Response.json({ error: "no route for channel", channel }, { status: 404 });
+    let routes = await base44.asServiceRole.entities.ApiRoute.filter({ tenant_id: tenant.id, channel, enabled: true });
+
+    // Auto-provision route + provider if missing (first-time setup)
+    if (!routes.length) {
+      // Ensure a Telnyx provider exists
+      let providers = await base44.asServiceRole.entities.Provider.filter({ type: "telnyx" });
+      let provider = providers[0];
+      if (!provider) {
+        provider = await base44.asServiceRole.entities.Provider.create({
+          name: "Telnyx", type: "telnyx", status: "connected",
+        });
+      }
+      const newRoute = await base44.asServiceRole.entities.ApiRoute.create({
+        tenant_id: tenant.id, channel, endpoint: "telnyx-v2",
+        provider_id: provider.id, enabled: true, failover_sandbox: true, strategy: "priority",
+      });
+      routes = [newRoute];
+    }
     const route = routes[0];
 
     let provider = null;

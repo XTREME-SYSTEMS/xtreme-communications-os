@@ -33,7 +33,17 @@ export default async function(req) {
         try {
           const r = await fetch("https://api.telnyx.com/v2/phone_numbers?limit=1", { headers: { Authorization: `Bearer ${key}` } });
           if (r.ok) { result = { status: "connected", detail: "telnyx api reachable", latency_ms: Date.now() - t0, verified: true }; }
-          else { const t = await r.text(); result = { status: "error", detail: `Telnyx ${r.status}: ${t.slice(0, 140)}`, latency_ms: Date.now() - t0, verified: false }; }
+          else {
+            const t = await r.text();
+            const isTenantNotActivated = t.toLowerCase().includes("tenant") && t.toLowerCase().includes("not found");
+            result = {
+              status: isTenantNotActivated ? "tenant_not_activated" : "error",
+              detail: isTenantNotActivated
+                ? "API key is valid but tenant account is not activated on the Telnyx platform. Contact Xtreme Communications support to activate your tenant account."
+                : `Telnyx ${r.status}: ${t.slice(0, 140)}`,
+              latency_ms: Date.now() - t0, verified: false,
+            };
+          }
         } catch (e) { result = { status: "error", detail: String(e), latency_ms: Date.now() - t0, verified: false }; }
       }
     } else if (type === "plivo") {

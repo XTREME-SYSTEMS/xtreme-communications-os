@@ -124,6 +124,14 @@ export default async function(req) {
           }, { status: 403 });
         }
 
+        // Tenant account not activated on Telnyx platform
+        if (errMsg && errMsg.toLowerCase().includes("tenant") && errMsg.toLowerCase().includes("not found")) {
+          return Response.json({
+            message_id: messageId, status: "tenant_not_activated", error: errMsg, code: errCode,
+            action_required: "Contact Xtreme Communications support to activate your tenant account on the Telnyx platform. The API key is valid but the tenant entity has not been provisioned yet.",
+          }, { status: 403 });
+        }
+
         return Response.json({ message_id: messageId, status: "failed", error: errMsg, code: errCode }, { status: res.status });
       }
 

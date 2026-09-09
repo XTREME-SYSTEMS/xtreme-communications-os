@@ -29,6 +29,11 @@ function errMsg(d) {
   return d?.errors?.[0]?.detail || d?.errors?.[0]?.title || d?.message || JSON.stringify(d).slice(0, 300);
 }
 
+function isTenantNotActivated(d) {
+  const msg = (errMsg(d) || "").toLowerCase();
+  return msg.includes("tenant") && msg.includes("not found");
+}
+
 export default async function(req) {
   try {
     const base44 = createClientFromRequest(req);
@@ -39,6 +44,13 @@ export default async function(req) {
 
     // ── 1. Messaging Profile ──
     const mpList = await telnyx("/messaging_profiles?page[size]=50", "GET", apiKey);
+    if (!mpList.ok && isTenantNotActivated(mpList.data)) {
+      return Response.json({
+        status: "tenant_not_activated",
+        error: errMsg(mpList.data),
+        action_required: "Contact Xtreme Communications support to activate your tenant account on the Telnyx platform. The API key is valid but the tenant entity has not been provisioned yet.",
+      }, { status: 403 });
+    }
     const existingMp = (mpList.data?.data || []).find((m) => m.name === MP_NAME);
     if (existingMp) {
       const currentWh = existingMp.webhooks?.[0]?.webhook_url;

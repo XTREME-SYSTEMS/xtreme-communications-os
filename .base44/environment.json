@@ -20,6 +20,12 @@
       "description": "Same Base44 API key with VITE_ prefix so Vite exposes it to client-side code for SDK authentication.",
       "requiredAtBoot": true,
       "generatedForDevelopment": false
+    },
+    {
+      "name": "TELNYX_API_KEY",
+      "description": "Telnyx API v2 Bearer token for SMS/MMS/voice dispatch. Find it in the Telnyx portal under API Keys. Note: the key may authenticate but return 'Tenant not found' if the tenant account isn't activated on the Telnyx platform — contact Xtreme Communications support to activate.",
+      "requiredAtBoot": false,
+      "generatedForDevelopment": false
     }
   ]
 }

@@ -83,6 +83,27 @@ survive container restarts.
 - `curl -sI http://localhost:3000` should return 200.
 - The Vite dev server proxies `/api` to the local Deno backend on port 4400.
 
+## Telnyx Integration
+
+The app uses Telnyx as the underlying communications provider (SMS, MMS, voice).
+The `TELNYX_API_KEY` secret authenticates against Telnyx API v2.
+
+### "Tenant not found" Error
+
+If all Telnyx API calls return "Tenant not found", the API key is valid (it
+authenticates) but the tenant account hasn't been activated on the Telnyx
+platform. This is an account-level issue — **not a code bug**.
+
+**Resolution:** Contact Xtreme Communications support to activate the tenant
+account (ID `6a9b71b0d35335afb9198955`). Once activated, messages and calls
+will go through immediately — the code and phone numbers are ready.
+
+The following functions detect this error and return a clear
+`tenant_not_activated` status with an actionable message:
+- `gatewayMessages` — SMS/MMS dispatch
+- `testProviderConnection` — provider diagnostic check
+- `provisionTelnyxResources` — resource provisioning
+
 ## Working Notes
 
 - Use `base44 dev` as the default local development command when you need the

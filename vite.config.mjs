@@ -24,6 +24,12 @@ export default defineConfig({
       host: `3000-${process.env.BASE44_PUBLIC_HOST_SUFFIX}`,
       clientPort: 443,
     } : undefined,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:4400',
+        changeOrigin: true,
+      },
+    },
     watch: {
       usePolling: true,
       interval: 100,

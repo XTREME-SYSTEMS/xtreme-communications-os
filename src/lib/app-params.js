@@ -19,7 +19,11 @@ const getAppParams = () => {
 		token: getAccessToken(),
 		apiKey: import.meta.env.VITE_BASE44_API_KEY,
 		functionsVersion: import.meta.env.VITE_BASE44_FUNCTIONS_VERSION,
-		appBaseUrl: import.meta.env.VITE_BASE44_APP_BASE_URL,
+		// When running in the sandbox/preview, VITE_BASE44_APP_BASE_URL is set to
+		// http://localhost:4400 (container-internal). Override to empty so OAuth
+		// login URLs are relative and go through Vite's /api proxy instead of
+		// pointing at an unreachable localhost address.
+		appBaseUrl: '',
 	}
 }
 

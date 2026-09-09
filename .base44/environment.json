@@ -1,0 +1,19 @@
+{
+  "previewPort": 3000,
+  "healthPath": "/",
+  "startCommand": "docker compose -f docker-compose.base44.yml up -d",
+  "secrets": [
+    {
+      "name": "BASE44_API_KEY",
+      "description": "Base44 workspace API key (starts with b44k_). Find it in the Base44 dashboard under Settings > API Keys.",
+      "requiredAtBoot": true,
+      "generatedForDevelopment": false
+    },
+    {
+      "name": "B44_APP_ID",
+      "description": "The Base44 app ID for this project. Find it in the Builder URL: app.base44.com/apps/<id>/...",
+      "requiredAtBoot": true,
+      "generatedForDevelopment": false
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+FROM node:22
+
+# Deno is required by `base44 dev` to run the local backend (entity functions).
+RUN curl -fsSL https://deno.land/install.sh | sh
+ENV PATH="/root/.deno/bin:${PATH}"

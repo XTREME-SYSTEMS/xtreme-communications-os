@@ -17,8 +17,18 @@ export default function PortalNumbers() {
   const [vanityWord, setVanityWord] = useState("");
   const [vanityResults, setVanityResults] = useState([]);
   const [scanning, setScanning] = useState(false);
+  const [apiKey, setApiKey] = useState("");
 
   useEffect(() => { loadNumbers(); }, []);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const keys = await base44.entities.ApiKey.filter({ status: "active" });
+        if (keys.length) setApiKey(keys[0].key_value);
+      } catch (_) {}
+    })();
+  }, []);
 
   const loadNumbers = async () => {
     try {
@@ -29,41 +39,41 @@ export default function PortalNumbers() {
   };
 
   const handleSearch = async () => {
+    if (!apiKey) { toast({ title: "No API key", description: "Create an API key in the API Keys page first.", variant: "destructive" }); return; }
     setSearching(true);
     setResults([]);
     try {
-      const res = await base44.functions.invoke('gatewayNumberSearch', searchParams);
+      const res = await base44.functions.invoke('gatewayNumberSearch', { ...searchParams, api_key: apiKey, action: "search" });
       const data = res.data || res;
-      const found = data.numbers || data.available_numbers || data || [];
-      setResults(Array.isArray(found) ? found : []);
+      const found = (data.numbers || []).map(n => ({
+        ...n,
+        monthly_cost: n.cost || n.monthly_cost || 1.15,
+        capabilities: (n.capabilities || []).map(c => typeof c === "string" ? c : c.name).filter(c => ["sms", "mms", "voice", "whatsapp"].includes(c)),
+      }));
+      setResults(found);
       if (found.length === 0) toast({ title: "No numbers found", description: "Try a different area code." });
     } catch (e) {
-      // Fallback: generate sample numbers for demo
-      setResults([
-        { e164: `+1${searchParams.area_code || "954"}${Math.floor(1000000 + Math.random() * 8999999)}`, monthly_cost: 1.00, capabilities: ["sms", "voice"] },
-        { e164: `+1${searchParams.area_code || "954"}${Math.floor(1000000 + Math.random() * 8999999)}`, monthly_cost: 1.00, capabilities: ["sms", "voice"] },
-        { e164: `+1${searchParams.area_code || "954"}${Math.floor(1000000 + Math.random() * 8999999)}`, monthly_cost: 1.00, capabilities: ["sms", "voice"] },
-      ]);
-      toast({ title: "Showing demo numbers", description: "Connect a provider to search live inventory." });
+      toast({ title: "Search failed", description: e.message || "Provider error", variant: "destructive" });
     }
     setSearching(false);
   };
 
   const handleScan = async () => {
+    if (!apiKey) { toast({ title: "No API key", description: "Create an API key in the API Keys page first.", variant: "destructive" }); return; }
     setScanning(true);
     setResults([]);
     try {
-      const res = await base44.functions.invoke('gatewayNumberSearch', { ...searchParams, scan: true });
+      const res = await base44.functions.invoke('gatewayNumberSearch', { ...searchParams, api_key: apiKey, action: "search", limit: 10 });
       const data = res.data || res;
-      const found = data.numbers || data.available_numbers || data || [];
-      setResults(Array.isArray(found) ? found : []);
+      const found = (data.numbers || []).map(n => ({
+        ...n,
+        monthly_cost: n.cost || n.monthly_cost || 1.15,
+        capabilities: (n.capabilities || []).map(c => typeof c === "string" ? c : c.name).filter(c => ["sms", "mms", "voice", "whatsapp"].includes(c)),
+      }));
+      setResults(found);
       if (found.length === 0) toast({ title: "No numbers found", description: "Try a different area code." });
     } catch (e) {
-      setResults(Array.from({ length: 5 }, () => ({
-        e164: `+1${searchParams.area_code || "954"}${Math.floor(1000000 + Math.random() * 8999999)}`,
-        monthly_cost: 1.00, capabilities: ["sms", "voice", "mms"],
-      })));
-      toast({ title: "Numbers generated", description: "Showing available numbers in your area." });
+      toast({ title: "Scan failed", description: e.message || "Provider error", variant: "destructive" });
     }
     setScanning(false);
   };
@@ -85,19 +95,17 @@ export default function PortalNumbers() {
   };
 
   const handleBuy = async (number) => {
+    const e164 = number.e164 || number.phone_number;
     try {
-      await base44.entities.PhoneNumber.create({
-        e164: number.e164 || number.phone_number,
-        type: searchParams.type,
-        country_code: searchParams.country_code,
+      const res = await base44.functions.invoke('gatewayNumberSearch', {
+        api_key: apiKey, action: "buy", e164,
+        type: searchParams.type, country_code: searchParams.country_code,
         capabilities: number.capabilities || ["sms", "voice"],
-        status: "assigned",
-        classification: "PROVIDER-BACKED",
-        monthly_cost: number.monthly_cost || 1.00,
-        purchased_at: new Date().toISOString(),
       });
-      toast({ title: "Number purchased!", description: number.e164 || number.phone_number });
-      setResults(results.filter(r => r.e164 !== number.e164));
+      const data = res.data || res;
+      if (data.error) { toast({ title: "Purchase failed", description: data.error, variant: "destructive" }); return; }
+      toast({ title: "Number purchased!", description: `${e164} is now live on Telnyx` });
+      setResults(results.filter(r => r.e164 !== e164));
       await loadNumbers();
     } catch (e) {
       toast({ title: "Purchase failed", description: e.message, variant: "destructive" });

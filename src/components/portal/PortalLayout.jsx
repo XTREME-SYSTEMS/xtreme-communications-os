@@ -1,7 +1,7 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
-import { LayoutDashboard, CheckCircle2, Phone, Brain, KeyRound, Settings, LogOut, ExternalLink, FileText, MessageCircle, ArrowLeftRight, Shield, Sparkles, FlaskConical, Palette, HardDrive, GitBranch, Share2, Radio, BookOpen, Users, Tag, Building2, Link2, CreditCard } from "lucide-react";
+import { LayoutDashboard, CheckCircle2, Phone, Brain, KeyRound, Settings, LogOut, ExternalLink, FileText, MessageCircle, ArrowLeftRight, Shield, Sparkles, FlaskConical, Palette, HardDrive, GitBranch, Share2, Radio, BookOpen, Users, Tag, Building2, Link2, CreditCard, Rocket } from "lucide-react";
 import { cn } from "@/lib/utils";
 import MobileNav from "@/components/portal/MobileNav";
 import AccountButton from "@/components/portal/AccountButton";

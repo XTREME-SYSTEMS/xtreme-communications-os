@@ -127,9 +127,9 @@ export default async function(req) {
     const nextFollowUp = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
     const contactIds = contacts.map(c => c.id);
 
-    // Bulk update in batches of 100
-    for (let i = 0; i < contactIds.length; i += 100) {
-      const batch = contactIds.slice(i, i + 100).map(id => ({
+    // Bulk update in batches of 500 (SDK max)
+    for (let i = 0; i < contactIds.length; i += 500) {
+      const batch = contactIds.slice(i, i + 500).map(id => ({
         id,
         assigned_agent_id: persona.id,
         follow_up_from_number: fromNumber,
@@ -148,15 +148,18 @@ export default async function(req) {
       contacts_assigned: contacts.length,
     });
 
-    // ── 5. LAUNCH: Send Day 1 messages immediately ──
+    // ── 5. LAUNCH: Send Day 1 messages immediately (capped to avoid timeout) ──
     const endpoint = getTelnyxEndpoint(channel);
+    const maxImmediateSend = body.max_send || 50;
+    const immediateContacts = contacts.slice(0, maxImmediateSend);
+    const deferredContacts = contacts.slice(maxImmediateSend);
 
     const day1Template = playbook.messages[0];
     let sent = 0;
     let failed = 0;
     const launchResults: any[] = [];
 
-    for (const contact of contacts) {
+    for (const contact of immediateContacts) {
       const message = personalize(day1Template, contact);
       try {
         const sendRes = await sendTelnyx(telnyxKey, endpoint, {
@@ -225,7 +228,10 @@ export default async function(req) {
       contacts_assigned: contacts.length,
       day1_sent: sent,
       day1_failed: failed,
-      next_follow_up: 'Daily workflow picks up day 2+ automatically at 9am ET',
+      day1_deferred: deferredContacts.length,
+      next_follow_up: deferredContacts.length > 0
+        ? `${deferredContacts.length} contacts queued — trigger "Run Daily Sequence" to send the next batch, or the daily workflow picks them up at 9am ET`
+        : 'Daily workflow picks up day 2+ automatically at 9am ET',
       results: launchResults.slice(0, 50),
     });
   } catch (error) {

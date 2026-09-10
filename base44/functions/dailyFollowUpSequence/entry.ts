@@ -76,6 +76,11 @@ export default async function(req) {
       return Response.json({ status: 'no_due_contacts', message: 'No contacts due for follow-up', checked: allDue.length });
     }
 
+    // Cap processing to avoid timeout — remaining contacts picked up by next run
+    const maxProcess = body.max_process || 100;
+    const processNow = dueContacts.slice(0, maxProcess);
+    const deferred = dueContacts.length - processNow.length;
+
     // Cache: persona_id → templates array (indexed by sequence_day)
     const personaTemplateCache: Record<string, any[]> = {};
 
@@ -102,7 +107,7 @@ export default async function(req) {
     let legacyMode = 0;
     const results = [];
 
-    for (const contact of dueContacts) {
+    for (const contact of processNow) {
       const dayIndex = contact.follow_up_count || 0;
       const sequenceLength = contact.assigned_agent_id ? 15 : LEGACY_PLAYBOOK.length;
 
@@ -191,12 +196,15 @@ export default async function(req) {
       status: 'completed',
       checked: allDue.length,
       due: dueContacts.length,
+      processed: processNow.length,
+      deferred,
       sent,
       failed,
       completed_sequences: completed,
       agent_mode: agentMode,
       legacy_mode: legacyMode,
       results: results.slice(0, 100),
+      next_step: deferred > 0 ? `${deferred} contacts still queued — run again to process the next batch` : undefined,
     });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });

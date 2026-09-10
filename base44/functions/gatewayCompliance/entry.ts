@@ -36,10 +36,27 @@ export default async function(req) {
 
     // ── REGISTER BRAND (10DLC) ──
     if (action === "register_brand") {
+      const required = ["brand_name", "ein", "address", "city", "state", "postal_code", "phone", "email"];
+      const missing = required.filter((f) => !body[f]);
+      if (missing.length) return Response.json({ error: `missing required fields: ${missing.join(", ")}` }, { status: 400 });
       const res = await telnyx("/10dlc/brands", "POST", telnyxKey, {
-        name: body.brand_name || tenant.name,
-        entity_type: body.entity_type || "PRIVATE_PROFIT",
-        registration_status: "ACTIVE",
+        entityType: body.entity_type || "PRIVATE_PROFIT",
+        displayName: body.brand_name,
+        companyName: body.brand_name,
+        ein: body.ein,
+        einIssuingCountry: "US",
+        country: "US",
+        vertical: body.vertical || "TECHNOLOGY",
+        email: body.email,
+        phone: body.phone,
+        street: body.address,
+        city: body.city,
+        state: body.state,
+        postalCode: body.postal_code,
+        website: body.website || undefined,
+        stockSymbol: undefined,
+        stockExchange: undefined,
+        ipAddress: undefined,
       });
       if (!res.ok) return Response.json({ status: "failed", error: errMsg(res.data) }, { status: res.status });
       return Response.json({ brand_id: res.data.data?.id, status: "registered", classification: "LIVE", provider: "telnyx" });

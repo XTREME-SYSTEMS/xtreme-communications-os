@@ -30,7 +30,9 @@ export default async function(req) {
     const keys = await base44.asServiceRole.entities.ApiKey.filter({ key_value: apiKey, status: "active" });
     if (!keys.length) return Response.json({ error: "invalid api key" }, { status: 403 });
     const key = keys[0];
-    const tenant = await base44.asServiceRole.entities.Tenant.get(key.tenant_id);
+    let tenant;
+    try { tenant = await base44.asServiceRole.entities.Tenant.get(key.tenant_id); }
+    catch (_) { return Response.json({ error: "tenant not found" }, { status: 403 }); }
     if (!tenant || tenant.status !== "active") return Response.json({ error: "tenant not active" }, { status: 403 });
 
     const telnyxKey = process.env.TELNYX_API_KEY;

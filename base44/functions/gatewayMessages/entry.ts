@@ -15,11 +15,18 @@ export default async function(req) {
     if (!keys.length) return Response.json({ error: "invalid api key" }, { status: 403 });
     const key = keys[0];
 
-    const tenant = await base44.asServiceRole.entities.Tenant.get(key.tenant_id);
+    let tenant;
+    try { tenant = await base44.asServiceRole.entities.Tenant.get(key.tenant_id); }
+    catch (_) { return Response.json({ error: "tenant not found" }, { status: 403 }); }
     if (!tenant || tenant.status !== "active") return Response.json({ error: "tenant not active" }, { status: 403 });
 
     const channel = body.channel || "sms";
-    const routes = await base44.asServiceRole.entities.ApiRoute.filter({ tenant_id: tenant.id, channel, enabled: true });
+    let routes = await base44.asServiceRole.entities.ApiRoute.filter({ tenant_id: tenant.id, channel, enabled: true });
+    // MMS fallback: Telnyx MMS uses the same /v2/messages endpoint as SMS (with media_urls).
+    // If no dedicated mms route exists, use the tenant's enabled sms route.
+    if (!routes.length && channel === "mms") {
+      routes = await base44.asServiceRole.entities.ApiRoute.filter({ tenant_id: tenant.id, channel: "sms", enabled: true });
+    }
     if (!routes.length) return Response.json({ error: "no route for channel", channel }, { status: 404 });
     const route = routes[0];
 

@@ -130,18 +130,51 @@ export default async function(req) {
       });
     }
 
-    // ── Inbound call (TeXML) ──
-    if (eventType === "call.initiated" || eventType === "call.answered") {
+    // ── Voice call events (Call Control) ──
+    if (eventType === "call.initiated" || eventType === "call.answered" || eventType === "call.answering") {
       const from = payload.from || "";
       const to = payload.to || "";
+      const callControlId = payload.call_control_id || payload.id || "";
+      const direction = payload.direction || "inbound";
+
       await base44.asServiceRole.entities.CommsEvent.create({
-        channel: "voice", direction: "inbound",
-        from_addr: from, to_addr: to,
+        channel: "voice", direction,
+        from_addr: typeof from === "string" ? from : from?.phone_number || "",
+        to_addr: typeof to === "string" ? to : to?.phone_number || "",
         status: eventType === "call.answered" ? "active" : "ringing",
         classification: "PROVIDER-BACKED",
-        summary: `inbound call ${eventType}`,
+        summary: `${direction} call ${eventType} — ccc:${callControlId}`,
       });
-      return Response.json({ status: "processed", event_type: eventType, tenant_id: tenantId });
+
+      // When the callee answers, answer the call leg and speak a greeting
+      if (eventType === "call.answered" || eventType === "call.answering") {
+        const telnyxKey = process.env.TELNYX_API_KEY;
+        if (telnyxKey && callControlId) {
+          try {
+            // Answer the call (idempotent — no-op if already answered)
+            await fetch(`https://api.telnyx.com/v2/calls/${callControlId}/actions/answer`, {
+              method: "POST",
+              headers: { Authorization: `Bearer ${telnyxKey}`, "Content-Type": "application/json" },
+              body: JSON.stringify({}),
+            });
+            // Speak a greeting so the callee hears audio
+            await fetch(`https://api.telnyx.com/v2/calls/${callControlId}/actions/speak`, {
+              method: "POST",
+              headers: { Authorization: `Bearer ${telnyxKey}`, "Content-Type": "application/json" },
+              body: JSON.stringify({
+                payload: "Hello, this is XTREME Communications. Your voice gateway is live and working. You can now test inbound and outbound calls. Goodbye.",
+                payload_type: "text",
+                voice: "female",
+                language: "en-US",
+              }),
+            });
+          } catch (voiceErr) {
+            // Don't fail the webhook if speak fails
+          }
+        }
+      }
+
+      return Response.json({ status: "processed", event_type: eventType, tenant_id: tenantId, call_control_id: callControlId });
     }
 
     return Response.json({ status: "ingested", event_type: eventType, tenant_id: tenantId });

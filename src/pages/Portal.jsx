@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
 import { cn } from "@/lib/utils";
+import PortalVoiceTest from "@/components/portal/PortalVoiceTest";
 import { Phone, Brain, MessageSquare, DollarSign, TrendingUp, ArrowRight, CheckCircle2, Circle, Clock, Play, KeyRound, BookOpen, GitBranch, HardDrive, Radio, Share2, Sparkles, Users, Tag, Building2, Link2, CreditCard, Search } from "lucide-react";
 
 const ONBOARDING_STEPS = [
@@ -138,6 +139,9 @@ export default function Portal() {
           )}
         </div>
       )}
+
+      {/* Voice Test Panel */}
+      <PortalVoiceTest />
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">

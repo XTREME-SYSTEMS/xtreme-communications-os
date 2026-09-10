@@ -1,11 +1,20 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
+import { personalize, sendTelnyx, getTelnyxEndpoint } from '../../shared/telnyxMessaging.ts';
 
 // Daily Follow-Up Sequence Engine — finds contacts due for their next follow-up
-// and sends the appropriate day's message from the 15-day playbook.
+// and sends the appropriate day's message.
+//
+// Supports TWO modes:
+//   1. LEGACY: contacts without an assigned_agent_id use the hardcoded 15-day
+//      PCU playbook below (backward compatible).
+//   2. AGENT: contacts WITH an assigned_agent_id use CommunicationTemplate
+//      records linked to their agent's persona_id + sequence_day.
+//
 // Called by a scheduled workflow (daily) or manually with an API key.
 // Calls Telnyx directly for message dispatch (no API key needed in workflow mode).
 
-const PLAYBOOK = [
+// ── Legacy PCU Playbook (for contacts without an assigned agent) ──
+const LEGACY_PLAYBOOK = [
   "Hey {{first_name}}! 👋 It's been a while since PCU. We've built incredible AI tools for contractors. Want a FREE AI tool that generates follow-up messages? Reply 'YES' — Team Xtreme",
   "Hi {{first_name}}! Does {{company}} have a website that brings you leads? We build AI-powered contractor websites that book jobs on autopilot. Reply 'WEBSITE' 🏗️",
   "Hey {{first_name}}! We launched AI tools for epoxy/flooring pros: instant quotes, photo editing, follow-up bots. All FREE. Reply 'AI' 🤖",
@@ -23,27 +32,10 @@ const PLAYBOOK = [
   "{{first_name}}, no pressure! If you ever need anything — websites, AI tools, supplies, training — we're here. Save this number. — Team Xtreme 💪",
 ];
 
-function personalize(template, contact) {
-  const firstName = (contact.full_name || '').split(' ')[0] || 'there';
-  const company = contact.company || 'your company';
-  return template.replace(/\{\{first_name\}\}/gi, firstName).replace(/\{\{company\}\}/gi, company);
-}
-
-async function sendTelnyx(telnyxKey, endpoint, payload) {
-  const res = await fetch(endpoint, {
-    method: 'POST',
-    headers: { Authorization: 'Bearer ' + telnyxKey, 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
-  let data = {};
-  try { data = await res.json(); } catch (_) {}
-  return { ok: res.ok, status: res.status, data };
-}
-
 export default async function(req) {
   try {
     const base44 = createClientFromRequest(req);
-    let body = {};
+    let body: any = {};
     try { body = await req.json(); } catch (_) {}
 
     // Resolve tenant: API key mode (frontend) or workflow mode (no key, use first active tenant)
@@ -63,7 +55,7 @@ export default async function(req) {
     const telnyxKey = process.env.TELNYX_API_KEY;
     if (!telnyxKey) return Response.json({ status: 'credentials_required', error: 'TELNYX_API_KEY not configured' }, { status: 503 });
 
-    const fromNumber = body.from_number || '+18334843799';
+    const defaultFromNumber = body.from_number || '+18334843799';
     const channel = body.channel || 'whatsapp';
     const now = new Date().toISOString();
 
@@ -84,30 +76,69 @@ export default async function(req) {
       return Response.json({ status: 'no_due_contacts', message: 'No contacts due for follow-up', checked: allDue.length });
     }
 
-    const endpoint = channel === 'whatsapp'
-      ? 'https://api.telnyx.com/v2/whatsapp_messages'
-      : 'https://api.telnyx.com/v2/messages';
+    // Cache: persona_id → templates array (indexed by sequence_day)
+    const personaTemplateCache: Record<string, any[]> = {};
+
+    async function getTemplateForDay(personaId: string, dayNumber: number): Promise<string | null> {
+      if (!personaId) return null;
+      if (!personaTemplateCache[personaId]) {
+        const templates = await base44.asServiceRole.entities.CommunicationTemplate.filter({
+          persona_id: personaId,
+          active: true,
+        }, 'sequence_day', 50);
+        personaTemplateCache[personaId] = templates;
+      }
+      const templates = personaTemplateCache[personaId];
+      const tpl = templates.find(t => t.sequence_day === dayNumber);
+      return tpl ? tpl.template_body : null;
+    }
+
+    const endpoint = getTelnyxEndpoint(channel);
 
     let sent = 0;
     let failed = 0;
     let completed = 0;
+    let agentMode = 0;
+    let legacyMode = 0;
     const results = [];
 
     for (const contact of dueContacts) {
       const dayIndex = contact.follow_up_count || 0;
+      const sequenceLength = contact.assigned_agent_id ? 15 : LEGACY_PLAYBOOK.length;
 
-      // Sequence complete after 15 days
-      if (dayIndex >= 15) {
+      // Sequence complete
+      if (dayIndex >= sequenceLength) {
         await base44.asServiceRole.entities.XtremeCrmContact.update(contact.id, {
           follow_up_enabled: false,
-          notes: (contact.notes || '') + ' | 15-day sequence completed',
+          notes: (contact.notes || '') + ' | Sequence completed',
         });
         completed++;
         continue;
       }
 
-      const template = PLAYBOOK[dayIndex];
-      const message = personalize(template, contact);
+      // Determine the template and from number
+      let templateText: string;
+      let fromNumber: string;
+
+      if (contact.assigned_agent_id) {
+        // ── AGENT MODE: use persona's templates ──
+        const dayTemplate = await getTemplateForDay(contact.assigned_agent_id, dayIndex + 1);
+        if (dayTemplate) {
+          templateText = dayTemplate;
+          agentMode++;
+        } else {
+          // Fallback to legacy if agent templates missing
+          templateText = LEGACY_PLAYBOOK[dayIndex] || LEGACY_PLAYBOOK[0];
+        }
+        fromNumber = contact.follow_up_from_number || defaultFromNumber;
+      } else {
+        // ── LEGACY MODE: use hardcoded playbook ──
+        templateText = LEGACY_PLAYBOOK[dayIndex] || LEGACY_PLAYBOOK[0];
+        fromNumber = defaultFromNumber;
+        legacyMode++;
+      }
+
+      const message = personalize(templateText, contact);
 
       try {
         const sendRes = await sendTelnyx(telnyxKey, endpoint, {
@@ -142,10 +173,10 @@ export default async function(req) {
           body: message,
           status: 'queued',
           contact_id: contact.id,
-          event_type: 'follow_up_sequence',
+          event_type: contact.assigned_agent_id ? 'agent_follow_up' : 'follow_up_sequence',
         });
 
-        results.push({ contact_id: contact.id, name: contact.full_name, day: dayIndex + 1, status: 'sent' });
+        results.push({ contact_id: contact.id, name: contact.full_name, day: dayIndex + 1, status: 'sent', mode: contact.assigned_agent_id ? 'agent' : 'legacy' });
         sent++;
 
         // Rate limit: 0.5 sec between messages
@@ -163,6 +194,8 @@ export default async function(req) {
       sent,
       failed,
       completed_sequences: completed,
+      agent_mode: agentMode,
+      legacy_mode: legacyMode,
       results: results.slice(0, 100),
     });
   } catch (error) {

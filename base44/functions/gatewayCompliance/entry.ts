@@ -39,7 +39,7 @@ export default async function(req) {
       const required = ["brand_name", "ein", "address", "city", "state", "postal_code", "phone", "email"];
       const missing = required.filter((f) => !body[f]);
       if (missing.length) return Response.json({ error: `missing required fields: ${missing.join(", ")}` }, { status: 400 });
-      const res = await telnyx("/10dlc/brands", "POST", telnyxKey, {
+      const res = await telnyx("/10dlc/brand", "POST", telnyxKey, {
         entityType: body.entity_type || "PRIVATE_PROFIT",
         displayName: body.brand_name,
         companyName: body.brand_name,
@@ -59,12 +59,12 @@ export default async function(req) {
         ipAddress: undefined,
       });
       if (!res.ok) return Response.json({ status: "failed", error: errMsg(res.data) }, { status: res.status });
-      return Response.json({ brand_id: res.data.data?.id, status: "registered", classification: "LIVE", provider: "telnyx" });
+      return Response.json({ brand_id: res.data.data?.brandId || res.data.data?.id, status: "registered", classification: "LIVE", provider: "telnyx", raw: res.data.data });
     }
 
     // ── REGISTER CAMPAIGN ──
     if (action === "register_campaign") {
-      const res = await telnyx("/10dlc/campaigns", "POST", telnyxKey, {
+      const res = await telnyx("/10dlc/campaign", "POST", telnyxKey, {
         brand_id: body.brand_id,
         campaign_name: body.campaign_name || `${tenant.name} campaign`,
         use_case: body.use_case || "MARKETING",
@@ -73,7 +73,7 @@ export default async function(req) {
         sample_message: body.sample_message || "Hi, this is a sample message.",
       });
       if (!res.ok) return Response.json({ status: "failed", error: errMsg(res.data) }, { status: res.status });
-      return Response.json({ campaign_id: res.data.data?.id, status: "registered", classification: "LIVE", provider: "telnyx" });
+      return Response.json({ campaign_id: res.data.data?.campaignId || res.data.data?.id, status: "registered", classification: "LIVE", provider: "telnyx", raw: res.data.data });
     }
 
     // ── CHECK TRUST status ──

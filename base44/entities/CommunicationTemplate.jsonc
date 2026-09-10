@@ -108,6 +108,15 @@
     "active": {
       "type": "boolean",
       "default": true
+    },
+    "sequence_day": {
+      "type": "integer",
+      "default": 0,
+      "description": "Day number in a multi-day sequence (1, 2, 3...)"
+    },
+    "playbook_id": {
+      "type": "string",
+      "description": "Which playbook this template belongs to"
     }
   },
   "required": [

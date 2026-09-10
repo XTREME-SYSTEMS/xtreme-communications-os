@@ -47,6 +47,44 @@
     "avatar_color": {
       "type": "string",
       "default": "#ff6b00"
+    },
+    "playbook_id": {
+      "type": "string",
+      "description": "Which playbook from the library this agent runs"
+    },
+    "assigned_number": {
+      "type": "string",
+      "description": "Phone number this agent sends from"
+    },
+    "target_industry": {
+      "type": "string",
+      "description": "Industry this agent targets"
+    },
+    "target_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Contact tags this agent targets"
+    },
+    "provisioned_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "contacts_assigned": {
+      "type": "integer",
+      "default": 0
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "active",
+        "paused",
+        "completed"
+      ],
+      "default": "draft"
     }
   },
   "required": [

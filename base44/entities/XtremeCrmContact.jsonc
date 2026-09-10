@@ -120,6 +120,14 @@
       "type": "integer",
       "default": 0
     },
+    "assigned_agent_id": {
+      "type": "string",
+      "description": "AgentPersona ID this contact is assigned to"
+    },
+    "follow_up_from_number": {
+      "type": "string",
+      "description": "Phone number the assigned agent sends from"
+    },
     "hubspot_synced": {
       "type": "boolean",
       "default": false

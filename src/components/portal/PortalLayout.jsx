@@ -11,6 +11,7 @@ import BreezeCopilot from "@/components/portal/BreezeCopilot";
 const NAV = [
   { path: "/portal", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { path: "/portal/crm", label: "XTREME CRM", icon: Users },
+  { path: "/portal/whatsapp-outreach", label: "WhatsApp Outreach", icon: MessageCircle },
   { path: "/portal/lead-scraper", label: "Lead Scraper", icon: Sparkles },
   { path: "/portal/agents", label: "AI Agents", icon: Brain },
   { path: "/portal/templates", label: "Templates", icon: FileText },

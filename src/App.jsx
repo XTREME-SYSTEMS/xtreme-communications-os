@@ -66,6 +66,7 @@ import ThankYou from './pages/ThankYou';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import AcceptableUse from './pages/AcceptableUse';
+import SmsOptIn from './pages/SmsOptIn';
 
 function App() {
   return (
@@ -85,6 +86,7 @@ function App() {
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsOfService />} />
             <Route path="/acceptable-use" element={<AcceptableUse />} />
+            <Route path="/sms-optin" element={<SmsOptIn />} />
 
             {/* Protected routes — auth required */}
             <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>

@@ -80,7 +80,10 @@ export default function WorkflowTestLab() {
       ]);
       setNumbers(nums || []);
       setApiKey(keys?.[0]?.key_value || "");
-      if (nums?.length) setFromNumber(nums[0].e164);
+      // Prefer a number that's on Telnyx (has provider_id) with SMS capability
+      const telnyxNum = nums?.find(n => n.provider_id && n.capabilities?.includes("sms"));
+      if (telnyxNum) setFromNumber(telnyxNum.e164);
+      else if (nums?.length) setFromNumber(nums[0].e164);
     } catch (e) {
       console.error(e);
     }
@@ -91,36 +94,38 @@ export default function WorkflowTestLab() {
     setResults((prev) => ({ ...prev, [wf.id]: { status: "running" } }));
     try {
       let res;
-      const base = { api_key: apiKey, from: fromNumber, to: TARGET_NUMBER };
+      // executeAutonomousAction expects from_number/to_number; gatewayVoiceControl and gatewayMessages expect from/to
+      const baseExec = { api_key: apiKey, from_number: fromNumber, to_number: TARGET_NUMBER };
+      const baseGW = { api_key: apiKey, from: fromNumber, to: TARGET_NUMBER };
 
       switch (wf.id) {
         case 1: // SMS
           res = await base44.functions.invoke("executeAutonomousAction", {
-            ...base, action: "send_sms",
+            ...baseExec, action: "send_sms",
             message: "✅ XTREME Test: SMS workflow is working! You should receive this message on your phone.",
           });
           break;
-        case 2: // MMS
+        case 2: // MMS — gatewayMessages uses from/to/body/channel/media_urls
           res = await base44.functions.invoke("gatewayMessages", {
-            ...base, action: "send_mms",
+            ...baseGW, channel: "mms",
+            body: "📸 XTREME Test: MMS with image attachment is working!",
             media_urls: ["https://images.unsplash.com/photo-1557804506-669a67965ba0?w=400"],
-            message: "📸 XTREME Test: MMS with image attachment is working!",
           });
           break;
-        case 3: // Voice Call
+        case 3: // Voice Call — gatewayVoiceControl uses from/to
           res = await base44.functions.invoke("gatewayVoiceControl", {
-            api_key: apiKey, action: "dial", from: fromNumber, to: TARGET_NUMBER,
+            ...baseGW, action: "dial",
           });
           break;
         case 4: // WhatsApp
           res = await base44.functions.invoke("executeAutonomousAction", {
-            ...base, action: "send_whatsapp",
+            ...baseExec, action: "send_whatsapp",
             message: "✅ XTREME Test: WhatsApp messaging is working! You should see this in WhatsApp.",
           });
           break;
         case 5: // Lead Capture
           res = await base44.functions.invoke("executeAutonomousAction", {
-            ...base, action: "create_lead",
+            ...baseExec, action: "create_lead",
             full_name: "Test Lead from Workflow Lab",
             phone: TARGET_NUMBER,
             email: "test+" + Date.now() + "@example.com",
@@ -128,25 +133,25 @@ export default function WorkflowTestLab() {
           });
           // Then send auto-reply SMS
           await base44.functions.invoke("executeAutonomousAction", {
-            ...base, action: "send_sms",
+            ...baseExec, action: "send_sms",
             message: "Hi! Thanks for reaching out. We've received your inquiry and will follow up shortly. — XTREME AI Team",
           });
           break;
         case 6: // Appointment Reminder
           res = await base44.functions.invoke("executeAutonomousAction", {
-            ...base, action: "send_sms",
+            ...baseExec, action: "send_sms",
             message: "📅 Reminder: You have an appointment tomorrow at 2:00 PM ET with our team. Location: Virtual (Zoom link will be sent 15 min before). Reply C to confirm or R to reschedule. — XTREME AI",
           });
           break;
         case 7: // Follow-up Day 1
           res = await base44.functions.invoke("executeAutonomousAction", {
-            ...base, action: "send_sms",
+            ...baseExec, action: "send_sms",
             message: "Hi! This is Alex from XTREME Communications. I wanted to follow up on your interest in our AI communications platform. Are you available for a quick 10-min call this week? Reply with a good time or STOP to opt out.",
           });
           break;
         case 8: // AI Summary via SMS
           res = await base44.functions.invoke("executeAutonomousAction", {
-            ...base, action: "ai_task",
+            ...baseExec, action: "ai_task",
             prompt: "Generate a 2-sentence executive summary of the top 3 AI communications trends for 2026. Keep it under 160 characters total for SMS.",
             deliver_via: "sms",
             deliver_to: TARGET_NUMBER,
@@ -154,7 +159,7 @@ export default function WorkflowTestLab() {
           break;
         case 9: // Browser Agent Report
           res = await base44.functions.invoke("executeAutonomousAction", {
-            ...base, action: "browser_agent",
+            ...baseExec, action: "browser_agent",
             task: "Go to https://news.ycombinator.com and find the top 3 story titles. Return them as a short summary.",
             wait_for_completion: true,
             deliver_via: "sms",
@@ -164,14 +169,14 @@ export default function WorkflowTestLab() {
         case 10: // Multi-Channel Blast
           const [smsRes, voiceRes, waRes] = await Promise.allSettled([
             base44.functions.invoke("executeAutonomousAction", {
-              ...base, action: "send_sms",
+              ...baseExec, action: "send_sms",
               message: "💥 Multi-channel blast: SMS channel confirmed working!",
             }),
             base44.functions.invoke("gatewayVoiceControl", {
-              api_key: apiKey, action: "dial", from: fromNumber, to: TARGET_NUMBER,
+              ...baseGW, action: "dial",
             }),
             base44.functions.invoke("executeAutonomousAction", {
-              ...base, action: "send_whatsapp",
+              ...baseExec, action: "send_whatsapp",
               message: "💥 Multi-channel blast: WhatsApp channel confirmed working!",
             }),
           ]);
@@ -242,7 +247,9 @@ export default function WorkflowTestLab() {
           >
             {numbers.length === 0 && <option value="">No numbers</option>}
             {numbers.map((n) => (
-              <option key={n.id} value={n.e164}>{n.e164}</option>
+              <option key={n.id} value={n.e164}>
+                {n.e164} {n.provider_id ? "✓ Telnyx" : "⚠ not on Telnyx"} {n.capabilities?.includes("sms") ? "" : "(no SMS)"}
+              </option>
             ))}
           </select>
         </div>

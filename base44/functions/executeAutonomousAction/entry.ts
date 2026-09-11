@@ -100,15 +100,26 @@ export default async function(req) {
 
     // ── AI TASK (Vercel AI Gateway) ──
     if (action === "ai_task") {
-      const { prompt, model, schema } = body;
+      const { prompt, model, schema, deliver_via, deliver_to, from_number } = body;
       if (!prompt) return Response.json({ error: "prompt required" }, { status: 400 });
+      let result;
       if (schema) {
-        const result = await aiCompleteJson({ model: model || MODELS.fast, messages: [{ role: "user", content: prompt }], schema });
-        return Response.json({ action: "ai_task", status: "completed", result, model: model || MODELS.fast });
+        result = await aiCompleteJson({ model: model || MODELS.fast, messages: [{ role: "user", content: prompt }], schema });
       } else {
-        const result = await aiComplete({ model: model || MODELS.fast, messages: [{ role: "user", content: prompt }] });
-        return Response.json({ action: "ai_task", status: "completed", result, model: model || MODELS.fast });
+        result = await aiComplete({ model: model || MODELS.fast, messages: [{ role: "user", content: prompt }] });
       }
+      // Deliver result via SMS if requested
+      if (deliver_via === "sms" && deliver_to) {
+        const telnyxKey = process.env.TELNYX_API_KEY;
+        if (telnyxKey) {
+          const smsText = typeof result === "string" ? result.slice(0, 1600) : JSON.stringify(result).slice(0, 1600);
+          const smsResult = await sendTelnyx(telnyxKey, getTelnyxEndpoint("sms"), {
+            from: from_number || "+18334843799", to: deliver_to, text: smsText,
+          });
+          return Response.json({ action: "ai_task", status: "completed", result, model: model || MODELS.fast, delivered_via: "sms", delivery_status: smsResult.ok ? "sent" : "failed", delivery_response: smsResult.data });
+        }
+      }
+      return Response.json({ action: "ai_task", status: "completed", result, model: model || MODELS.fast });
     }
 
     // ── WEB SCRAPE (fetch + extract) ──
@@ -178,13 +189,15 @@ Provide a JSON analysis with:
 
     // ── CREATE LEAD ──
     if (action === "create_lead") {
-      const { name, phone, email, company, industry } = body;
-      if (!name) return Response.json({ error: "name required" }, { status: 400 });
+      const { name, full_name, phone, email, company, industry, notes } = body;
+      const leadName = full_name || name;
+      if (!leadName) return Response.json({ error: "name or full_name required" }, { status: 400 });
       const contact = await base44.asServiceRole.entities.XtremeCrmContact.create({
-        full_name: name, phone: phone || "", email: email || "", company: company || "",
+        full_name: leadName, phone: phone || "", email: email || "", company: company || "",
         industry: industry || "", lead_source: "autonomous_action", lifecycle_stage: "lead",
+        notes: notes || "",
       });
-      return Response.json({ action: "create_lead", status: "created", contact_id: contact.id, name });
+      return Response.json({ action: "create_lead", status: "created", contact_id: contact.id, name: leadName });
     }
 
     // ── AUTONOMOUS SEQUENCE: Trigger → Task → Action chain ──
@@ -242,6 +255,19 @@ Provide a JSON analysis with:
       if (wait_for_completion && run.id) {
         try {
           const completed = await bbPoll(run.id, 120000, 3000);
+          // Deliver result via SMS if requested
+          const { deliver_via, deliver_to, from_number } = body;
+          if (deliver_via === "sms" && deliver_to) {
+            const telnyxKey = process.env.TELNYX_API_KEY;
+            if (telnyxKey) {
+              const summary = typeof completed === "string" ? completed : (completed?.output || completed?.result || JSON.stringify(completed));
+              const smsText = `🌐 Browser Agent Report:\n${String(summary).slice(0, 1500)}`;
+              const smsResult = await sendTelnyx(telnyxKey, getTelnyxEndpoint("sms"), {
+                from: from_number || "+18334843799", to: deliver_to, text: smsText,
+              });
+              return Response.json({ action: "browser_agent", status: "completed", run_id: run.id, task, result: completed, delivered_via: "sms", delivery_status: smsResult.ok ? "sent" : "failed", delivery_response: smsResult.data });
+            }
+          }
           return Response.json({ action: "browser_agent", status: "completed", run_id: run.id, task, result: completed });
         } catch (err: any) {
           return Response.json({ action: "browser_agent", status: "timeout_or_error", run_id: run.id, task, error: err.message });
@@ -333,6 +359,19 @@ Return a JSON object with field names as keys and appropriate values to fill.`,
       // Poll for completion (up to 120s)
       try {
         const completed = await bbPoll(run.id, 120000, 3000);
+        // Deliver result via SMS if requested
+        const { deliver_via, deliver_to, from_number } = body;
+        if (deliver_via === "sms" && deliver_to) {
+          const telnyxKey = process.env.TELNYX_API_KEY;
+          if (telnyxKey) {
+            const summary = typeof completed === "string" ? completed : (completed?.output || completed?.result || JSON.stringify(completed));
+            const smsText = String(summary).slice(0, 1600);
+            const smsResult = await sendTelnyx(telnyxKey, getTelnyxEndpoint("sms"), {
+              from: from_number || "+18334843799", to: deliver_to, text: smsText,
+            });
+            return Response.json({ action: "browser_fill_form", status: "completed", url, goal, form_data: dataToFill, task, run_id: run.id, result: completed, delivered_via: "sms", delivery_status: smsResult.ok ? "sent" : "failed" });
+          }
+        }
         return Response.json({ action: "browser_fill_form", status: "completed", url, goal, form_data: dataToFill, task, run_id: run.id, result: completed });
       } catch (err: any) {
         return Response.json({ action: "browser_fill_form", status: "timeout_or_error", url, run_id: run.id, error: err.message });

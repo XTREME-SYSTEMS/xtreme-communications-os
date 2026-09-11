@@ -1,7 +1,7 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
-import { LayoutDashboard, CheckCircle2, Phone, Brain, KeyRound, Settings, LogOut, ExternalLink, FileText, MessageCircle, ArrowLeftRight, Shield, Sparkles, FlaskConical, Palette, HardDrive, GitBranch, Share2, Radio, BookOpen, Users, Tag, Building2, Link2, CreditCard, Rocket, Zap } from "lucide-react";
+import { LayoutDashboard, CheckCircle2, Phone, PhoneCall, Brain, KeyRound, Settings, LogOut, ExternalLink, FileText, MessageCircle, ArrowLeftRight, Shield, Sparkles, FlaskConical, Palette, HardDrive, GitBranch, Share2, Radio, BookOpen, Users, Tag, Building2, Link2, CreditCard, Rocket, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import MobileNav from "@/components/portal/MobileNav";
 import AccountButton from "@/components/portal/AccountButton";
@@ -32,6 +32,7 @@ const NAV = [
   { section: "Settings & Setup" },
   { path: "/portal/onboarding", label: "Onboarding", icon: CheckCircle2 },
   { path: "/portal/numbers", label: "Phone Numbers", icon: Phone },
+  { path: "/portal/number-workflow", label: "Number Workflow", icon: PhoneCall },
   { path: "/portal/brand-kit", label: "Brand Kit", icon: Palette },
   { path: "/portal/agent-memory", label: "Agent Memory", icon: Brain },
   { path: "/portal/google-workspace", label: "Google Workspace", icon: HardDrive },

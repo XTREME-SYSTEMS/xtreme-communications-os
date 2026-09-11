@@ -1,6 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { aiCompleteJson, aiComplete, MODELS } from '../../shared/aiGateway.ts';
 import { sendTelnyx, getTelnyxEndpoint, personalize } from '../../shared/telnyxMessaging.ts';
+import { isConfigured as bbConfigured, runAgent as bbRunAgent, pollAgentRun as bbPoll, createSession as bbCreateSession, getSession as bbGetSession, endSession as bbEndSession } from '../../shared/browserbase.ts';
 
 // ─── AUTONOMOUS ACTION EXECUTOR ────────────────────────────────────
 // Real trigger → real task → real action → real result.
@@ -32,7 +33,7 @@ export default async function(req) {
           ai_gateway: { live: !!process.env.VERCEL_AI_GATEWAY_API_KEY, label: "Vercel AI Gateway", detail: "Multi-model LLM routing" },
           web_scrape: { live: true, label: "Web Scraper", detail: "Fetch & extract page content" },
           web_interact: { live: !!process.env.VERCEL_AI_GATEWAY_API_KEY, label: "AI Web Interaction", detail: "AI-powered form analysis & action planning" },
-          cloud_browser: { live: false, label: "Cloud Browser (Browserbase)", detail: "Full browser automation — needs deployment" },
+          cloud_browser: { live: bbConfigured(), label: "Cloud Browser (Browserbase)", detail: bbConfigured() ? "Full browser automation — navigate, fill forms, click" : "Needs BROWSERBASE_API_KEY" },
           email: { live: false, label: "Email", detail: "Blocked by credit exhaustion until 2026-09-12" },
           lead_creation: { live: true, label: "CRM Lead Creation", detail: "Create contacts in XTREME CRM" },
         },
@@ -228,6 +229,114 @@ Provide a JSON analysis with:
         }
       }
       return Response.json({ action: "autonomous_sequence", trigger, status: "completed", steps_executed: results.length, results });
+    }
+
+    // ── BROWSER AGENT: Natural language task → Browserbase runs it ──
+    // e.g. "Go to https://example.com/contact, fill name field with 'John Doe', email with 'john@test.com', and click submit"
+    if (action === "browser_agent") {
+      const { task, wait_for_completion } = body;
+      if (!task) return Response.json({ error: "task required" }, { status: 400 });
+      if (!bbConfigured()) return Response.json({ error: "BROWSERBASE_API_KEY not configured" }, { status: 503 });
+      const run = await bbRunAgent(task);
+      // If wait_for_completion is true, poll until done (up to 120s)
+      if (wait_for_completion && run.id) {
+        try {
+          const completed = await bbPoll(run.id, 120000, 3000);
+          return Response.json({ action: "browser_agent", status: "completed", run_id: run.id, task, result: completed });
+        } catch (err: any) {
+          return Response.json({ action: "browser_agent", status: "timeout_or_error", run_id: run.id, task, error: err.message });
+        }
+      }
+      return Response.json({ action: "browser_agent", status: "started", run_id: run.id, task, run });
+    }
+
+    // ── BROWSER AGENT STATUS: Check on a running agent ──
+    if (action === "browser_agent_status") {
+      const { run_id } = body;
+      if (!run_id) return Response.json({ error: "run_id required" }, { status: 400 });
+      if (!bbConfigured()) return Response.json({ error: "BROWSERBASE_API_KEY not configured" }, { status: 503 });
+      const run = await bbGetSession(run_id);
+      return Response.json({ action: "browser_agent_status", run_id, status: run.status, run });
+    }
+
+    // ── BROWSER SESSION: Create a raw browser session ──
+    if (action === "browser_session_create") {
+      if (!bbConfigured()) return Response.json({ error: "BROWSERBASE_API_KEY not configured" }, { status: 503 });
+      const session = await bbCreateSession({ keepAlive: true, timeout: 300 });
+      return Response.json({ action: "browser_session_create", status: "created", session_id: session.id, connect_url: session.connectUrl, session });
+    }
+
+    // ── BROWSER SESSION STATUS ──
+    if (action === "browser_session_status") {
+      const { session_id } = body;
+      if (!session_id) return Response.json({ error: "session_id required" }, { status: 400 });
+      if (!bbConfigured()) return Response.json({ error: "BROWSERBASE_API_KEY not configured" }, { status: 503 });
+      const session = await bbGetSession(session_id);
+      return Response.json({ action: "browser_session_status", session_id, status: session.status, session });
+    }
+
+    // ── BROWSER SESSION END ──
+    if (action === "browser_session_end") {
+      const { session_id } = body;
+      if (!session_id) return Response.json({ error: "session_id required" }, { status: 400 });
+      if (!bbConfigured()) return Response.json({ error: "BROWSERBASE_API_KEY not configured" }, { status: 503 });
+      const result = await bbEndSession(session_id);
+      return Response.json({ action: "browser_session_end", session_id, ended: true, result });
+    }
+
+    // ── BROWSER FILL FORM: AI plans + Browserbase executes ──
+    // Combines AI analysis with browser automation:
+    // 1. AI determines what data to fill based on the goal
+    // 2. Browserbase agent navigates and fills the form
+    if (action === "browser_fill_form") {
+      const { url, goal, form_data } = body;
+      if (!url) return Response.json({ error: "url required" }, { status: 400 });
+      if (!bbConfigured()) return Response.json({ error: "BROWSERBASE_API_KEY not configured" }, { status: 503 });
+
+      // If form_data provided, use it directly. Otherwise, use AI to determine what to fill.
+      let dataToFill = form_data || {};
+      if (!form_data) {
+        // First, fetch the page to understand its structure
+        const pageRes = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0 (compatible; XTREME-AI/1.0)" } });
+        const html = await pageRes.text();
+        const text = html.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "").replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
+          .replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+        const inputs = [...html.matchAll(/<(?:input|textarea|select)[^>]*name=["']([^"']+)["'][^>]*>/gi)].map(m => m[1]);
+
+        // AI determines form data
+        const aiResult = await aiCompleteJson({
+          model: MODELS.fast,
+          messages: [{
+            role: "user",
+            content: `Analyze this form page and determine what data to fill.
+URL: ${url}
+GOAL: ${goal || "Fill out the form appropriately"}
+FORM FIELDS: ${inputs.join(", ") || "none detected"}
+PAGE CONTENT: ${text.slice(0, 2000)}
+
+Return a JSON object with field names as keys and appropriate values to fill.`,
+          }],
+          schema: {
+            type: "object",
+            properties: { form_data: { type: "object" }, task_description: { type: "string" } },
+            required: ["form_data", "task_description"],
+          },
+        });
+        dataToFill = aiResult.form_data || {};
+      }
+
+      // Build the natural language task for Browserbase
+      const dataStr = Object.entries(dataToFill).map(([k, v]) => `'${k}' with '${v}'`).join(", ");
+      const task = `Go to ${url}. Fill the form with: ${dataStr}. Then submit the form. Goal: ${goal || "Complete the form submission"}.`;
+
+      const run = await bbRunAgent(task);
+      // Poll for completion (up to 120s)
+      try {
+        const completed = await bbPoll(run.id, 120000, 3000);
+        return Response.json({ action: "browser_fill_form", status: "completed", url, goal, form_data: dataToFill, task, run_id: run.id, result: completed });
+      } catch (err: any) {
+        return Response.json({ action: "browser_fill_form", status: "timeout_or_error", url, run_id: run.id, error: err.message });
+      }
     }
 
     return Response.json({ error: "unknown action", action }, { status: 400 });

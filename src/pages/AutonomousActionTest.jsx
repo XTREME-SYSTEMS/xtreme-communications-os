@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Zap, MessageSquare, Phone, Bot, Globe, UserPlus, Play, Loader2, CheckCircle2, XCircle, AlertTriangle, ListChecks } from 'lucide-react';
+import { Zap, MessageSquare, Phone, Bot, Globe, UserPlus, Play, Loader2, CheckCircle2, XCircle, AlertTriangle, ListChecks, Monitor } from 'lucide-react';
 
 const ACTION_TYPES = [
   { id: 'send_sms', label: 'Send SMS', icon: MessageSquare, color: 'text-green-500', desc: 'Real SMS via Telnyx' },
@@ -16,6 +16,8 @@ const ACTION_TYPES = [
   { id: 'ai_task', label: 'AI Task', icon: Bot, color: 'text-purple-500', desc: 'LLM task via Vercel AI Gateway' },
   { id: 'web_scrape', label: 'Web Scrape', icon: Globe, color: 'text-orange-500', desc: 'Fetch & extract page content' },
   { id: 'web_interact', label: 'AI Web Interact', icon: Globe, color: 'text-cyan-500', desc: 'AI-powered form analysis & action plan' },
+  { id: 'browser_agent', label: 'Browser Agent', icon: Monitor, color: 'text-indigo-500', desc: 'Full browser automation via Browserbase' },
+  { id: 'browser_fill_form', label: 'Fill Form', icon: Monitor, color: 'text-teal-500', desc: 'AI plans + Browserbase fills & submits' },
   { id: 'create_lead', label: 'Create Lead', icon: UserPlus, color: 'text-pink-500', desc: 'Add contact to CRM' },
   { id: 'autonomous_sequence', label: 'Full Sequence', icon: ListChecks, color: 'text-yellow-500', desc: 'Trigger → Task → Action chain' },
 ];
@@ -42,6 +44,11 @@ export default function AutonomousActionTest() {
   const [leadCompany, setLeadCompany] = useState('');
   const [seqTrigger, setSeqTrigger] = useState('New lead from website form submission');
   const [seqNumber, setSeqNumber] = useState('');
+  const [browserTask, setBrowserTask] = useState('Go to https://example.com and describe what you see on the page.');
+  const [browserWait, setBrowserWait] = useState(true);
+  const [formFillUrl, setFormFillUrl] = useState('https://httpbin.org/forms/post');
+  const [formFillGoal, setFormFillGoal] = useState('Fill the form with test data: name "John Doe", email "john@test.com", phone "555-1234"');
+  const [formFillData, setFormFillData] = useState('');
 
   const fetchApiKey = useCallback(async () => {
     try {
@@ -74,6 +81,8 @@ export default function AutonomousActionTest() {
       else if (action === 'web_scrape') payload = { ...payload, action, url: scrapeUrl };
       else if (action === 'web_interact') payload = { ...payload, action, url: interactUrl, goal: interactGoal };
       else if (action === 'create_lead') payload = { ...payload, action, name: leadName, phone: leadPhone, company: leadCompany };
+      else if (action === 'browser_agent') payload = { ...payload, action, task: browserTask, wait_for_completion: browserWait };
+      else if (action === 'browser_fill_form') payload = { ...payload, action, url: formFillUrl, goal: formFillGoal, form_data: formFillData ? JSON.parse(formFillData) : undefined };
       else if (action === 'autonomous_sequence') payload = { ...payload, action, trigger: seqTrigger, test_number: seqNumber, test_message: 'Autonomous sequence test from XTREME AI' };
 
       const res = await base44.functions.invoke('executeAutonomousAction', payload);
@@ -137,6 +146,26 @@ export default function AutonomousActionTest() {
               <div><Label>Phone</Label><Input value={leadPhone} onChange={e => setLeadPhone(e.target.value)} placeholder="+1..." /></div>
               <div><Label>Company</Label><Input value={leadCompany} onChange={e => setLeadCompany(e.target.value)} /></div>
             </div>
+          </div>
+        );
+      case 'browser_agent':
+        return (
+          <div className="space-y-3">
+            <div><Label>Natural Language Task</Label><Textarea rows={4} value={browserTask} onChange={e => setBrowserTask(e.target.value)} placeholder="Go to https://example.com, fill out the contact form with name 'John', email 'john@test.com', and submit" /></div>
+            <div className="flex items-center gap-2">
+              <input type="checkbox" id="browserWait" checked={browserWait} onChange={e => setBrowserWait(e.target.checked)} className="rounded" />
+              <label htmlFor="browserWait" className="text-sm">Wait for completion (polls up to 120s)</label>
+            </div>
+            <p className="text-xs text-muted-foreground">Browserbase opens a real cloud browser, navigates to the page, fills forms, clicks buttons, and returns the result — all from your natural language prompt.</p>
+          </div>
+        );
+      case 'browser_fill_form':
+        return (
+          <div className="space-y-3">
+            <div><Label>Form URL</Label><Input value={formFillUrl} onChange={e => setFormFillUrl(e.target.value)} placeholder="https://..." /></div>
+            <div><Label>Goal / Instructions</Label><Textarea rows={3} value={formFillGoal} onChange={e => setFormFillGoal(e.target.value)} /></div>
+            <div><Label>Form Data (JSON, optional — leave blank for AI to decide)</Label><Textarea rows={3} value={formFillData} onChange={e => setFormFillData(e.target.value)} placeholder='{"name": "John Doe", "email": "john@test.com"}' /></div>
+            <p className="text-xs text-muted-foreground">AI analyzes the form, determines what data to fill, then Browserbase navigates and submits it. If you provide JSON form_data, it skips AI analysis and fills directly.</p>
           </div>
         );
       case 'autonomous_sequence':
@@ -239,16 +268,15 @@ export default function AutonomousActionTest() {
         </Card>
       )}
 
-      {/* Cloud Browser Note */}
-      <Card className="border-yellow-500/30 bg-yellow-500/5">
+      {/* Cloud Browser Info */}
+      <Card className="border-indigo-500/30 bg-indigo-500/5">
         <CardContent className="p-4">
           <div className="flex items-start gap-3">
-            <AlertTriangle className="w-5 h-5 text-yellow-500 shrink-0 mt-0.5" />
+            <Monitor className="w-5 h-5 text-indigo-500 shrink-0 mt-0.5" />
             <div className="text-sm">
-              <p className="font-medium">Cloud Browser (full automation) status</p>
+              <p className="font-medium">Cloud Browser (Browserbase) — LIVE</p>
               <p className="text-muted-foreground mt-1">
-                Web Scrape and AI Web Interact use fetch + AI analysis — they can extract content, identify forms, and plan actions, but cannot click buttons or submit forms (that requires a headless browser like Browserbase/Browserless).
-                The Cloud Browser Engine was previously deployed on Railway but is currently down (404). Full browser automation — form filling, clicking, operating websites — requires redeploying that service.
+                Browser Agent and Fill Form actions use Browserbase's managed cloud browser — a real headless Chrome that navigates, fills forms, clicks buttons, and submits. The AI team can now operate any website autonomously from a natural language prompt. Web Scrape and AI Web Interact remain as lightweight fetch-based alternatives for read-only analysis.
               </p>
             </div>
           </div>

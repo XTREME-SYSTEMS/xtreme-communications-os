@@ -1,0 +1,247 @@
+{
+  "name": "IntelligenceNode",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Headline or title of this intelligence item"
+    },
+    "content": {
+      "type": "string",
+      "description": "The actual intelligence content \u2014 facts, data, analysis, observations"
+    },
+    "source_url": {
+      "type": "string",
+      "description": "Where this intelligence came from"
+    },
+    "source_type": {
+      "type": "string",
+      "enum": [
+        "official_site",
+        "product_page",
+        "pricing_page",
+        "api_docs",
+        "engineering_blog",
+        "investor_material",
+        "sec_filing",
+        "earnings",
+        "job_posting",
+        "patent",
+        "github",
+        "customer_story",
+        "case_study",
+        "review",
+        "industry_publication",
+        "interview",
+        "podcast",
+        "conference",
+        "architecture_article",
+        "regulatory_filing",
+        "changelog",
+        "social_media",
+        "forum",
+        "news",
+        "scraped",
+        "manual",
+        "unknown"
+      ],
+      "default": "unknown"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "competitive_intel",
+        "customer_intel",
+        "market_intel",
+        "technology_intel",
+        "data_intel",
+        "revenue_intel",
+        "security_intel",
+        "compliance_intel",
+        "opportunity",
+        "playbook_research",
+        "industry_profile",
+        "company_profile",
+        "product_intel",
+        "pricing_intel",
+        "general"
+      ],
+      "default": "general"
+    },
+    "target_entity": {
+      "type": "string",
+      "description": "Company, competitor, or entity this intelligence is about"
+    },
+    "industry": {
+      "type": "string"
+    },
+    "classification": {
+      "type": "string",
+      "enum": [
+        "FACT",
+        "DIRECTLY_OBSERVED",
+        "PRIMARY_SOURCE",
+        "SECONDARY_SOURCE",
+        "CALCULATED",
+        "INFERRED",
+        "ESTIMATED",
+        "SCENARIO",
+        "UNKNOWN"
+      ],
+      "default": "UNKNOWN",
+      "description": "Every statement classified per the 22-point research protocol"
+    },
+    "confidence": {
+      "type": "string",
+      "enum": [
+        "high",
+        "medium",
+        "low"
+      ],
+      "default": "medium"
+    },
+    "evidence": {
+      "type": "string",
+      "description": "Supporting evidence for this intelligence claim"
+    },
+    "low_estimate": {
+      "type": "string",
+      "description": "Low estimate for numerical claims"
+    },
+    "base_estimate": {
+      "type": "string",
+      "description": "Base estimate for numerical claims"
+    },
+    "high_estimate": {
+      "type": "string",
+      "description": "High estimate for numerical claims"
+    },
+    "research_needed": {
+      "type": "string",
+      "description": "What research is still required for unknowns"
+    },
+    "ingestion_stage": {
+      "type": "string",
+      "enum": [
+        "stage_1_source_validation",
+        "stage_2_content_classification",
+        "stage_3_quality_scoring",
+        "approved",
+        "rejected"
+      ],
+      "default": "stage_1_source_validation",
+      "description": "Which stage of the 3-stage filter this node is in"
+    },
+    "quality_scores": {
+      "type": "object",
+      "description": "Dynamic scores from the Data Value Engine",
+      "properties": {
+        "data_quality": {
+          "type": "number",
+          "default": 0
+        },
+        "completeness": {
+          "type": "number",
+          "default": 0
+        },
+        "freshness": {
+          "type": "number",
+          "default": 0
+        },
+        "confidence_score": {
+          "type": "number",
+          "default": 0
+        },
+        "commercial_value": {
+          "type": "number",
+          "default": 0
+        },
+        "buying_intent": {
+          "type": "number",
+          "default": 0
+        },
+        "customer_fit": {
+          "type": "number",
+          "default": 0
+        },
+        "urgency": {
+          "type": "number",
+          "default": 0
+        },
+        "revenue_potential": {
+          "type": "number",
+          "default": 0
+        },
+        "actionability": {
+          "type": "number",
+          "default": 0
+        },
+        "compliance_risk": {
+          "type": "number",
+          "default": 0
+        },
+        "overall_priority": {
+          "type": "number",
+          "default": 0
+        }
+      }
+    },
+    "aggregate_score": {
+      "type": "number",
+      "default": 0,
+      "description": "0-100 overall quality score. Must be >= 70 to be approved"
+    },
+    "rejection_reason": {
+      "type": "string",
+      "description": "Why this node was rejected (if applicable)"
+    },
+    "rejection_stage": {
+      "type": "string",
+      "enum": [
+        "stage_1",
+        "stage_2",
+        "stage_3",
+        "none"
+      ],
+      "default": "none"
+    },
+    "is_tainted": {
+      "type": "boolean",
+      "default": false,
+      "description": "If true, this intelligence was deliberately tainted for honeypot/trap purposes"
+    },
+    "tracking_token": {
+      "type": "string",
+      "description": "Tracking token attached to tainted data for intruder tracing"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "ingested_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "approved_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this intelligence becomes stale and needs revalidation"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "title",
+    "content",
+    "category"
+  ]
+}

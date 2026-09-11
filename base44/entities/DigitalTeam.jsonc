@@ -1,0 +1,203 @@
+{
+  "name": "DigitalTeam",
+  "type": "object",
+  "properties": {
+    "team_name": {
+      "type": "string",
+      "description": "Name of the digital AI team"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "Owner user ID"
+    },
+    "business_type": {
+      "type": "string",
+      "enum": [
+        "existing",
+        "new"
+      ],
+      "default": "existing"
+    },
+    "company_name": {
+      "type": "string"
+    },
+    "industry": {
+      "type": "string"
+    },
+    "website": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "team_size_tier": {
+      "type": "string",
+      "enum": [
+        "small",
+        "medium",
+        "large"
+      ],
+      "default": "small"
+    },
+    "team_size_count": {
+      "type": "integer",
+      "default": 3
+    },
+    "channels": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "sms",
+          "mms",
+          "whatsapp",
+          "voice",
+          "email",
+          "social_media"
+        ]
+      },
+      "default": [
+        "sms"
+      ]
+    },
+    "timezone": {
+      "type": "string",
+      "default": "America/New_York"
+    },
+    "work_days": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "mon",
+          "tue",
+          "wed",
+          "thu",
+          "fri",
+          "sat",
+          "sun"
+        ]
+      },
+      "default": [
+        "mon",
+        "tue",
+        "wed",
+        "thu",
+        "fri"
+      ]
+    },
+    "work_start_hour": {
+      "type": "integer",
+      "default": 9
+    },
+    "work_end_hour": {
+      "type": "integer",
+      "default": 17
+    },
+    "strategy_goal": {
+      "type": "string",
+      "description": "Desired end result"
+    },
+    "project_names": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "phone_numbers_count": {
+      "type": "integer",
+      "default": 1
+    },
+    "team_members": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "persona_id": {
+            "type": "string"
+          },
+          "assigned_number": {
+            "type": "string"
+          },
+          "skills": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "personality": {
+            "type": "string"
+          },
+          "system_prompt": {
+            "type": "string"
+          },
+          "assigned_channel": {
+            "type": "string"
+          }
+        }
+      },
+      "default": []
+    },
+    "compliance_signed": {
+      "type": "boolean",
+      "default": false
+    },
+    "compliance_docs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "social_media_enabled": {
+      "type": "boolean",
+      "default": false
+    },
+    "social_platforms": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "facebook",
+          "instagram",
+          "linkedin",
+          "twitter",
+          "tiktok"
+        ]
+      },
+      "default": []
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "provisioning",
+        "active",
+        "paused"
+      ],
+      "default": "draft"
+    },
+    "setup_step": {
+      "type": "integer",
+      "default": 0
+    },
+    "provisioning_result": {
+      "type": "object"
+    },
+    "launched_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "team_name",
+    "company_name"
+  ]
+}

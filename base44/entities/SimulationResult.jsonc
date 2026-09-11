@@ -1,0 +1,185 @@
+{
+  "name": "SimulationResult",
+  "type": "object",
+  "properties": {
+    "scenario_name": {
+      "type": "string",
+      "description": "What is being simulated"
+    },
+    "description": {
+      "type": "string"
+    },
+    "time_horizon": {
+      "type": "string",
+      "enum": [
+        "1h",
+        "24h",
+        "7d",
+        "30d",
+        "90d",
+        "1y",
+        "3y",
+        "5y"
+      ],
+      "default": "30d"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "running",
+        "completed",
+        "failed"
+      ],
+      "default": "pending"
+    },
+    "cases": {
+      "type": "object",
+      "properties": {
+        "base": {
+          "type": "object",
+          "properties": {
+            "revenue": {
+              "type": "number"
+            },
+            "cost": {
+              "type": "number"
+            },
+            "profit": {
+              "type": "number"
+            },
+            "customers": {
+              "type": "number"
+            },
+            "tasks_completed": {
+              "type": "number"
+            },
+            "failure_rate": {
+              "type": "number"
+            },
+            "human_interventions": {
+              "type": "number"
+            }
+          }
+        },
+        "conservative": {
+          "type": "object",
+          "properties": {
+            "revenue": {
+              "type": "number"
+            },
+            "cost": {
+              "type": "number"
+            },
+            "profit": {
+              "type": "number"
+            },
+            "customers": {
+              "type": "number"
+            },
+            "tasks_completed": {
+              "type": "number"
+            },
+            "failure_rate": {
+              "type": "number"
+            },
+            "human_interventions": {
+              "type": "number"
+            }
+          }
+        },
+        "aggressive": {
+          "type": "object",
+          "properties": {
+            "revenue": {
+              "type": "number"
+            },
+            "cost": {
+              "type": "number"
+            },
+            "profit": {
+              "type": "number"
+            },
+            "customers": {
+              "type": "number"
+            },
+            "tasks_completed": {
+              "type": "number"
+            },
+            "failure_rate": {
+              "type": "number"
+            },
+            "human_interventions": {
+              "type": "number"
+            }
+          }
+        },
+        "failure": {
+          "type": "object",
+          "properties": {
+            "revenue": {
+              "type": "number"
+            },
+            "cost": {
+              "type": "number"
+            },
+            "profit": {
+              "type": "number"
+            },
+            "customers": {
+              "type": "number"
+            },
+            "tasks_completed": {
+              "type": "number"
+            },
+            "failure_rate": {
+              "type": "number"
+            },
+            "human_interventions": {
+              "type": "number"
+            },
+            "failure_mode": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "bottlenecks": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "capacity_limits": {
+      "type": "object"
+    },
+    "cost_breakdown": {
+      "type": "object",
+      "description": "LLM tokens, API calls, browser minutes, etc."
+    },
+    "recommendation": {
+      "type": "string"
+    },
+    "red_team_findings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "scenario_name",
+    "time_horizon"
+  ]
+}

@@ -1,0 +1,141 @@
+{
+  "name": "CouncilSession",
+  "type": "object",
+  "properties": {
+    "topic": {
+      "type": "string",
+      "description": "The question or decision being deliberated"
+    },
+    "session_type": {
+      "type": "string",
+      "enum": [
+        "strategy",
+        "decision",
+        "review",
+        "red_team",
+        "simulation",
+        "architecture",
+        "crisis"
+      ],
+      "default": "decision"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "debating",
+        "synthesizing",
+        "resolved",
+        "failed"
+      ],
+      "default": "pending"
+    },
+    "participants": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Agent names participating"
+    },
+    "positions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "agent_name": {
+            "type": "string"
+          },
+          "claim": {
+            "type": "string"
+          },
+          "evidence": {
+            "type": "string"
+          },
+          "confidence": {
+            "type": "string",
+            "enum": [
+              "high",
+              "medium",
+              "low"
+            ]
+          },
+          "recommendation": {
+            "type": "string"
+          },
+          "counterargument": {
+            "type": "string"
+          },
+          "expected_outcome": {
+            "type": "string"
+          },
+          "risk": {
+            "type": "string"
+          },
+          "cost_estimate": {
+            "type": "string"
+          },
+          "reversibility": {
+            "type": "string",
+            "enum": [
+              "reversible",
+              "partially_reversible",
+              "irreversible"
+            ]
+          }
+        }
+      },
+      "default": []
+    },
+    "synthesis": {
+      "type": "string",
+      "description": "Executive synthesis agent's resolution"
+    },
+    "synthesis_agent": {
+      "type": "string",
+      "default": "Executive Synthesis"
+    },
+    "decision": {
+      "type": "string",
+      "description": "Final decision or action plan"
+    },
+    "policy_approval_required": {
+      "type": "boolean",
+      "default": false
+    },
+    "policy_approved": {
+      "type": "boolean",
+      "default": false
+    },
+    "dissenting_views": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "consensus_level": {
+      "type": "string",
+      "enum": [
+        "unanimous",
+        "strong",
+        "moderate",
+        "split",
+        "none"
+      ],
+      "default": "none"
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "resolved_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "topic",
+    "session_type"
+  ]
+}

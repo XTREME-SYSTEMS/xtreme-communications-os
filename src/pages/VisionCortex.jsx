@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Brain, Database, Shield, Coins, Filter, Activity, FileText, Cpu, Zap, AlertTriangle, CheckCircle2, XCircle, TrendingUp, Award } from 'lucide-react';
+import { Brain, Database, Shield, Coins, Filter, Activity, FileText, Cpu, Zap, AlertTriangle, CheckCircle2, XCircle, TrendingUp, Award, Loader2 } from 'lucide-react';
 
 export default function VisionCortex() {
   const [loading, setLoading] = useState(false);
@@ -26,6 +26,23 @@ export default function VisionCortex() {
   const [ingestCategory, setIngestCategory] = useState('competitive_intel');
   const [ingestTarget, setIngestTarget] = useState('');
   const [ingestResult, setIngestResult] = useState(null);
+
+  // Council deliberation
+  const [councilTopic, setCouncilTopic] = useState('');
+  const [councilResult, setCouncilResult] = useState(null);
+  const [councilSessions, setCouncilSessions] = useState([]);
+  const [deliberating, setDeliberating] = useState(false);
+
+  // Simulation
+  const [simScenario, setSimScenario] = useState('');
+  const [simHorizon, setSimHorizon] = useState('30d');
+  const [simResult, setSimResult] = useState(null);
+  const [simulating, setSimulating] = useState(false);
+
+  // Vision sweep
+  const [sweepResult, setSweepResult] = useState(null);
+  const [sweeping, setSweeping] = useState(false);
+  const [quests, setQuests] = useState([]);
 
   const fetchApiKey = useCallback(async () => {
     try {
@@ -62,7 +79,53 @@ export default function VisionCortex() {
   }, [apiKey]);
 
   useEffect(() => { fetchApiKey(); }, [fetchApiKey]);
-  useEffect(() => { if (apiKey) { loadData(); loadIntelStats(); } }, [apiKey, loadData, loadIntelStats]);
+  useEffect(() => { if (apiKey) { loadData(); loadIntelStats(); loadCouncilSessions(); loadQuests(); } }, [apiKey, loadData, loadIntelStats]);
+
+  const loadCouncilSessions = useCallback(async () => {
+    try {
+      const res = await base44.functions.invoke('councilDeliberation', { action: 'list_sessions', api_key: apiKey });
+      setCouncilSessions(res.data?.sessions || []);
+    } catch (e) {}
+  }, [apiKey]);
+
+  const loadQuests = useCallback(async () => {
+    try {
+      const res = await base44.functions.invoke('visionSweep', { action: 'list_quests', api_key: apiKey });
+      setQuests(res.data?.quests || []);
+    } catch (e) {}
+  }, [apiKey]);
+
+  const handleDeliberate = async () => {
+    if (!apiKey || !councilTopic) return;
+    setDeliberating(true); setCouncilResult(null);
+    try {
+      const res = await base44.functions.invoke('councilDeliberation', { action: 'deliberate', api_key: apiKey, topic: councilTopic, session_type: 'decision' });
+      setCouncilResult(res.data);
+      loadCouncilSessions();
+    } catch (e) { setCouncilResult({ error: e.message }); }
+    setDeliberating(false);
+  };
+
+  const handleSimulate = async () => {
+    if (!apiKey || !simScenario) return;
+    setSimulating(true); setSimResult(null);
+    try {
+      const res = await base44.functions.invoke('simulationEngine', { action: 'simulate', api_key: apiKey, scenario_name: simScenario, time_horizon: simHorizon });
+      setSimResult(res.data);
+    } catch (e) { setSimResult({ error: e.message }); }
+    setSimulating(false);
+  };
+
+  const handleSweep = async () => {
+    if (!apiKey) return;
+    setSweeping(true); setSweepResult(null);
+    try {
+      const res = await base44.functions.invoke('visionSweep', { action: 'sweep', api_key: apiKey, existing_assets: ['AI communications platform', 'Telnyx phone numbers', 'Vercel AI Gateway', 'Supabase vector DB', '38-agent council'] });
+      setSweepResult(res.data);
+      loadQuests();
+    } catch (e) { setSweepResult({ error: e.message }); }
+    setSweeping(false);
+  };
 
   const handleIngest = async () => {
     if (!apiKey) { alert('No API key found. Generate one in Portal > API Keys.'); return; }
@@ -405,16 +468,176 @@ export default function VisionCortex() {
         </CardContent>
       </Card>
 
+      {/* 38-Agent Council Deliberation */}
+      <Card className="border-primary/30">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Brain className="w-5 h-5 text-primary" />
+            38-Agent Council Deliberation
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">Adversarial council — no single agent unilaterally determines critical decisions. Agents produce structured positions. Council debates. Executive Synthesis resolves.</p>
+          <div className="flex gap-2">
+            <Input value={councilTopic} onChange={e => setCouncilTopic(e.target.value)} placeholder="Enter a topic for the council to debate..." />
+            <Button onClick={handleDeliberate} disabled={deliberating || !apiKey}>
+              {deliberating ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Debating...</> : <Zap className="w-4 h-4 mr-2" />}Deliberate
+            </Button>
+          </div>
+          {councilResult && !councilResult.error && (
+            <Card className="border-green-500/30">
+              <CardContent className="p-4 space-y-3 text-sm">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-green-500" />
+                  <p className="font-semibold">Consensus: {councilResult.consensus_level}</p>
+                  {councilResult.policy_approval_required && <Badge variant="destructive" className="text-xs">Policy Approval Required</Badge>}
+                </div>
+                <div><p className="font-medium text-xs text-muted-foreground mb-1">SYNTHESIS</p><p className="whitespace-pre-wrap">{councilResult.synthesis}</p></div>
+                <div><p className="font-medium text-xs text-muted-foreground mb-1">DECISION</p><p className="whitespace-pre-wrap">{councilResult.decision}</p></div>
+                {councilResult.next_actions?.length > 0 && (
+                  <div><p className="font-medium text-xs text-muted-foreground mb-1">NEXT ACTIONS</p>
+                    <ul className="list-disc list-inside space-y-0.5">{councilResult.next_actions.map((a, i) => <li key={i}>{a}</li>)}</ul>
+                  </div>
+                )}
+                <details><summary className="cursor-pointer text-xs text-muted-foreground">View {councilResult.positions?.length || 0} agent positions</summary>
+                  <div className="space-y-1 mt-2 max-h-48 overflow-y-auto scrollbar-thin">
+                    {councilResult.positions?.map((p, i) => (
+                      <div key={i} className="p-2 rounded border border-border text-xs">
+                        <p className="font-medium">{p.agent_name} <Badge variant="outline" className="ml-1 text-xs">{p.confidence}</Badge></p>
+                        <p className="text-muted-foreground">{p.claim}</p>
+                        <p className="text-muted-foreground italic">→ {p.recommendation}</p>
+                      </div>
+                    ))}
+                  </div>
+                </details>
+              </CardContent>
+            </Card>
+          )}
+          {councilResult?.error && <p className="text-sm text-red-500">Error: {councilResult.error}</p>}
+          {councilSessions.length > 0 && (
+            <div className="space-y-1 max-h-32 overflow-y-auto scrollbar-thin">
+              <p className="text-xs font-medium text-muted-foreground">Recent Sessions</p>
+              {councilSessions.map((s, i) => (
+                <div key={i} className="flex items-center gap-2 p-2 rounded border border-border text-xs">
+                  <span className={`w-2 h-2 rounded-full ${s.status === 'resolved' ? 'bg-green-500' : 'bg-yellow-500'}`} />
+                  <span className="flex-1 truncate">{s.topic}</span>
+                  <Badge variant="outline" className="text-xs">{s.consensus_level || s.status}</Badge>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Simulation Engine */}
+      <Card>
+        <CardHeader><CardTitle className="flex items-center gap-2"><TrendingUp className="w-5 h-5 text-blue-500" />Simulation Engine</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">Before implementation, simulate outcomes across time horizons. Models agents, tasks, costs, revenue, failures, and capacity.</p>
+          <div className="flex gap-2">
+            <Input value={simScenario} onChange={e => setSimScenario(e.target.value)} placeholder="e.g. Launch outbound calling service for roofing contractors" />
+            <Select value={simHorizon} onValueChange={setSimHorizon} className="w-32">
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1h">1 hour</SelectItem><SelectItem value="24h">24 hours</SelectItem>
+                <SelectItem value="7d">7 days</SelectItem><SelectItem value="30d">30 days</SelectItem>
+                <SelectItem value="90d">90 days</SelectItem><SelectItem value="1y">1 year</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button onClick={handleSimulate} disabled={simulating || !apiKey}>
+              {simulating ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Simulating...</> : <Zap className="w-4 h-4 mr-2" />}Simulate
+            </Button>
+          </div>
+          {simResult && !simResult.error && simResult.cases && (
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                {['base', 'conservative', 'aggressive', 'failure'].map(k => {
+                  const c = simResult.cases[k];
+                  if (!c) return null;
+                  const colors = { base: 'bg-blue-500/10', conservative: 'bg-yellow-500/10', aggressive: 'bg-green-500/10', failure: 'bg-red-500/10' };
+                  return (
+                    <div key={k} className={`p-3 rounded-lg ${colors[k]}`}>
+                      <p className="font-semibold text-xs uppercase">{k}</p>
+                      <p className="text-lg font-bold">${(c.revenue || 0).toLocaleString()}</p>
+                      <p className="text-xs text-muted-foreground">Revenue</p>
+                      <p className="text-sm font-medium mt-1">${(c.profit || 0).toLocaleString()} profit</p>
+                      <p className="text-xs text-muted-foreground">{c.customers || 0} customers · {c.failure_rate || 0}% fail</p>
+                      {c.failure_mode && <p className="text-xs text-red-500 mt-1">⚠ {c.failure_mode}</p>}
+                    </div>
+                  );
+                })}
+              </div>
+              {simResult.recommendation && <div className="p-3 rounded-lg bg-muted"><p className="text-xs font-medium text-muted-foreground">RECOMMENDATION</p><p className="text-sm">{simResult.recommendation}</p></div>}
+              {simResult.red_team_findings?.length > 0 && (
+                <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20">
+                  <p className="text-xs font-medium text-red-500">RED TEAM FINDINGS</p>
+                  <ul className="list-disc list-inside text-sm mt-1">{simResult.red_team_findings.map((f, i) => <li key={i}>{f}</li>)}</ul>
+                </div>
+              )}
+            </div>
+          )}
+          {simResult?.error && <p className="text-sm text-red-500">Error: {simResult.error}</p>}
+        </CardContent>
+      </Card>
+
+      {/* Vision Sweep */}
+      <Card>
+        <CardHeader><CardTitle className="flex items-center gap-2"><Filter className="w-5 h-5 text-primary" />Vision Sweep — Opportunity Discovery</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">Sweeps for niches, problems, and opportunities. Identifies lowest-hanging fruit using existing assets. Creates KnowledgeQuest records for each.</p>
+          <Button onClick={handleSweep} disabled={sweeping || !apiKey} className="w-full">
+            {sweeping ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Sweeping...</> : <Zap className="w-4 h-4 mr-2" />}Run Vision Sweep
+          </Button>
+          {sweepResult && !sweepResult.error && (
+            <div className="space-y-3">
+              <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
+                <p className="text-sm font-medium">{sweepResult.executive_summary}</p>
+              </div>
+              {sweepResult.opportunities?.map((opp, i) => (
+                <div key={i} className="p-3 rounded-lg border border-border">
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="font-semibold text-sm">{opp.title}</p>
+                    <div className="flex gap-1">
+                      {opp.quick_win && <Badge className="bg-green-500 text-white text-xs">Quick Win</Badge>}
+                      <Badge variant="outline" className="text-xs capitalize">{opp.priority}</Badge>
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground">{opp.description}</p>
+                  <div className="flex gap-3 mt-2 text-xs">
+                    <span>Rev: ${opp.estimated_revenue || 0}/mo</span>
+                    <span>Cost: ${opp.estimated_cost || 0}/mo</span>
+                    <span>Category: {opp.category}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          {sweepResult?.error && <p className="text-sm text-red-500">Error: {sweepResult.error}</p>}
+          {quests.length > 0 && (
+            <div className="space-y-1 max-h-32 overflow-y-auto scrollbar-thin">
+              <p className="text-xs font-medium text-muted-foreground">Knowledge Quests ({quests.length})</p>
+              {quests.map((q, i) => (
+                <div key={i} className="flex items-center gap-2 p-2 rounded border border-border text-xs">
+                  <span className={`w-2 h-2 rounded-full ${q.status === 'completed' ? 'bg-green-500' : q.status === 'in_progress' ? 'bg-blue-500' : 'bg-gray-400'}`} />
+                  <span className="flex-1 truncate">{q.title}</span>
+                  <Badge variant="outline" className="text-xs capitalize">{q.priority}</Badge>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Architecture Status */}
       <Card className="border-primary/20">
         <CardHeader><CardTitle className="flex items-center gap-2"><Brain className="w-5 h-5 text-primary" />5-Layer Enterprise Stack Status</CardTitle></CardHeader>
         <CardContent>
           <div className="space-y-2">
             {[
-              { layer: '5. Application', desc: 'AI agents, Council, War Room', status: 'partial', detail: '2 of 38+ agents provisioned' },
+              { layer: '5. Application', desc: 'AI agents, Council, War Room', status: 'built', detail: '38 agents defined, council engine live' },
               { layer: '4. Orchestration (DEEP)', desc: 'State machines, gates, skill store — WE OWN THIS', status: 'built', detail: 'deepExecutor + DeepSpec/DeepRun live' },
               { layer: '3. Data Intelligence', desc: 'Supabase + vector, 7-type memory, GraphRAG', status: 'partial', detail: 'IntelligenceNode + SystemMemory live, vector pending' },
-              { layer: '2. Foundation Models', desc: 'Groq, Gemini, Claude — swappable', status: 'partial', detail: 'Core.InvokeLLM active, Vercel AI Gateway pending' },
+              { layer: '2. Foundation Models', desc: 'Groq, Gemini, Claude — swappable', status: 'built', detail: 'Vercel AI Gateway live — bypasses credit limits' },
               { layer: '1. Hardware/Compute', desc: 'GPU, Vercel serverless, Railway — commodity', status: 'built', detail: 'Base44 serverless + Railway connector active' },
             ].map((l, i) => (
               <div key={i} className="flex items-center gap-3 p-2 rounded border border-border">

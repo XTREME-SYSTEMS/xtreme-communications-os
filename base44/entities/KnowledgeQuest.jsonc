@@ -1,0 +1,145 @@
+{
+  "name": "KnowledgeQuest",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Mission or research question title"
+    },
+    "mission_id": {
+      "type": "string",
+      "description": "Linked mission number (e.g. 001, 002)"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "competitive_intel",
+        "customer_intel",
+        "market_intel",
+        "technology_intel",
+        "data_intel",
+        "revenue_intel",
+        "security_intel",
+        "compliance_intel",
+        "business_strategy",
+        "ecosystem_audit",
+        "opportunity",
+        "general"
+      ],
+      "default": "competitive_intel"
+    },
+    "target_entity": {
+      "type": "string",
+      "description": "Company, competitor, or system being researched"
+    },
+    "depth": {
+      "type": "string",
+      "enum": [
+        "surface",
+        "standard",
+        "exhaustive"
+      ],
+      "default": "standard"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "in_progress",
+        "completed",
+        "failed",
+        "blocked"
+      ],
+      "default": "pending"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "critical",
+        "high",
+        "medium",
+        "low"
+      ],
+      "default": "medium"
+    },
+    "assigned_agents": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "research_questions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Specific questions to answer"
+    },
+    "findings_node_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "IntelligenceNode IDs produced by this quest"
+    },
+    "profiles_requested": {
+      "type": "integer",
+      "default": 0,
+      "description": "Number of 22-point profiles to create (for competitive intel)"
+    },
+    "profiles_completed": {
+      "type": "integer",
+      "default": 0
+    },
+    "summary": {
+      "type": "string",
+      "description": "AI-generated executive summary of findings"
+    },
+    "evidence_matrix": {
+      "type": "object",
+      "description": "Structured evidence from research"
+    },
+    "confidence": {
+      "type": "string",
+      "enum": [
+        "high",
+        "medium",
+        "low"
+      ],
+      "default": "medium"
+    },
+    "research_gaps": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "next_actions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "created_by": {
+      "type": "string",
+      "description": "Agent or user that initiated this quest"
+    }
+  },
+  "required": [
+    "title",
+    "category"
+  ]
+}

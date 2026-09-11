@@ -57,6 +57,7 @@ import CoreDocs from './pages/CoreDocs';
 import WhatsAppSetup from './pages/WhatsAppSetup';
 import WhatsAppOutreach from './pages/WhatsAppOutreach';
 import AgentGenerator from './pages/AgentGenerator';
+import VisionCortex from './pages/VisionCortex';
 import NumberPorting from './pages/NumberPorting';
 import XtremeCrm from './pages/XtremeCrm';
 import LeadScraper from './pages/LeadScraper';
@@ -117,6 +118,7 @@ function App() {
                 <Route path="/portal/link-builder" element={<LinkBuilder />} />
                 <Route path="/portal/whatsapp-outreach" element={<WhatsAppOutreach />} />
                 <Route path="/portal/agent-generator" element={<AgentGenerator />} />
+                <Route path="/portal/vision-cortex" element={<VisionCortex />} />
               </Route>
               {/* Admin */}
               <Route path="/promo-admin" element={<PromoAdmin />} />

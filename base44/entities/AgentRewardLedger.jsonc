@@ -1,0 +1,77 @@
+{
+  "name": "AgentRewardLedger",
+  "type": "object",
+  "properties": {
+    "agent_name": {
+      "type": "string",
+      "description": "Name of the agent receiving the reward"
+    },
+    "agent_id": {
+      "type": "string",
+      "description": "AgentPersona ID if linked"
+    },
+    "reward_type": {
+      "type": "string",
+      "enum": [
+        "task_completion",
+        "salary",
+        "bonus",
+        "penalty",
+        "strike",
+        "ceremony_award"
+      ],
+      "default": "task_completion"
+    },
+    "inf_amount": {
+      "type": "number",
+      "default": 0,
+      "description": "Infinity Coin (INFC) amount \u2014 positive for rewards, negative for penalties"
+    },
+    "reason": {
+      "type": "string",
+      "description": "Why this reward was issued"
+    },
+    "task_id": {
+      "type": "string",
+      "description": "Associated task or DeepRun ID"
+    },
+    "task_description": {
+      "type": "string"
+    },
+    "quality_score": {
+      "type": "number",
+      "default": 0,
+      "description": "Quality score of the work (0-100)"
+    },
+    "timeliness_score": {
+      "type": "number",
+      "default": 0
+    },
+    "proactive_value": {
+      "type": "number",
+      "default": 0
+    },
+    "correctness": {
+      "type": "number",
+      "default": 0
+    },
+    "strike_count": {
+      "type": "integer",
+      "default": 0,
+      "description": "Current strike count for this agent (3 = deletion/reprogramming)"
+    },
+    "week_period": {
+      "type": "string",
+      "description": "ISO week this reward belongs to (e.g. 2026-W37)"
+    },
+    "awarded_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "agent_name",
+    "reward_type",
+    "inf_amount"
+  ]
+}

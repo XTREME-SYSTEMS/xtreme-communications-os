@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
+import { aiCompleteJson, MODELS } from '../../shared/aiGateway.ts';
 
 // ─── 3-STAGE INTELLIGENCE INGESTION FILTER ──────────────────────────
 // The quality gate that protects the system's knowledge base.
@@ -79,8 +80,11 @@ async function classifyContent(base44: any, content: string, category: string): 
   reason?: string;
 }> {
   try {
-    const result = await base44.asServiceRole.integrations.Core.InvokeLLM({
-      prompt: `You are a content classification gate in a 3-stage intelligence ingestion filter.
+    const result = await aiCompleteJson({
+      model: MODELS.fast,
+      messages: [{
+        role: 'user',
+        content: `You are a content classification gate in a 3-stage intelligence ingestion filter.
 Analyze the following content and classify it according to the XTREME Research Protocol.
 
 CONTENT TO CLASSIFY:
@@ -107,21 +111,22 @@ Also determine:
 - confidence: high/medium/low
 
 REJECTION CRITERIA: Reject if is_opinionated=true AND classification is not SCENARIO, OR if is_promotional=true, OR if is_tainted=true.`,
-      response_json_schema: {
+      }],
+      temperature: 0.2,
+      schema: {
         type: 'object',
         properties: {
-          classification: { type: 'string' },
-          confidence: { type: 'string' },
+          classification: { type: 'string', enum: ['FACT', 'DIRECTLY_OBSERVED', 'PRIMARY_SOURCE', 'SECONDARY_SOURCE', 'CALCULATED', 'INFERRED', 'ESTIMATED', 'SCENARIO', 'UNKNOWN'] },
+          confidence: { type: 'string', enum: ['high', 'medium', 'low'] },
           is_opinionated: { type: 'boolean' },
           is_promotional: { type: 'boolean' },
           is_tainted: { type: 'boolean' },
           evidence: { type: 'string' },
           passed: { type: 'boolean' },
-          reason: { type: 'string' }
+          reason: { type: 'string' },
         },
-        required: ['classification', 'confidence', 'is_opinionated', 'is_promotional', 'is_tainted', 'passed']
+        required: ['classification', 'confidence', 'is_opinionated', 'is_promotional', 'is_tainted', 'evidence', 'passed', 'reason'],
       },
-      model: 'automatic',
     });
 
     return result;

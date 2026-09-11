@@ -1,7 +1,7 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
-import { LayoutDashboard, CheckCircle2, Phone, Brain, KeyRound, Settings, LogOut, ExternalLink, FileText, MessageCircle, ArrowLeftRight, Shield, Sparkles, FlaskConical, Palette, HardDrive, GitBranch, Share2, Radio, BookOpen, Users, Tag, Building2, Link2, CreditCard, Rocket } from "lucide-react";
+import { LayoutDashboard, CheckCircle2, Phone, Brain, KeyRound, Settings, LogOut, ExternalLink, FileText, MessageCircle, ArrowLeftRight, Shield, Sparkles, FlaskConical, Palette, HardDrive, GitBranch, Share2, Radio, BookOpen, Users, Tag, Building2, Link2, CreditCard, Rocket, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import MobileNav from "@/components/portal/MobileNav";
 import AccountButton from "@/components/portal/AccountButton";
@@ -12,6 +12,7 @@ const NAV = [
   { path: "/portal", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { path: "/portal/crm", label: "XTREME CRM", icon: Users },
   { path: "/portal/digital-team-builder", label: "AI Team Builder", icon: Users },
+  { path: "/portal/action-test", label: "Action Test Console", icon: Zap },
   { path: "/portal/vision-cortex", label: "Vision Cortex", icon: Brain },
   { path: "/portal/agent-generator", label: "Agent Generator", icon: Rocket },
   { path: "/portal/whatsapp-outreach", label: "WhatsApp Outreach", icon: MessageCircle },

@@ -59,6 +59,7 @@ import WhatsAppOutreach from './pages/WhatsAppOutreach';
 import AgentGenerator from './pages/AgentGenerator';
 import VisionCortex from './pages/VisionCortex';
 import DigitalTeamBuilder from './pages/DigitalTeamBuilder';
+import AutonomousActionTest from './pages/AutonomousActionTest';
 import NumberPorting from './pages/NumberPorting';
 import XtremeCrm from './pages/XtremeCrm';
 import LeadScraper from './pages/LeadScraper';
@@ -121,6 +122,7 @@ function App() {
                 <Route path="/portal/agent-generator" element={<AgentGenerator />} />
                 <Route path="/portal/vision-cortex" element={<VisionCortex />} />
                 <Route path="/portal/digital-team-builder" element={<DigitalTeamBuilder />} />
+                <Route path="/portal/action-test" element={<AutonomousActionTest />} />
               </Route>
               {/* Admin */}
               <Route path="/promo-admin" element={<PromoAdmin />} />

@@ -13,6 +13,7 @@ const NAV = [
   { path: "/portal/crm", label: "XTREME CRM", icon: Users },
   { path: "/portal/digital-team-builder", label: "AI Team Builder", icon: Users },
   { path: "/portal/action-test", label: "Action Test Console", icon: Zap },
+  { path: "/portal/workflow-test-lab", label: "Workflow Test Lab", icon: FlaskConical },
   { path: "/portal/vision-cortex", label: "Vision Cortex", icon: Brain },
   { path: "/portal/agent-generator", label: "Agent Generator", icon: Rocket },
   { path: "/portal/whatsapp-outreach", label: "WhatsApp Outreach", icon: MessageCircle },

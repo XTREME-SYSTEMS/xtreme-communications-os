@@ -62,6 +62,7 @@ import DigitalTeamBuilder from './pages/DigitalTeamBuilder';
 import AutonomousActionTest from './pages/AutonomousActionTest';
 import NumberPorting from './pages/NumberPorting';
 import NumberWorkflow from './pages/NumberWorkflow';
+import WorkflowTestLab from './pages/WorkflowTestLab';
 import XtremeCrm from './pages/XtremeCrm';
 import LeadScraper from './pages/LeadScraper';
 import CouponGenerator from './pages/CouponGenerator';
@@ -102,6 +103,7 @@ function App() {
                 <Route path="/portal/onboarding" element={<PortalOnboarding />} />
                 <Route path="/portal/numbers" element={<PortalNumbers />} />
                 <Route path="/portal/number-workflow" element={<NumberWorkflow />} />
+                <Route path="/portal/workflow-test-lab" element={<WorkflowTestLab />} />
                 <Route path="/portal/agents" element={<PortalAgents />} />
                 <Route path="/portal/keys" element={<PortalKeys />} />
                 <Route path="/portal/settings" element={<PortalSettings />} />

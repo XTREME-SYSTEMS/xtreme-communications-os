@@ -250,7 +250,8 @@
   "app_user_connector_configs": [],
   "selected_skill_names": [],
   "selected_workspace_skill_ids": [
-    "69db2903feb6ccc18f565a7e"
+    "69db2903feb6ccc18f565a7e",
+    "69db28c2fbfab55181dfd8ee"
   ],
   "model": "automatic",
   "whatsapp_greeting": null,

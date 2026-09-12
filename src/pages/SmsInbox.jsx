@@ -26,16 +26,39 @@ export default function SmsInbox() {
   const load = async () => {
     setLoading(true);
     try {
-      const [nums, keys, convs] = await Promise.all([
+      const [nums, keys, convs, inboundMsgs] = await Promise.all([
         base44.entities.PhoneNumber.list("-created_date", 20).catch(() => []),
         base44.entities.ApiKey.filter({ status: "active" }).catch(() => []),
         base44.entities.Conversation.list("-last_message_at", 50).catch(() => []),
+        base44.entities.CommsEvent.filter({ direction: "inbound", channel: "sms" }, "-created_date", 50).catch(() => []),
       ]);
       setNumbers(nums || []);
       setApiKey(keys?.[0]?.key_value || "");
       const telnyxNum = nums?.find(n => n.provider_id && n.capabilities?.includes("sms"));
       setFromNumber(telnyxNum?.e164 || nums?.[0]?.e164 || "+19546979011");
-      setConversations(convs || []);
+
+      // Merge Conversation entity records with conversations derived from inbound CommsEvent records
+      const convByIdentity = new Map();
+      for (const c of (convs || [])) {
+        convByIdentity.set(c.participant_identity, c);
+      }
+      // Add conversations from inbound SMS that don't have a Conversation record
+      for (const msg of (inboundMsgs || [])) {
+        if (msg.from_addr && !convByIdentity.has(msg.from_addr)) {
+          convByIdentity.set(msg.from_addr, {
+            id: `derived-${msg.from_addr}`,
+            participant_identity: msg.from_addr,
+            channels: [msg.channel],
+            status: "active",
+            last_message_at: msg.created_date,
+            _derived: true,
+          });
+        }
+      }
+      const allConvs = Array.from(convByIdentity.values()).sort(
+        (a, b) => new Date(b.last_message_at || b.created_date || 0) - new Date(a.last_message_at || a.created_date || 0)
+      );
+      setConversations(allConvs);
     } catch (e) {
       setError(e.message);
     } finally {

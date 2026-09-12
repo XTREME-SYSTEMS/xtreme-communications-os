@@ -74,6 +74,7 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import AcceptableUse from './pages/AcceptableUse';
 import SmsOptIn from './pages/SmsOptIn';
+import SystemAudit from './pages/SystemAudit';
 
 function App() {
   return (
@@ -132,6 +133,7 @@ function App() {
               <Route path="/promo-admin" element={<PromoAdmin />} />
               <Route path="/number-resale" element={<NumberResale />} />
               <Route path="/admin-portal" element={<AdminPortal />} />
+              <Route path="/admin/system-audit" element={<SystemAudit />} />
               <Route path="/core-docs" element={<CoreDocs />} />
               {/* Portal Tools */}
               <Route path="/portal/templates" element={<TemplateGenerator />} />

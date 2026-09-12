@@ -1,0 +1,97 @@
+{
+  "name": "GoogleContact",
+  "type": "object",
+  "properties": {
+    "google_resource_name": {
+      "type": "string",
+      "description": "Google People API resource name (e.g. people/c123456)"
+    },
+    "full_name": {
+      "type": "string"
+    },
+    "given_name": {
+      "type": "string"
+    },
+    "family_name": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "company": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "photo_url": {
+      "type": "string",
+      "description": "Contact photo URL from Google People API"
+    },
+    "agent_allowed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether AI agents are allowed to interact with this contact"
+    },
+    "allowed_agents": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Specific AgentPersona IDs allowed to interact (empty = all agents)"
+    },
+    "calendar_events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "event_id": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "start": {
+            "type": "string"
+          },
+          "end": {
+            "type": "string"
+          }
+        }
+      },
+      "default": [],
+      "description": "Upcoming calendar events linked to this contact"
+    },
+    "gmail_threads": {
+      "type": "integer",
+      "default": 0,
+      "description": "Number of recent Gmail threads with this contact"
+    },
+    "tasks_count": {
+      "type": "integer",
+      "default": 0,
+      "description": "Number of linked Google Tasks"
+    },
+    "last_synced_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "sync_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "synced",
+        "error"
+      ],
+      "default": "pending"
+    }
+  },
+  "required": [
+    "google_resource_name",
+    "full_name"
+  ]
+}

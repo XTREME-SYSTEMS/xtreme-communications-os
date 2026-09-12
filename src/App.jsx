@@ -77,6 +77,7 @@ import SmsOptIn from './pages/SmsOptIn';
 import SystemAudit from './pages/SystemAudit';
 import SmsInbox from './pages/SmsInbox';
 import DocSpecialist from './pages/DocSpecialist';
+import OAuthConsent from './pages/OAuthConsent';
 
 function App() {
   return (
@@ -97,6 +98,7 @@ function App() {
             <Route path="/terms" element={<TermsOfService />} />
             <Route path="/acceptable-use" element={<AcceptableUse />} />
             <Route path="/sms-optin" element={<SmsOptIn />} />
+            <Route path="/oauth/consent" element={<OAuthConsent />} />
 
             {/* Protected routes — auth required */}
             <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>

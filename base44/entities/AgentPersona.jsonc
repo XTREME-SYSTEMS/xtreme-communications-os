@@ -11,9 +11,26 @@
         "voice",
         "email",
         "phone",
-        "social_media"
+        "social_media",
+        "super",
+        "swarm_coordinator",
+        "swarm_worker",
+        "fulfillment",
+        "shadow"
       ],
       "default": "voice"
+    },
+    "agent_tier": {
+      "type": "string",
+      "enum": [
+        "standard",
+        "super",
+        "swarm",
+        "fulfillment",
+        "shadow"
+      ],
+      "default": "standard",
+      "description": "Power tier of the agent"
     },
     "voice_id": {
       "type": "string",
@@ -85,6 +102,168 @@
         "completed"
       ],
       "default": "draft"
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "sms",
+          "mms",
+          "voice",
+          "whatsapp",
+          "email",
+          "cloud_browser",
+          "phone_browser",
+          "web_interact",
+          "api_access",
+          "cross_site_automation",
+          "shadow_mode",
+          "social_media"
+        ]
+      },
+      "default": [
+        "sms"
+      ],
+      "description": "Communication and automation capabilities enabled for this agent"
+    },
+    "swarm_id": {
+      "type": "string",
+      "description": "Shared ID grouping swarm agents together"
+    },
+    "swarm_role": {
+      "type": "string",
+      "enum": [
+        "coordinator",
+        "worker"
+      ],
+      "default": "worker"
+    },
+    "swarm_members": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Agent IDs of swarm workers (coordinator only)"
+    },
+    "swarm_coordinator_id": {
+      "type": "string",
+      "description": "ID of the coordinator agent (workers only)"
+    },
+    "shadow_mode": {
+      "type": "boolean",
+      "default": false,
+      "description": "Stealth mode \u2014 agent operates autonomously without direct supervision"
+    },
+    "fulfillment_config": {
+      "type": "object",
+      "properties": {
+        "auto_execute": {
+          "type": "boolean",
+          "default": true
+        },
+        "retry_count": {
+          "type": "integer",
+          "default": 3
+        },
+        "timeout_seconds": {
+          "type": "integer",
+          "default": 120
+        },
+        "browser_type": {
+          "type": "string",
+          "enum": [
+            "cloud",
+            "phone",
+            "both"
+          ],
+          "default": "cloud"
+        }
+      },
+      "default": {}
+    },
+    "api_credentials": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "site_name": {
+            "type": "string"
+          },
+          "base_url": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "api_key": {
+            "type": "string"
+          },
+          "auth_type": {
+            "type": "string",
+            "enum": [
+              "basic",
+              "bearer",
+              "api_key",
+              "session"
+            ],
+            "default": "basic"
+          }
+        }
+      },
+      "default": [],
+      "description": "Credentials for cross-site automation \u2014 usernames, passwords, API keys for other apps"
+    },
+    "api_endpoints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "GET",
+              "POST",
+              "PUT",
+              "PATCH",
+              "DELETE"
+            ]
+          },
+          "url": {
+            "type": "string"
+          },
+          "headers": {
+            "type": "object"
+          },
+          "body_template": {
+            "type": "string"
+          }
+        }
+      },
+      "default": [],
+      "description": "Custom API endpoints this agent can call"
+    },
+    "power_level": {
+      "type": "integer",
+      "default": 1,
+      "description": "1-10 power level for super agents"
+    },
+    "autonomy_level": {
+      "type": "string",
+      "enum": [
+        "manual",
+        "supervised",
+        "autonomous",
+        "fully_autonomous"
+      ],
+      "default": "supervised"
     }
   },
   "required": [

@@ -17,6 +17,7 @@ const NAV = [
   { path: "/portal/sms-inbox", label: "SMS Inbox", icon: MessageSquare },
   { path: "/portal/vision-cortex", label: "Vision Cortex", icon: Brain },
   { path: "/portal/doc-specialist", label: "Doc Specialist", icon: FileText },
+  { path: "/portal/agent-factory", label: "Agent Factory", icon: Rocket },
   { path: "/portal/agent-generator", label: "Agent Generator", icon: Rocket },
   { path: "/portal/whatsapp-outreach", label: "WhatsApp Outreach", icon: MessageCircle },
   { path: "/portal/lead-scraper", label: "Lead Scraper", icon: Sparkles },

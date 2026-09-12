@@ -79,6 +79,7 @@ import SmsInbox from './pages/SmsInbox';
 import DocSpecialist from './pages/DocSpecialist';
 import OAuthConsent from './pages/OAuthConsent';
 import Connect from './pages/Connect';
+import AgentFactory from './pages/AgentFactory';
 
 function App() {
   return (
@@ -136,6 +137,7 @@ function App() {
                 <Route path="/portal/sms-inbox" element={<SmsInbox />} />
                 <Route path="/portal/doc-specialist" element={<DocSpecialist />} />
                 <Route path="/portal/connect" element={<Connect />} />
+                <Route path="/portal/agent-factory" element={<AgentFactory />} />
               </Route>
               {/* Admin */}
               <Route path="/promo-admin" element={<PromoAdmin />} />

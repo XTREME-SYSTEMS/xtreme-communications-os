@@ -80,6 +80,8 @@ import DocSpecialist from './pages/DocSpecialist';
 import OAuthConsent from './pages/OAuthConsent';
 import Connect from './pages/Connect';
 import AgentFactory from './pages/AgentFactory';
+import AdminDashboard from './pages/AdminDashboard';
+import GoogleContactsManager from './pages/GoogleContactsManager';
 
 function App() {
   return (
@@ -138,6 +140,8 @@ function App() {
                 <Route path="/portal/doc-specialist" element={<DocSpecialist />} />
                 <Route path="/portal/connect" element={<Connect />} />
                 <Route path="/portal/agent-factory" element={<AgentFactory />} />
+                <Route path="/portal/admin-dashboard" element={<AdminDashboard />} />
+                <Route path="/portal/contacts-manager" element={<GoogleContactsManager />} />
               </Route>
               {/* Admin */}
               <Route path="/promo-admin" element={<PromoAdmin />} />

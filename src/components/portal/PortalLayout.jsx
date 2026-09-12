@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
-import { LayoutDashboard, CheckCircle2, Phone, PhoneCall, Brain, KeyRound, Settings, LogOut, ExternalLink, FileText, MessageCircle, ArrowLeftRight, Shield, Sparkles, FlaskConical, Palette, HardDrive, GitBranch, Share2, Radio, BookOpen, Users, Tag, Building2, Link2, CreditCard, Rocket, Zap, MessageSquare, ChevronDown } from "lucide-react";
+import   { LayoutDashboard, CheckCircle2, Phone, PhoneCall, Brain, KeyRound, Settings, LogOut, ExternalLink, FileText, MessageCircle, ArrowLeftRight, Shield, Sparkles, FlaskConical, Palette, HardDrive, GitBranch, Share2, Radio, BookOpen, Users, Tag, Building2, Link2, CreditCard, Rocket, Zap, MessageSquare, ChevronDown, UserCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import MobileNav from "@/components/portal/MobileNav";
 import AccountButton from "@/components/portal/AccountButton";
@@ -11,16 +11,18 @@ import BreezeCopilot from "@/components/portal/BreezeCopilot";
 // ── CORE NAV: the 7 most important daily tools ──
 const CORE_NAV = [
   { path: "/portal", label: "Dashboard", icon: LayoutDashboard, exact: true },
+  { path: "/portal/admin-dashboard", label: "Admin", icon: Shield },
   { path: "/portal/crm", label: "CRM", icon: Users },
+  { path: "/portal/contacts-manager", label: "Contacts", icon: UserCircle },
   { path: "/portal/agent-factory", label: "Agent Factory", icon: Rocket },
   { path: "/portal/sms-inbox", label: "SMS Inbox", icon: MessageSquare },
-  { path: "/portal/lead-scraper", label: "Lead Scraper", icon: Sparkles },
-  { path: "/portal/whatsapp-outreach", label: "Outreach", icon: MessageCircle },
   { path: "/portal/workflow-test-lab", label: "Test Lab", icon: FlaskConical },
 ];
 
 // ── MORE TOOLS: secondary tools, collapsible ──
 const MORE_NAV = [
+  { path: "/portal/lead-scraper", label: "Lead Scraper", icon: Sparkles },
+  { path: "/portal/whatsapp-outreach", label: "Outreach", icon: MessageCircle },
   { path: "/portal/digital-team-builder", label: "AI Team Builder", icon: Users },
   { path: "/portal/action-test", label: "Action Test", icon: Zap },
   { path: "/portal/vision-cortex", label: "Vision Cortex", icon: Brain },
@@ -153,8 +155,8 @@ export default function PortalLayout() {
           <div className="md:hidden sticky top-0 z-30 border-b border-border bg-card/95 backdrop-blur-xl">
             <div className="flex items-center justify-between px-4 h-14">
               <Link to="/portal" className="flex items-center gap-2">
-                <img src="https://media.base44.com/images/public/6a9b71a5d35335afb9198950/6806177bd_LOGO.png" className="h-7 w-7 rounded object-contain" alt="Xtreme" />
-                <span className="font-display text-xs tracking-wider uppercase text-foreground">Xtreme</span>
+                <img src="https://media.base44.com/images/public/6a9b71a5d35335afb9198950/6806177bd_LOGO.png" className="h-7 w-7 rounded object-contain" alt="Xtreme Communications" />
+                <span className="font-display text-[11px] tracking-wider uppercase text-foreground">Xtreme Communications</span>
               </Link>
               <AccountButton />
             </div>

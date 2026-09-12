@@ -1,26 +1,31 @@
+import { useState } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
-import { LayoutDashboard, CheckCircle2, Phone, PhoneCall, Brain, KeyRound, Settings, LogOut, ExternalLink, FileText, MessageCircle, ArrowLeftRight, Shield, Sparkles, FlaskConical, Palette, HardDrive, GitBranch, Share2, Radio, BookOpen, Users, Tag, Building2, Link2, CreditCard, Rocket, Zap, MessageSquare } from "lucide-react";
+import { LayoutDashboard, CheckCircle2, Phone, PhoneCall, Brain, KeyRound, Settings, LogOut, ExternalLink, FileText, MessageCircle, ArrowLeftRight, Shield, Sparkles, FlaskConical, Palette, HardDrive, GitBranch, Share2, Radio, BookOpen, Users, Tag, Building2, Link2, CreditCard, Rocket, Zap, MessageSquare, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import MobileNav from "@/components/portal/MobileNav";
 import AccountButton from "@/components/portal/AccountButton";
 import BreezeCopilot from "@/components/portal/BreezeCopilot";
 
-// Desktop sidebar — daily workflow tools + one-and-done items grouped
-const NAV = [
+// ── CORE NAV: the 7 most important daily tools ──
+const CORE_NAV = [
   { path: "/portal", label: "Dashboard", icon: LayoutDashboard, exact: true },
-  { path: "/portal/crm", label: "XTREME CRM", icon: Users },
-  { path: "/portal/digital-team-builder", label: "AI Team Builder", icon: Users },
-  { path: "/portal/action-test", label: "Action Test Console", icon: Zap },
-  { path: "/portal/workflow-test-lab", label: "Workflow Test Lab", icon: FlaskConical },
+  { path: "/portal/crm", label: "CRM", icon: Users },
+  { path: "/portal/agent-factory", label: "Agent Factory", icon: Rocket },
   { path: "/portal/sms-inbox", label: "SMS Inbox", icon: MessageSquare },
+  { path: "/portal/lead-scraper", label: "Lead Scraper", icon: Sparkles },
+  { path: "/portal/whatsapp-outreach", label: "Outreach", icon: MessageCircle },
+  { path: "/portal/workflow-test-lab", label: "Test Lab", icon: FlaskConical },
+];
+
+// ── MORE TOOLS: secondary tools, collapsible ──
+const MORE_NAV = [
+  { path: "/portal/digital-team-builder", label: "AI Team Builder", icon: Users },
+  { path: "/portal/action-test", label: "Action Test", icon: Zap },
   { path: "/portal/vision-cortex", label: "Vision Cortex", icon: Brain },
   { path: "/portal/doc-specialist", label: "Doc Specialist", icon: FileText },
-  { path: "/portal/agent-factory", label: "Agent Factory", icon: Rocket },
   { path: "/portal/agent-generator", label: "Agent Generator", icon: Rocket },
-  { path: "/portal/whatsapp-outreach", label: "WhatsApp Outreach", icon: MessageCircle },
-  { path: "/portal/lead-scraper", label: "Lead Scraper", icon: Sparkles },
   { path: "/portal/agents", label: "AI Agents", icon: Brain },
   { path: "/portal/templates", label: "Templates", icon: FileText },
   { path: "/portal/testing-studio", label: "Testing Studio", icon: FlaskConical },
@@ -29,11 +34,14 @@ const NAV = [
   { path: "/portal/content-library", label: "Content Library", icon: Sparkles },
   { path: "/portal/mms-studio", label: "MMS Studio", icon: Palette },
   { path: "/portal/xtreme-social", label: "Xtreme Social", icon: Share2 },
-  { path: "/portal/coupons", label: "Coupon Generator", icon: Tag },
+  { path: "/portal/coupons", label: "Coupons", icon: Tag },
   { path: "/portal/business-cards", label: "Business Cards", icon: CreditCard },
   { path: "/portal/company-showcase", label: "Company Showcase", icon: Building2 },
   { path: "/portal/link-builder", label: "Link Builder", icon: Link2 },
-  { section: "Settings & Setup" },
+];
+
+// ── SETTINGS & SETUP: one-and-done configuration ──
+const SETTINGS_NAV = [
   { path: "/portal/onboarding", label: "Onboarding", icon: CheckCircle2 },
   { path: "/portal/numbers", label: "Phone Numbers", icon: Phone },
   { path: "/portal/number-workflow", label: "Number Workflow", icon: PhoneCall },
@@ -52,6 +60,7 @@ const NAV = [
 export default function PortalLayout() {
   const { user, logout } = useAuth();
   const location = useLocation();
+  const [showMore, setShowMore] = useState(false);
 
   const handleLogout = () => {
     base44.auth.logout(window.location.origin);
@@ -73,11 +82,40 @@ export default function PortalLayout() {
 
           {/* Nav */}
           <nav className="flex-1 py-3 space-y-0.5 px-2 overflow-y-auto scrollbar-thin">
-            {NAV.map((item, i) => {
-              if (item.section) {
-                return <p key={i} className="px-3 pt-4 pb-1 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">{item.section}</p>;
-              }
+            {CORE_NAV.map((item) => {
               const active = item.exact ? location.pathname === item.path : location.pathname.startsWith(item.path);
+              return (
+                <Link key={item.path} to={item.path}
+                  className={cn("flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors",
+                    active ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground hover:text-foreground hover:bg-accent")}>
+                  <item.icon className="h-4 w-4 shrink-0" />
+                  {item.label}
+                </Link>
+              );
+            })}
+
+            {/* More Tools — collapsible */}
+            <button onClick={() => setShowMore(!showMore)}
+              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors">
+              <ChevronDown className={cn("h-4 w-4 shrink-0 transition-transform", showMore && "rotate-180")} />
+              More Tools
+            </button>
+            {showMore && MORE_NAV.map((item) => {
+              const active = location.pathname.startsWith(item.path);
+              return (
+                <Link key={item.path} to={item.path}
+                  className={cn("flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors pl-6",
+                    active ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground hover:text-foreground hover:bg-accent")}>
+                  <item.icon className="h-4 w-4 shrink-0" />
+                  {item.label}
+                </Link>
+              );
+            })}
+
+            {/* Settings & Setup */}
+            <p className="px-3 pt-4 pb-1 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Settings & Setup</p>
+            {SETTINGS_NAV.map((item) => {
+              const active = location.pathname.startsWith(item.path);
               return (
                 <Link key={item.path} to={item.path}
                   className={cn("flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors",

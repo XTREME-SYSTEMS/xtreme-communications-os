@@ -5,7 +5,7 @@ import {
   Rocket, Bot, Users, Ghost, Zap, Phone, MessageSquare, Mail, Globe,
   Brain, Shield, Plus, Check, X, Loader2, RefreshCw, Trash2, Play,
   Pause, Network, KeyRound, Cpu, Sparkles, Send, Eye,
-  Smartphone, MousePointer, Share2
+  Smartphone, MousePointer, Share2, Layers
 } from "lucide-react";
 
 const TIERS = [
@@ -119,6 +119,17 @@ export default function AgentFactory() {
     system_prompt: "",
   });
 
+  // Batch form — up to 20 agents, same skills, different specializations
+  const [showBatchForm, setShowBatchForm] = useState(false);
+  const [batchForm, setBatchForm] = useState({
+    base_name: "",
+    agent_tier: "super",
+    count: 5,
+    specializations: "",
+    system_prompt: "",
+    assigned_number: "",
+  });
+
   const load = useCallback(async () => {
     setLoading(true);
     try {
@@ -226,6 +237,35 @@ export default function AgentFactory() {
     }
   };
 
+  const createBatch = async () => {
+    if (!batchForm.base_name.trim()) { setError("Base name is required"); return; }
+    setCreating(true);
+    setError(null);
+    try {
+      const specs = batchForm.specializations
+        .split("\n").map(s => s.trim()).filter(Boolean);
+      const res = await base44.functions.invoke("provisionSuperAgent", {
+        action: "batch_provision",
+        base_name: batchForm.base_name,
+        agent_tier: batchForm.agent_tier,
+        count: parseInt(batchForm.count) || specs.length || 5,
+        specializations: specs,
+        system_prompt: batchForm.system_prompt,
+        assigned_number: batchForm.assigned_number,
+      });
+      const data = res?.data || res;
+      setSuccess(`Created ${data.count} agents — all with shared skills, different specializations`);
+      setShowBatchForm(false);
+      setBatchForm({ base_name: "", agent_tier: "super", count: 5, specializations: "", system_prompt: "", assigned_number: "" });
+      await load();
+      setTimeout(() => setSuccess(null), 5000);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setCreating(false);
+    }
+  };
+
   const createSwarm = async () => {
     if (!swarmForm.swarm_name || !swarmForm.coordinator_name) { setError("Swarm name and coordinator name required"); return; }
     setCreating(true);
@@ -308,7 +348,10 @@ export default function AgentFactory() {
           </h1>
           <p className="text-sm text-muted-foreground mt-1">Build super agents, AGI swarms, fulfillment & shadow operatives with full capabilities</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          <button onClick={() => setShowBatchForm(true)} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm bg-chart-5/10 text-chart-5 hover:bg-chart-5/20 transition-colors border border-chart-5/30">
+            <Layers className="h-4 w-4" /> Batch Create
+          </button>
           <button onClick={() => setShowSwarmForm(true)} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 transition-colors border border-purple-500/30">
             <Users className="h-4 w-4" /> New Swarm
           </button>
@@ -627,6 +670,67 @@ export default function AgentFactory() {
           <button onClick={createSwarm} disabled={creating} className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium bg-purple-500 text-white hover:opacity-90 transition-opacity disabled:opacity-50">
             {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Users className="h-4 w-4" />}
             {creating ? "Creating Swarm..." : "Create Swarm"}
+          </button>
+        </div>
+      )}
+
+      {/* Batch creation form — up to 20 agents, same skills, different specializations */}
+      {showBatchForm && (
+        <div className="mb-6 p-5 rounded-xl border border-chart-5/30 bg-chart-5/5 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-display font-semibold text-chart-5 flex items-center gap-2"><Layers className="h-5 w-5" /> Batch Create Agents</h2>
+            <button onClick={() => setShowBatchForm(false)} className="text-muted-foreground hover:text-foreground"><X className="h-5 w-5" /></button>
+          </div>
+          <p className="text-xs text-muted-foreground">Create up to 20 agents at once — all share the same skills, but each has a different specialization.</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Base Name *</label>
+              <input value={batchForm.base_name} onChange={e => setBatchForm({ ...batchForm, base_name: e.target.value })} placeholder="e.g. Sales Agent" className="w-full px-3 py-2 rounded-lg bg-muted text-sm" />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Agent Tier</label>
+              <select value={batchForm.agent_tier} onChange={e => setBatchForm({ ...batchForm, agent_tier: e.target.value })} className="w-full px-3 py-2 rounded-lg bg-muted text-sm">
+                {TIERS.map(t => <option key={t.key} value={t.key}>{t.label}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Count (max 20)</label>
+              <input type="number" min="1" max="20" value={batchForm.count} onChange={e => setBatchForm({ ...batchForm, count: e.target.value })} className="w-full px-3 py-2 rounded-lg bg-muted text-sm" />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Assigned Phone Number (shared)</label>
+              <select value={batchForm.assigned_number} onChange={e => setBatchForm({ ...batchForm, assigned_number: e.target.value })} className="w-full px-3 py-2 rounded-lg bg-muted text-sm">
+                <option value="">No number assigned</option>
+                {numbers.map(n => <option key={n.id} value={n.e164}>{n.e164}</option>)}
+              </select>
+            </div>
+          </div>
+          <div>
+            <label className="text-xs font-medium text-muted-foreground mb-1 block">Specializations (one per line — each agent gets a different one)</label>
+            <textarea
+              value={batchForm.specializations}
+              onChange={e => setBatchForm({ ...batchForm, specializations: e.target.value })}
+              placeholder={"Real Estate\nHealthcare\nSaaS\nFinance\nLegal"}
+              rows={5}
+              className="w-full px-3 py-2 rounded-lg bg-muted text-sm resize-none font-mono"
+            />
+            <p className="text-[10px] text-muted-foreground mt-1">Leave blank to auto-generate generic specializations. Each line becomes a separate agent.</p>
+          </div>
+          <div>
+            <label className="text-xs font-medium text-muted-foreground mb-1 block">Shared System Prompt (optional)</label>
+            <textarea
+              value={batchForm.system_prompt}
+              onChange={e => setBatchForm({ ...batchForm, system_prompt: e.target.value })}
+              placeholder="Define the shared behavior for all agents..."
+              rows={2}
+              className="w-full px-3 py-2 rounded-lg bg-muted text-sm resize-none"
+            />
+          </div>
+          <button onClick={createBatch} disabled={creating || !batchForm.base_name.trim()} className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium bg-chart-5 text-white hover:opacity-90 transition-opacity disabled:opacity-50">
+            {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Layers className="h-4 w-4" />}
+            {creating ? "Creating Agents..." : `Create ${batchForm.count} Agents`}
           </button>
         </div>
       )}

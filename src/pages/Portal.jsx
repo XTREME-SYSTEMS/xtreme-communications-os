@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
 import { cn } from "@/lib/utils";
 import PortalVoiceTest from "@/components/portal/PortalVoiceTest";
-import { Phone, Brain, MessageSquare, DollarSign, TrendingUp, ArrowRight, CheckCircle2, Circle, Clock, Play, KeyRound, BookOpen, GitBranch, HardDrive, Radio, Share2, Sparkles, Users, Tag, Building2, Link2, CreditCard, Search } from "lucide-react";
+import { Phone, Brain, MessageSquare, DollarSign, TrendingUp, ArrowRight, CheckCircle2, Circle, Clock, Play, KeyRound, BookOpen, GitBranch, HardDrive, Radio, Share2, Sparkles, Users, Tag, Building2, Link2, CreditCard, Search, Rocket, MessageCircle, FlaskConical } from "lucide-react";
 
 const ONBOARDING_STEPS = [
   { step: "welcome", label: "Welcome", desc: "Account created" },
@@ -161,80 +161,36 @@ export default function Portal() {
         ))}
       </div>
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-        <Link to="/portal/crm" className="rounded-xl border border-primary/30 bg-primary/5 p-5 hover:border-primary/50 transition-colors group">
-          <Users className="h-6 w-6 text-primary mb-2" />
-          <h3 className="font-medium text-foreground mb-1">XTREME CRM</h3>
-          <p className="text-xs text-muted-foreground">AI-assisted contact management with HubSpot sync.</p>
-          <span className="text-xs text-primary flex items-center gap-1 mt-2 group-hover:gap-2 transition-all">Open CRM <ArrowRight className="h-3 w-3" /></span>
-        </Link>
-        <Link to="/portal/lead-scraper" className="rounded-xl border border-border bg-card p-5 hover:border-primary/30 transition-colors group">
-          <Search className="h-6 w-6 text-chart-2 mb-2" />
-          <h3 className="font-medium text-foreground mb-1">Lead Scraper</h3>
-          <p className="text-xs text-muted-foreground">Find businesses by industry, location, keyword. Enrich & ingest to CRM.</p>
-          <span className="text-xs text-primary flex items-center gap-1 mt-2 group-hover:gap-2 transition-all">Scrape <ArrowRight className="h-3 w-3" /></span>
-        </Link>
-        <Link to="/portal/agents" className="rounded-xl border border-border bg-card p-5 hover:border-primary/30 transition-colors group">
-          <Brain className="h-6 w-6 text-chart-2 mb-2" />
-          <h3 className="font-medium text-foreground mb-1">Create AI Agent</h3>
-          <p className="text-xs text-muted-foreground">Build a conversational AI with natural voice and test it live.</p>
-          <span className="text-xs text-primary flex items-center gap-1 mt-2 group-hover:gap-2 transition-all">Create <ArrowRight className="h-3 w-3" /></span>
-        </Link>
-        <Link to="/portal/live-monitoring" className="rounded-xl border border-border bg-card p-5 hover:border-primary/30 transition-colors group">
-          <Radio className="h-6 w-6 text-chart-3 mb-2" />
-          <h3 className="font-medium text-foreground mb-1">Live Monitoring</h3>
-          <p className="text-xs text-muted-foreground">Watch active calls with live transcripts and audio in real-time.</p>
-          <span className="text-xs text-primary flex items-center gap-1 mt-2 group-hover:gap-2 transition-all">Monitor <ArrowRight className="h-3 w-3" /></span>
-        </Link>
-        <Link to="/portal/coupons" className="rounded-xl border border-border bg-card p-5 hover:border-primary/30 transition-colors group">
-          <Tag className="h-6 w-6 text-chart-4 mb-2" />
-          <h3 className="font-medium text-foreground mb-1">Coupon Generator</h3>
-          <p className="text-xs text-muted-foreground">Create coupons with AI visuals, QR codes, and voice script injection.</p>
-          <span className="text-xs text-primary flex items-center gap-1 mt-2 group-hover:gap-2 transition-all">Create <ArrowRight className="h-3 w-3" /></span>
-        </Link>
-        <Link to="/portal/business-cards" className="rounded-xl border border-border bg-card p-5 hover:border-primary/30 transition-colors group">
-          <CreditCard className="h-6 w-6 text-chart-5 mb-2" />
-          <h3 className="font-medium text-foreground mb-1">Business Cards</h3>
-          <p className="text-xs text-muted-foreground">10 digital card styles with vCard, QR code, and shareable links.</p>
-          <span className="text-xs text-primary flex items-center gap-1 mt-2 group-hover:gap-2 transition-all">Design <ArrowRight className="h-3 w-3" /></span>
-        </Link>
-        <Link to="/portal/company-showcase" className="rounded-xl border border-border bg-card p-5 hover:border-primary/30 transition-colors group">
-          <Building2 className="h-6 w-6 text-primary mb-2" />
-          <h3 className="font-medium text-foreground mb-1">Company Showcase</h3>
-          <p className="text-xs text-muted-foreground">AI-generated highlights from company intelligence + Google reviews.</p>
-          <span className="text-xs text-primary flex items-center gap-1 mt-2 group-hover:gap-2 transition-all">Generate <ArrowRight className="h-3 w-3" /></span>
-        </Link>
-        <Link to="/portal/link-builder" className="rounded-xl border border-border bg-card p-5 hover:border-primary/30 transition-colors group">
-          <Link2 className="h-6 w-6 text-chart-2 mb-2" />
-          <h3 className="font-medium text-foreground mb-1">Link Builder</h3>
-          <p className="text-xs text-muted-foreground">Smart links with AI visuals and QR codes for offers and coupons.</p>
-          <span className="text-xs text-primary flex items-center gap-1 mt-2 group-hover:gap-2 transition-all">Build <ArrowRight className="h-3 w-3" /></span>
-        </Link>
-        <Link to="/portal/workflow-generator" className="rounded-xl border border-border bg-card p-5 hover:border-primary/30 transition-colors group">
-          <GitBranch className="h-6 w-6 text-chart-5 mb-2" />
-          <h3 className="font-medium text-foreground mb-1">Workflow Generator</h3>
-          <p className="text-xs text-muted-foreground">Build multi-channel communication workflows with drag-and-drop.</p>
-          <span className="text-xs text-primary flex items-center gap-1 mt-2 group-hover:gap-2 transition-all">Build <ArrowRight className="h-3 w-3" /></span>
-        </Link>
-        <Link to="/portal/content-library" className="rounded-xl border border-border bg-card p-5 hover:border-primary/30 transition-colors group">
-          <Sparkles className="h-6 w-6 text-primary mb-2" />
-          <h3 className="font-medium text-foreground mb-1">Content Library</h3>
-          <p className="text-xs text-muted-foreground">AI-generated images, videos, social posts, and creative assets.</p>
-          <span className="text-xs text-primary flex items-center gap-1 mt-2 group-hover:gap-2 transition-all">Generate <ArrowRight className="h-3 w-3" /></span>
-        </Link>
-        <Link to="/portal/xtreme-social" className="rounded-xl border border-border bg-card p-5 hover:border-primary/30 transition-colors group">
-          <Share2 className="h-6 w-6 text-chart-4 mb-2" />
-          <h3 className="font-medium text-foreground mb-1">Xtreme Social</h3>
-          <p className="text-xs text-muted-foreground">AI social media content for all platforms with scheduling.</p>
-          <span className="text-xs text-primary flex items-center gap-1 mt-2 group-hover:gap-2 transition-all">Create <ArrowRight className="h-3 w-3" /></span>
-        </Link>
-        <Link to="/portal/numbers" className="rounded-xl border border-border bg-card p-5 hover:border-primary/30 transition-colors group">
-          <Phone className="h-6 w-6 text-primary mb-2" />
-          <h3 className="font-medium text-foreground mb-1">Buy a Phone Number</h3>
-          <p className="text-xs text-muted-foreground">Search local or toll-free numbers and provision instantly.</p>
-          <span className="text-xs text-primary flex items-center gap-1 mt-2 group-hover:gap-2 transition-all">Get started <ArrowRight className="h-3 w-3" /></span>
-        </Link>
+      {/* Workflow Timeline — top-down guided path */}
+      <div className="rounded-xl border border-border bg-card p-6 mb-6">
+        <h2 className="font-display font-semibold text-foreground mb-1">Your Workflow</h2>
+        <p className="text-xs text-muted-foreground mb-5">Follow these steps in order — each one builds on the last</p>
+        <div className="space-y-1">
+          {[
+            { num: 1, title: "Get a Phone Number", desc: "Search and purchase a number for SMS, voice & WhatsApp", path: "/portal/numbers", icon: Phone },
+            { num: 2, title: "Create AI Agents", desc: "Build super agents, swarms, fulfillment & shadow operatives", path: "/portal/agent-factory", icon: Rocket },
+            { num: 3, title: "Import or Scrape Leads", desc: "Find businesses by industry & location, ingest to CRM", path: "/portal/lead-scraper", icon: Search },
+            { num: 4, title: "Launch Outreach", desc: "Send SMS, WhatsApp & voice campaigns to your contacts", path: "/portal/whatsapp-outreach", icon: MessageCircle },
+            { num: 5, title: "Test & Monitor", desc: "Verify every channel works, then watch live activity", path: "/portal/workflow-test-lab", icon: FlaskConical },
+          ].map((step) => (
+            <Link key={step.num} to={step.path} className="flex items-start gap-4 p-3 rounded-lg hover:bg-accent transition-colors group">
+              <div className="flex flex-col items-center shrink-0">
+                <div className="w-9 h-9 rounded-full bg-primary/10 border-2 border-primary/30 flex items-center justify-center text-sm font-bold text-primary">
+                  {step.num}
+                </div>
+                {step.num < 5 && <div className="w-0.5 h-6 bg-border mt-1" />}
+              </div>
+              <div className="flex-1 pt-1">
+                <div className="flex items-center gap-2">
+                  <step.icon className="h-4 w-4 text-muted-foreground" />
+                  <h3 className="text-sm font-medium text-foreground">{step.title}</h3>
+                </div>
+                <p className="text-xs text-muted-foreground mt-0.5">{step.desc}</p>
+              </div>
+              <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all shrink-0 mt-2" />
+            </Link>
+          ))}
+        </div>
       </div>
 
       {/* Plan Info */}

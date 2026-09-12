@@ -278,6 +278,60 @@ export default async function(req) {
       });
     }
 
+    // ── BATCH PROVISION: Create up to 20 agents with same skills, different specializations ──
+    if (action === 'batch_provision') {
+      const { count, base_name, agent_tier, capabilities, specializations, system_prompt, tone, assigned_number, shadow_mode, power_level, autonomy_level } = body;
+      if (!base_name) return Response.json({ error: 'base_name required' }, { status: 400 });
+
+      const tierDefaults: any = {
+        standard: ['sms'],
+        super: ['sms', 'mms', 'voice', 'whatsapp', 'cloud_browser', 'web_interact', 'api_access'],
+        swarm: ['sms', 'voice', 'cloud_browser', 'web_interact'],
+        fulfillment: ['sms', 'mms', 'voice', 'cloud_browser', 'phone_browser', 'web_interact', 'api_access', 'cross_site_automation'],
+        shadow: ['sms', 'voice', 'cloud_browser', 'web_interact', 'api_access', 'cross_site_automation', 'shadow_mode'],
+      };
+      const finalCapabilities = capabilities || tierDefaults[agent_tier] || ['sms'];
+
+      const specs: string[] = specializations || [];
+      const agentCount = Math.min(count || specs.length || 5, 20);
+
+      const created: any[] = [];
+      for (let i = 0; i < agentCount; i++) {
+        const spec = specs[i] || `Specialist ${i + 1}`;
+        const agentName = `${base_name} — ${spec}`;
+        const tierToType: any = {
+          standard: 'voice', super: 'super', swarm: 'swarm_worker',
+          fulfillment: 'fulfillment', shadow: 'shadow',
+        };
+        const agent = await base44.entities.AgentPersona.create({
+          name: agentName,
+          persona_type: tierToType[agent_tier] || 'voice',
+          agent_tier: agent_tier || 'standard',
+          system_prompt: system_prompt || `You are a ${spec} specialist agent.`,
+          tone: tone || '',
+          assigned_number: assigned_number || '',
+          capabilities: finalCapabilities,
+          shadow_mode: shadow_mode || (agent_tier === 'shadow'),
+          target_industry: spec,
+          assigned_context: spec,
+          power_level: power_level || (agent_tier === 'super' ? 7 : 1),
+          autonomy_level: autonomy_level || (agent_tier === 'shadow' ? 'fully_autonomous' : 'supervised'),
+          status: 'active',
+          provisioned_at: new Date().toISOString(),
+        });
+        created.push({ id: agent.id, name: agent.name, specialization: spec });
+      }
+
+      return Response.json({
+        action: 'batch_provision',
+        status: 'completed',
+        count: created.length,
+        agent_tier,
+        shared_capabilities: finalCapabilities,
+        agents: created,
+      });
+    }
+
     return Response.json({ error: 'unknown action', action }, { status: 400 });
   } catch (error: any) {
     return Response.json({ error: error.message }, { status: 500 });

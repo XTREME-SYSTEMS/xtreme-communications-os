@@ -65,9 +65,9 @@ export default async function(req) {
       }
 
       await base44.asServiceRole.entities.CommsEvent.create({
-        tenant_id: tenant.id, channel: "sms", direction: "outbound",
-        from_number: from_number || "+18334843799", to_number, body: message,
-        status: delivery.delivered && delivery.to_status !== "delivery_failed" ? "sent" : "failed", event_type: "autonomous_action_test",
+        channel: "sms", direction: "outbound",
+        from_addr: from_number || "+18334843799", to_addr: to_number, summary: message,
+        status: delivery.delivered && delivery.to_status !== "delivery_failed" ? "completed" : "failed", classification: "PROVIDER-BACKED",
       });
       const actuallyDelivered = delivery.delivered && delivery.to_status !== "delivery_failed" && delivery.to_status !== "queued";
       return Response.json({
@@ -94,9 +94,9 @@ export default async function(req) {
       const result = await sendTelnyx(telnyxKey, endpoint, payload);
       const delivery = extractDeliveryStatus(result.data);
       await base44.asServiceRole.entities.CommsEvent.create({
-        tenant_id: tenant.id, channel: "whatsapp", direction: "outbound",
-        from_number: from_number || "+18334843799", to_number, body: message,
-        status: delivery.delivered ? "sent" : "failed", event_type: "autonomous_action_test",
+        channel: "whatsapp", direction: "outbound",
+        from_addr: from_number || "+18334843799", to_addr: to_number, summary: message,
+        status: delivery.delivered ? "completed" : "failed", classification: "PROVIDER-BACKED",
       });
       return Response.json({
         action: "send_whatsapp", ok: result.ok, to: to_number, message,
@@ -130,9 +130,9 @@ export default async function(req) {
       try { data = await res.json(); } catch (_) {}
       const callControlId = data?.data?.id || data?.data?.call_control_id || null;
       await base44.asServiceRole.entities.CommsEvent.create({
-        tenant_id: tenant.id, channel: "voice", direction: "outbound",
-        from_number: from_number || "+19549102671", to_number, body: `AI voice call`,
-        status: res.ok ? "call_initiated" : "failed", event_type: "autonomous_action_test",
+        channel: "voice", direction: "outbound",
+        from_addr: from_number || "+19549102671", to_addr: to_number, summary: `AI voice call`,
+        status: res.ok ? "active" : "failed", classification: "PROVIDER-BACKED",
       });
       return Response.json({ action: "make_call", ok: res.ok, call_control_id: callControlId, call_leg_id: data?.data?.call_leg_id || null, is_alive: data?.data?.is_alive || false, from: from_number || "+19549102671", to: to_number, status: res.ok ? "call_initiated" : "failed", error: res.ok ? null : (data?.errors?.[0]?.detail || data?.errors?.[0]?.title || "unknown") });
     }

@@ -1,7 +1,7 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
-import { LayoutDashboard, CheckCircle2, Phone, PhoneCall, Brain, KeyRound, Settings, LogOut, ExternalLink, FileText, MessageCircle, ArrowLeftRight, Shield, Sparkles, FlaskConical, Palette, HardDrive, GitBranch, Share2, Radio, BookOpen, Users, Tag, Building2, Link2, CreditCard, Rocket, Zap } from "lucide-react";
+import { LayoutDashboard, CheckCircle2, Phone, PhoneCall, Brain, KeyRound, Settings, LogOut, ExternalLink, FileText, MessageCircle, ArrowLeftRight, Shield, Sparkles, FlaskConical, Palette, HardDrive, GitBranch, Share2, Radio, BookOpen, Users, Tag, Building2, Link2, CreditCard, Rocket, Zap, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import MobileNav from "@/components/portal/MobileNav";
 import AccountButton from "@/components/portal/AccountButton";
@@ -14,7 +14,9 @@ const NAV = [
   { path: "/portal/digital-team-builder", label: "AI Team Builder", icon: Users },
   { path: "/portal/action-test", label: "Action Test Console", icon: Zap },
   { path: "/portal/workflow-test-lab", label: "Workflow Test Lab", icon: FlaskConical },
+  { path: "/portal/sms-inbox", label: "SMS Inbox", icon: MessageSquare },
   { path: "/portal/vision-cortex", label: "Vision Cortex", icon: Brain },
+  { path: "/portal/doc-specialist", label: "Doc Specialist", icon: FileText },
   { path: "/portal/agent-generator", label: "Agent Generator", icon: Rocket },
   { path: "/portal/whatsapp-outreach", label: "WhatsApp Outreach", icon: MessageCircle },
   { path: "/portal/lead-scraper", label: "Lead Scraper", icon: Sparkles },

@@ -75,6 +75,8 @@ import TermsOfService from './pages/TermsOfService';
 import AcceptableUse from './pages/AcceptableUse';
 import SmsOptIn from './pages/SmsOptIn';
 import SystemAudit from './pages/SystemAudit';
+import SmsInbox from './pages/SmsInbox';
+import DocSpecialist from './pages/DocSpecialist';
 
 function App() {
   return (
@@ -128,6 +130,8 @@ function App() {
                 <Route path="/portal/vision-cortex" element={<VisionCortex />} />
                 <Route path="/portal/digital-team-builder" element={<DigitalTeamBuilder />} />
                 <Route path="/portal/action-test" element={<AutonomousActionTest />} />
+                <Route path="/portal/sms-inbox" element={<SmsInbox />} />
+                <Route path="/portal/doc-specialist" element={<DocSpecialist />} />
               </Route>
               {/* Admin */}
               <Route path="/promo-admin" element={<PromoAdmin />} />

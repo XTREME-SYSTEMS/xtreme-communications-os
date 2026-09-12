@@ -69,8 +69,11 @@ export default async function(req) {
 
     // ── Inbound SMS/MMS ──
     if (eventType === "message.received") {
-      const from = payload.from?.phone_number || payload.from || "";
-      const to = payload.to?.phone_number || payload.to || "";
+      // Telnyx payload: from is an object, to is an ARRAY of objects
+      const fromObj = Array.isArray(payload.from) ? payload.from[0] : payload.from;
+      const toObj = Array.isArray(payload.to) ? payload.to[0] : payload.to;
+      const from = (fromObj && fromObj.phone_number) || (typeof fromObj === "string" ? fromObj : "") || "";
+      const to = (toObj && toObj.phone_number) || (typeof toObj === "string" ? toObj : "") || "";
       const messageType = payload.message_type || (payload.media?.length ? "MMS" : "SMS");
       const channel = messageType === "MMS" ? "mms" : "sms";
 

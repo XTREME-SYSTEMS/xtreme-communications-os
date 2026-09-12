@@ -1,0 +1,137 @@
+{
+  "name": "DocSpecialistRun",
+  "type": "object",
+  "properties": {
+    "brief": {
+      "type": "string",
+      "description": "Input project brief or workflow description"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "processing",
+        "completed",
+        "failed"
+      ],
+      "default": "pending"
+    },
+    "doc_id": {
+      "type": "string",
+      "description": "Google Doc ID with execution summary"
+    },
+    "doc_url": {
+      "type": "string"
+    },
+    "sheet_id": {
+      "type": "string",
+      "description": "Google Sheet ID with task log"
+    },
+    "sheet_url": {
+      "type": "string"
+    },
+    "calendar_event_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "task_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "agent_folders": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "agent_name": {
+            "type": "string"
+          },
+          "folder_id": {
+            "type": "string"
+          },
+          "folder_url": {
+            "type": "string"
+          },
+          "task_count": {
+            "type": "integer"
+          }
+        }
+      },
+      "default": []
+    },
+    "tasks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "task": {
+            "type": "string"
+          },
+          "owner": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "string"
+          },
+          "deadline": {
+            "type": "string"
+          },
+          "checklist": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "default": []
+    },
+    "qa_results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "agent_name": {
+            "type": "string"
+          },
+          "task": {
+            "type": "string"
+          },
+          "qa_status": {
+            "type": "string"
+          },
+          "qa_notes": {
+            "type": "string"
+          }
+        }
+      },
+      "default": []
+    },
+    "summary": {
+      "type": "string"
+    },
+    "error": {
+      "type": "string"
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "brief"
+  ]
+}

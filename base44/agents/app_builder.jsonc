@@ -247,7 +247,36 @@
     }
   ],
   "context_files": [],
-  "app_user_connector_configs": [],
+  "app_user_connector_configs": [
+    {
+      "connector_id": "69db200274332486fd28dd7e",
+      "enabled": true
+    },
+    {
+      "connector_id": "69db1fad3c50db37ad0ce8dd",
+      "enabled": true
+    },
+    {
+      "connector_id": "69db1e5e75a5f8c15c80cf34",
+      "enabled": true
+    },
+    {
+      "connector_id": "69db201897e4e8f9ae073be7",
+      "enabled": true
+    },
+    {
+      "connector_id": "69db228b2439d854c8587167",
+      "enabled": true
+    },
+    {
+      "connector_id": "69ddcb305a599e0b4a1b3cff",
+      "enabled": true
+    },
+    {
+      "connector_id": "69ddcb7e5d965b5605cd24b4",
+      "enabled": true
+    }
+  ],
   "selected_skill_names": [],
   "selected_workspace_skill_ids": [
     "69db2903feb6ccc18f565a7e",
@@ -262,14 +291,14 @@
     "69db295f082bab3b785eb5fb"
   ],
   "model": "automatic",
-  "whatsapp_greeting": null,
-  "telegram_greeting": null,
-  "line_greeting": null,
+  "whatsapp_greeting": "",
+  "telegram_greeting": "",
+  "line_greeting": "",
   "memory_config": {
     "enabled": true,
     "scope": "both",
     "include_other_conversation_context": false,
-    "instructions": null
+    "instructions": "Save memories about each interaction out reach.  when an agent contacts a prospect  via message, voice, email, or any other method they just create notes so they can remember previous conversations.  "
   },
   "voice_config": {
     "voice_id": null

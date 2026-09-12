@@ -42,6 +42,7 @@ const NAV = [
   { path: "/portal/whatsapp", label: "WhatsApp Setup", icon: MessageCircle },
   { path: "/portal/porting", label: "Number Porting", icon: ArrowLeftRight },
   { path: "/portal/core-docs", label: "Core Docs", icon: BookOpen },
+  { path: "/portal/connect", label: "Connect AI Assistant", icon: Link2 },
   { path: "/portal/keys", label: "API Keys", icon: KeyRound },
   { path: "/portal/settings", label: "Settings", icon: Settings },
   { path: "/admin-portal", label: "Admin Portal", icon: Shield, external: true },

@@ -78,6 +78,7 @@ import SystemAudit from './pages/SystemAudit';
 import SmsInbox from './pages/SmsInbox';
 import DocSpecialist from './pages/DocSpecialist';
 import OAuthConsent from './pages/OAuthConsent';
+import Connect from './pages/Connect';
 
 function App() {
   return (
@@ -134,6 +135,7 @@ function App() {
                 <Route path="/portal/action-test" element={<AutonomousActionTest />} />
                 <Route path="/portal/sms-inbox" element={<SmsInbox />} />
                 <Route path="/portal/doc-specialist" element={<DocSpecialist />} />
+                <Route path="/portal/connect" element={<Connect />} />
               </Route>
               {/* Admin */}
               <Route path="/promo-admin" element={<PromoAdmin />} />

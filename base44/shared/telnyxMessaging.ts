@@ -22,6 +22,41 @@ export async function sendTelnyx(telnyxKey: string, endpoint: string, payload: a
 
 export function getTelnyxEndpoint(channel: string): string {
   return channel === 'whatsapp'
-    ? 'https://api.telnyx.com/v2/whatsapp_messages'
+    ? 'https://api.telnyx.com/v2/messages/whatsapp'
     : 'https://api.telnyx.com/v2/messages';
+}
+
+// Build the correct payload for each channel
+export function buildTelnyxPayload(channel: string, payload: any): any {
+  if (channel === 'whatsapp') {
+    return {
+      from: payload.from,
+      to: payload.to,
+      whatsapp_message: {
+        text: { body: payload.text || '' },
+      },
+    };
+  }
+  // SMS / MMS
+  return {
+    from: payload.from,
+    to: payload.to,
+    text: payload.text || '',
+    media_urls: payload.media_urls || undefined,
+    subject: payload.subject || undefined,
+  };
+}
+
+// Extract delivery status from Telnyx response
+export function extractDeliveryStatus(data: any): { delivered: boolean; to_status: string; error_code: string | null; error_detail: string | null } {
+  const toEntry = data?.data?.to?.[0] || data?.to?.[0] || {};
+  const errors = data?.data?.errors || data?.errors || [];
+  const firstError = errors[0] || {};
+  const status = toEntry.status || (errors.length ? 'failed' : 'unknown');
+  return {
+    delivered: status === 'delivered' || status === 'sent',
+    to_status: status,
+    error_code: firstError.code || null,
+    error_detail: firstError.detail || firstError.title || null,
+  };
 }

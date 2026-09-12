@@ -3,8 +3,9 @@ import { base44 } from "@/api/base44Client";
 import { cn } from "@/lib/utils";
 import {
   MessageSquare, Image, PhoneCall, MessageCircle, UserPlus, Calendar,
-  ListChecks, Bot, Monitor, Zap, Loader2, CheckCircle2, XCircle, Play, Phone
+  ListChecks, Bot, Monitor, Zap, Loader2, CheckCircle2, XCircle, Play, Phone, AlertTriangle
 } from "lucide-react";
+import VisualMessagePreview from "@/components/workflow-test-lab/VisualMessagePreview";
 
 const TARGET_NUMBER = "+17722090266";
 
@@ -187,10 +188,27 @@ export default function WorkflowTestLab() {
       }
 
       const data = res?.data || res;
+      // Enrich with the sent data for visual preview
+      const sentData = {
+        message: wf.id === 1 ? "✅ XTREME Test: SMS workflow is working! You should receive this message on your phone." :
+                 wf.id === 4 ? "✅ XTREME Test: WhatsApp messaging is working! You should see this in WhatsApp." :
+                 wf.id === 5 ? "Hi! Thanks for reaching out. We've received your inquiry and will follow up shortly. — XTREME AI Team" :
+                 wf.id === 6 ? "📅 Reminder: You have an appointment tomorrow at 2:00 PM ET with our team. Location: Virtual (Zoom link will be sent 15 min before). Reply C to confirm or R to reschedule. — XTREME AI" :
+                 wf.id === 7 ? "Hi! This is Alex from XTREME Communications. I wanted to follow up on your interest in our AI communications platform. Are you available for a quick 10-min call this week? Reply with a good time or STOP to opt out." :
+                 wf.id === 10 ? "💥 Multi-channel blast: SMS channel confirmed working!" : "",
+        from: fromNumber,
+        to: TARGET_NUMBER,
+        body: wf.id === 2 ? "📸 XTREME Test: MMS with image attachment is working!" : undefined,
+        media_urls: wf.id === 2 ? ["https://images.unsplash.com/photo-1557804506-669a67965ba0?w=400"] : undefined,
+        task: wf.id === 9 ? "Go to https://news.ycombinator.com and find the top 3 story titles. Return them as a short summary." : undefined,
+        phone: wf.id === 5 ? TARGET_NUMBER : undefined,
+        email: wf.id === 5 ? "test@example.com" : undefined,
+      };
+      const enrichedData = { ...data, ...sentData, from_number: data.from_number || fromNumber };
       if (data?.error) {
         setResults((prev) => ({ ...prev, [wf.id]: { status: "error", error: data.error } }));
       } else {
-        setResults((prev) => ({ ...prev, [wf.id]: { status: "success", data } }));
+        setResults((prev) => ({ ...prev, [wf.id]: { status: "success", data: enrichedData } }));
       }
     } catch (e) {
       setResults((prev) => ({ ...prev, [wf.id]: { status: "error", error: e.message || "Workflow failed" } }));
@@ -315,16 +333,99 @@ export default function WorkflowTestLab() {
 
               {/* Result */}
               {result?.status === "success" && (
-                <div className="flex items-start gap-2 p-2.5 rounded-lg bg-status-green/10 border border-status-green/20">
-                  <CheckCircle2 className="h-4 w-4 text-status-green shrink-0 mt-0.5" />
-                  <div className="text-xs">
-                    <p className="font-medium text-status-green">Success — check your phone</p>
-                    {result.data && (
-                      <p className="text-muted-foreground mt-0.5 font-mono text-[10px] truncate">
-                        {typeof result.data === "object" ? JSON.stringify(result.data).slice(0, 120) : String(result.data).slice(0, 120)}
-                      </p>
-                    )}
-                  </div>
+                <div className="space-y-2">
+                  {/* Delivery status banner */}
+                  {(() => {
+                    const d = result.data || {};
+                    const isDelivered = d.delivered || d.to_status === "delivered" || d.to_status === "sent";
+                    const isAccepted = d.api_accepted || d.status === "call_initiated" || d.status === "ringing" || d.contact_id;
+                    const isDeliveryFailed = d.to_status === "delivery_failed" || d.error_code === "40329";
+                    const isVoice = d.call_control_id || d.status === "call_initiated" || d.status === "ringing";
+                    const isAi = d.result && d.action === "ai_task";
+                    const isBrowser = d.result && d.action === "browser_agent";
+                    const isLead = d.contact_id;
+                    const isMultiChannel = d.sms !== undefined && d.voice !== undefined;
+
+                    if (isDelivered || isVoice || isAi || isBrowser || isLead || isMultiChannel) {
+                      return (
+                        <div className={cn(
+                          "flex items-start gap-2 p-2.5 rounded-lg border",
+                          isDelivered ? "bg-status-green/10 border-status-green/20" :
+                          isVoice ? "bg-blue-500/10 border-blue-500/20" :
+                          "bg-accent-orange/10 border-accent-orange/20"
+                        )}>
+                          {isDelivered ? <CheckCircle2 className="h-4 w-4 text-status-green shrink-0 mt-0.5" /> :
+                           isVoice ? <PhoneCall className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" /> :
+                           <Zap className="h-4 w-4 text-accent-orange shrink-0 mt-0.5" />}
+                          <div className="text-xs">
+                            <p className={cn("font-medium",
+                              isDelivered ? "text-status-green" :
+                              isVoice ? "text-blue-500" : "text-accent-orange"
+                            )}>
+                              {isDelivered ? "✅ Delivered to phone" :
+                               isVoice ? "📞 Call placed — check your phone" :
+                               isAi ? "🤖 AI task completed" :
+                               isBrowser ? "🌐 Browser agent completed" :
+                               isLead ? "👤 Lead created in CRM" :
+                               isMultiChannel ? "💥 Multi-channel blast fired" :
+                               "Success"}
+                            </p>
+                            {d.error_detail && !isDelivered && (
+                              <p className="text-muted-foreground mt-0.5 text-[10px]">{d.error_detail}</p>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    if (isDeliveryFailed) {
+                      return (
+                        <div className="flex items-start gap-2 p-2.5 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+                          <AlertTriangle className="h-4 w-4 text-yellow-500 shrink-0 mt-0.5" />
+                          <div className="text-xs">
+                            <p className="font-medium text-yellow-600 dark:text-yellow-500">⚠️ Accepted by Telnyx but delivery failed</p>
+                            <p className="text-muted-foreground mt-0.5 text-[10px]">
+                              {d.error_detail || d.error || "Toll-free number not verified — SMS accepted but carrier rejected delivery"}
+                            </p>
+                            <p className="text-muted-foreground mt-0.5 text-[10px]">
+                              Fix: Submit toll-free verification in Telnyx dashboard → Messaging → Toll-Free Verification
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div className="flex items-start gap-2 p-2.5 rounded-lg bg-status-green/10 border border-status-green/20">
+                        <CheckCircle2 className="h-4 w-4 text-status-green shrink-0 mt-0.5" />
+                        <div className="text-xs">
+                          <p className="font-medium text-status-green">Success</p>
+                          {result.data && (
+                            <p className="text-muted-foreground mt-0.5 font-mono text-[10px] truncate">
+                              {typeof result.data === "object" ? JSON.stringify(result.data).slice(0, 120) : String(result.data).slice(0, 120)}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Visual message preview */}
+                  <VisualMessagePreview
+                    workflowId={wf.id}
+                    result={result}
+                    workflowData={wf}
+                  />
+
+                  {/* Raw API response (collapsible) */}
+                  {result.data && (
+                    <details className="text-[10px]">
+                      <summary className="cursor-pointer text-muted-foreground hover:text-foreground">Raw API response</summary>
+                      <pre className="mt-1 p-2 rounded bg-muted/50 overflow-x-auto scrollbar-thin font-mono text-[9px] max-h-32">
+                        {JSON.stringify(result.data, null, 2).slice(0, 500)}
+                      </pre>
+                    </details>
+                  )}
                 </div>
               )}
               {result?.status === "error" && (
@@ -341,11 +442,44 @@ export default function WorkflowTestLab() {
         })}
       </div>
 
-      {/* Note about credits */}
-      <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/5 p-4">
-        <p className="text-xs text-muted-foreground">
-          <span className="font-medium text-yellow-600 dark:text-yellow-500">Note:</span> Voice calls, SMS, and WhatsApp require active carrier credentials (Telnyx API key) and an A2P-verified number. If a workflow fails, check that your number has the right capabilities (voice, sms, whatsapp) and that your API key is active. AI-powered workflows (8, 9) also require Vercel AI Gateway and Browserbase credits respectively.
-        </p>
+      {/* System status — what's live vs blocked */}
+      <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+        <h3 className="text-sm font-semibold text-foreground">System Status — Channel Readiness</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="flex items-center gap-2 rounded-lg p-2.5 bg-status-green/5 border border-status-green/20">
+            <div className="w-2 h-2 rounded-full bg-status-green tl-led" />
+            <div>
+              <p className="text-xs font-medium text-foreground">Voice Calls</p>
+              <p className="text-[10px] text-muted-foreground">✅ Live — Telnyx Call Control</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 rounded-lg p-2.5 bg-status-green/5 border border-status-green/20">
+            <div className="w-2 h-2 rounded-full bg-status-green tl-led" />
+            <div>
+              <p className="text-xs font-medium text-foreground">AI Gateway</p>
+              <p className="text-[10px] text-muted-foreground">✅ Live — Vercel AI Gateway</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 rounded-lg p-2.5 bg-status-green/5 border border-status-green/20">
+            <div className="w-2 h-2 rounded-full bg-status-green tl-led" />
+            <div>
+              <p className="text-xs font-medium text-foreground">Cloud Browser</p>
+              <p className="text-[10px] text-muted-foreground">✅ Live — Browserbase</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 rounded-lg p-2.5 bg-yellow-500/5 border border-yellow-500/20">
+            <div className="w-2 h-2 rounded-full bg-yellow-500 tl-led" />
+            <div>
+              <p className="text-xs font-medium text-foreground">SMS / MMS</p>
+              <p className="text-[10px] text-muted-foreground">⚠️ Toll-free verification pending</p>
+            </div>
+          </div>
+        </div>
+        <div className="text-xs text-muted-foreground space-y-1">
+          <p><span className="font-medium text-yellow-600 dark:text-yellow-500">SMS/MMS:</span> Telnyx accepts messages but Verizon rejects delivery (error 40329 — toll-free number not verified). Submit verification in Telnyx Dashboard → Messaging → Toll-Free Verification. Approval takes 2-5 business days.</p>
+          <p><span className="font-medium text-yellow-600 dark:text-yellow-500">WhatsApp:</span> Requires WhatsApp Business Account setup on Telnyx. The number must be WhatsApp-enabled in Telnyx Dashboard → Messaging → WhatsApp.</p>
+          <p><span className="font-medium text-status-green">Voice/AI/Browser:</span> These channels are fully operational — tests will show real results.</p>
+        </div>
       </div>
     </div>
   );

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
+import { useAuth } from "@/lib/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 import {
@@ -21,6 +22,7 @@ const STAGE_COLORS = {
 };
 
 export default function XtremeCrm() {
+  const { user } = useAuth();
   const { toast } = useToast();
   const [contacts, setContacts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -38,7 +40,7 @@ export default function XtremeCrm() {
   const load = async () => {
     setLoading(true);
     try {
-      const list = await base44.entities.XtremeCrmContact.list('-updated_date', 200);
+      const list = await base44.entities.XtremeCrmContact.filter({ created_by_id: user?.id }, '-updated_date', 200);
       setContacts(list || []);
     } catch (e) {
       toast({ title: "Load failed", description: e.message, variant: "destructive" });

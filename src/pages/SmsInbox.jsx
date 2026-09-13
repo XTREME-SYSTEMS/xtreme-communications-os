@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
+import { useAuth } from "@/lib/AuthContext";
 import { cn } from "@/lib/utils";
 import {
   MessageSquare, Send, Phone, ArrowLeft, RefreshCw, Loader2,
@@ -7,6 +8,7 @@ import {
 } from "lucide-react";
 
 export default function SmsInbox() {
+  const { user } = useAuth();
   const [conversations, setConversations] = useState([]);
   const [messages, setMessages] = useState([]);
   const [selectedConv, setSelectedConv] = useState(null);
@@ -27,15 +29,19 @@ export default function SmsInbox() {
     setLoading(true);
     try {
       const [nums, keys, convs, inboundMsgs] = await Promise.all([
-        base44.entities.PhoneNumber.list("-created_date", 20).catch(() => []),
-        base44.entities.ApiKey.filter({ status: "active" }).catch(() => []),
-        base44.entities.Conversation.list("-last_message_at", 50).catch(() => []),
+        base44.entities.PhoneNumber.filter({ user_id: user?.id }, "-created_date", 20).catch(() => []),
+        base44.entities.ApiKey.filter({ created_by_id: user?.id, status: "active" }).catch(() => []),
+        base44.entities.Conversation.filter({ created_by_id: user?.id }, "-last_message_at", 50).catch(() => []),
         base44.entities.CommsEvent.filter({ direction: "inbound", channel: "sms" }, "-created_date", 50).catch(() => []),
       ]);
       setNumbers(nums || []);
       setApiKey(keys?.[0]?.key_value || "");
       const telnyxNum = nums?.find(n => n.provider_id && n.capabilities?.includes("sms"));
-      setFromNumber(telnyxNum?.e164 || nums?.[0]?.e164 || "+19546979011");
+      setFromNumber(telnyxNum?.e164 || nums?.[0]?.e164 || "");
+
+      // Only show inbound messages for this user's phone numbers
+      const userNumbers = (nums || []).map(n => n.e164);
+      const myInbound = (inboundMsgs || []).filter(m => userNumbers.includes(m.to_addr));
 
       // Merge Conversation entity records with conversations derived from inbound CommsEvent records
       const convByIdentity = new Map();
@@ -43,7 +49,7 @@ export default function SmsInbox() {
         convByIdentity.set(c.participant_identity, c);
       }
       // Add conversations from inbound SMS that don't have a Conversation record
-      for (const msg of (inboundMsgs || [])) {
+      for (const msg of myInbound) {
         if (msg.from_addr && !convByIdentity.has(msg.from_addr)) {
           convByIdentity.set(msg.from_addr, {
             id: `derived-${msg.from_addr}`,

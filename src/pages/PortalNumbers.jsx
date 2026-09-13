@@ -32,7 +32,7 @@ export default function PortalNumbers() {
 
   const loadNumbers = async () => {
     try {
-      const list = await base44.entities.PhoneNumber.list('-created_date', 50);
+      const list = await base44.entities.PhoneNumber.filter({ user_id: user?.id }, '-created_date', 50);
       setNumbers(list);
     } catch (_) {}
     setLoading(false);
@@ -101,6 +101,7 @@ export default function PortalNumbers() {
         api_key: apiKey, action: "buy", e164,
         type: searchParams.type, country_code: searchParams.country_code,
         capabilities: number.capabilities || ["sms", "voice"],
+        user_id: user?.id,
       });
       const data = res.data || res;
       if (data.error) { toast({ title: "Purchase failed", description: data.error, variant: "destructive" }); return; }

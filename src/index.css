@@ -230,3 +230,34 @@
   50% { background-position: 100% 100%; }
   100% { background-position: 0% 0%; }
 }
+
+/* ── Electric metallic gold hover effect ── */
+.xtreme-gold-hover {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+.xtreme-gold-hover:hover {
+  border-color: #FFD700 !important;
+  box-shadow: 0 0 0 1px #FFD700, 0 0 10px rgba(255, 215, 0, 0.4), 0 0 20px rgba(255, 215, 0, 0.12);
+}
+
+/* Apply gold hover to all cards, buttons, and objects inside portal content */
+.portal-gold-scope .rounded-xl,
+.portal-gold-scope .rounded-lg,
+.portal-gold-scope button,
+.portal-gold-scope a[class*="rounded"] {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+.portal-gold-scope .rounded-xl:hover,
+.portal-gold-scope .rounded-lg:hover,
+.portal-gold-scope button:hover,
+.portal-gold-scope a[class*="rounded"]:hover {
+  border-color: #FFD700;
+  box-shadow: 0 0 0 1px #FFD700, 0 0 10px rgba(255, 215, 0, 0.35), 0 0 20px rgba(255, 215, 0, 0.1);
+}
+
+/* Sidebar nav links — electric gold hover */
+.portal-sidebar-nav a:hover,
+.portal-sidebar-nav button:hover {
+  border-color: #FFD700 !important;
+  box-shadow: 0 0 0 1px #FFD700, 0 0 8px rgba(255, 215, 0, 0.35) !important;
+}

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
+import { useAuth } from "@/lib/AuthContext";
 import { cn } from "@/lib/utils";
 import {
   Rocket, Bot, Users, Ghost, Zap, Phone, MessageSquare, Mail, Globe,
@@ -77,6 +78,7 @@ const ALL_CAPS = [
 ];
 
 export default function AgentFactory() {
+  const { user } = useAuth();
   const [agents, setAgents] = useState([]);
   const [numbers, setNumbers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -134,8 +136,8 @@ export default function AgentFactory() {
     setLoading(true);
     try {
       const [agentList, numList] = await Promise.all([
-        base44.entities.AgentPersona.list("-provisioned_at", 50).catch(() => []),
-        base44.entities.PhoneNumber.list("-created_date", 30).catch(() => []),
+        base44.entities.AgentPersona.filter({ created_by_id: user?.id }, "-provisioned_at", 50).catch(() => []),
+        base44.entities.PhoneNumber.filter({ user_id: user?.id }, "-created_date", 30).catch(() => []),
       ]);
       setAgents(agentList || []);
       setNumbers(numList || []);

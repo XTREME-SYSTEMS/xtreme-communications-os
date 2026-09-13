@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
-import { Shield, Users, Phone, PhoneCall, KeyRound, DollarSign, Activity, Brain, Eye, ArrowLeft, Loader2, CheckCircle2, AlertCircle, RefreshCw, Plus, Copy, Trash2, X, Check, BookOpen, ExternalLink } from "lucide-react";
+import { Shield, Users, Phone, PhoneCall, KeyRound, DollarSign, Activity, Brain, Eye, ArrowLeft, Loader2, CheckCircle2, AlertCircle, RefreshCw, Plus, Copy, Trash2, X, Check, BookOpen, ExternalLink, Gauge } from "lucide-react";
 import LiveCallViewer from "@/components/admin/LiveCallViewer";
 
 const ADMIN_SCOPES = ["sms", "mms", "voice", "whatsapp", "email", "numbers", "agents", "lookup", "verify", "billing", "admin"];
@@ -127,6 +127,8 @@ export default function AdminPortal() {
 
   const TABS = [
     { id: "overview", label: "Overview", icon: Activity },
+    { id: "fabric", label: "Operating Fabric", icon: Brain },
+    { id: "parity", label: "Parity Matrix", icon: Gauge },
     { id: "users", label: "Subscriptions", icon: Users },
     { id: "numbers", label: "Phone Numbers", icon: Phone },
     { id: "keys", label: "API Keys", icon: KeyRound },
@@ -164,6 +166,47 @@ export default function AdminPortal() {
 
       {/* Live Calls */}
       {tab === "calls" && <LiveCallViewer />}
+
+      {/* Operating Fabric */}
+      {tab === "fabric" && (
+        <div className="rounded-xl border border-border bg-card p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <Brain className="h-5 w-5 text-primary" />
+            <h2 className="font-display font-bold text-foreground">XTREME Operating Fabric</h2>
+          </div>
+          <p className="text-sm text-muted-foreground mb-4">Autonomous fleet orchestration, system health monitoring, and continuous repair loops. The Vision Cortex plans, the Fleet Alpha Prime executes, and the independent validator confirms VERIFIED_100 status.</p>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4">
+            {[
+              { label: "Systems", value: stats.subscriptions, icon: Activity },
+              { label: "AI Agents", value: stats.agents, icon: Brain },
+              { label: "Phone Numbers", value: stats.numbers, icon: Phone },
+            ].map(s => (
+              <div key={s.label} className="rounded-lg border border-border bg-accent/30 p-3">
+                <s.icon className="h-4 w-4 text-primary mb-1" />
+                <p className="text-xl font-display font-bold text-foreground">{s.value}</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider">{s.label}</p>
+              </div>
+            ))}
+          </div>
+          <Link to="/portal/fabric" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90">
+            <Brain className="h-4 w-4" /> Open Fabric Dashboard <ExternalLink className="h-3.5 w-3.5" />
+          </Link>
+        </div>
+      )}
+
+      {/* Parity Matrix */}
+      {tab === "parity" && (
+        <div className="rounded-xl border border-border bg-card p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <Gauge className="h-5 w-5 text-primary" />
+            <h2 className="font-display font-bold text-foreground">Twilio Parity Matrix</h2>
+          </div>
+          <p className="text-sm text-muted-foreground mb-4">Feature-by-feature comparison with Twilio for migration tracking and competitive analysis. Tracks which Twilio capabilities have been replicated in the XTREME Communications platform.</p>
+          <Link to="/portal/parity-matrix" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90">
+            <Gauge className="h-4 w-4" /> Open Parity Matrix <ExternalLink className="h-3.5 w-3.5" />
+          </Link>
+        </div>
+      )}
 
       {/* Core Docs */}
       {tab === "docs" && (

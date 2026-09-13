@@ -1,13 +1,12 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
+import { useAuth } from "@/lib/AuthContext";
 import { cn } from "@/lib/utils";
 import {
   MessageSquare, Image, PhoneCall, MessageCircle, UserPlus, Calendar,
   ListChecks, Bot, Monitor, Zap, Loader2, CheckCircle2, XCircle, Play, Phone, AlertTriangle
 } from "lucide-react";
 import VisualMessagePreview from "@/components/workflow-test-lab/VisualMessagePreview";
-
-const TARGET_NUMBER = "+17722090266";
 
 const WORKFLOWS = [
   {
@@ -63,7 +62,11 @@ const WORKFLOWS = [
 ];
 
 export default function WorkflowTestLab() {
+  const { user } = useAuth();
   const [fromNumber, setFromNumber] = useState("");
+  const [targetNumber, setTargetNumber] = useState(() => {
+    try { return localStorage.getItem(`testlab_target_${user?.id}`) || ""; } catch (_) { return ""; }
+  });
   const [apiKey, setApiKey] = useState("");
   const [numbers, setNumbers] = useState([]);
   const [results, setResults] = useState({}); // { [workflowId]: { status, data, error } }
@@ -73,11 +76,16 @@ export default function WorkflowTestLab() {
     load();
   }, []);
 
+  const updateTargetNumber = (val) => {
+    setTargetNumber(val);
+    try { localStorage.setItem(`testlab_target_${user?.id}`, val); } catch (_) {}
+  };
+
   const load = async () => {
     try {
       const [nums, keys] = await Promise.all([
-        base44.entities.PhoneNumber.list("-created_date", 20).catch(() => []),
-        base44.entities.ApiKey.filter({ status: "active" }).catch(() => []),
+        base44.entities.PhoneNumber.filter({ user_id: user?.id }, "-created_date", 20).catch(() => []),
+        base44.entities.ApiKey.filter({ created_by_id: user?.id, status: "active" }).catch(() => []),
       ]);
       setNumbers(nums || []);
       setApiKey(keys?.[0]?.key_value || "");
@@ -91,13 +99,14 @@ export default function WorkflowTestLab() {
   };
 
   const runWorkflow = async (wf) => {
+    if (!targetNumber) { return; }
     setRunning((prev) => new Set(prev).add(wf.id));
     setResults((prev) => ({ ...prev, [wf.id]: { status: "running" } }));
     try {
       let res;
       // executeAutonomousAction expects from_number/to_number; gatewayVoiceControl and gatewayMessages expect from/to
-      const baseExec = { api_key: apiKey, from_number: fromNumber, to_number: TARGET_NUMBER };
-      const baseGW = { api_key: apiKey, from: fromNumber, to: TARGET_NUMBER };
+      const baseExec = { api_key: apiKey, from_number: fromNumber, to_number: targetNumber };
+      const baseGW = { api_key: apiKey, from: fromNumber, to: targetNumber };
 
       switch (wf.id) {
         case 1: // SMS
@@ -128,7 +137,7 @@ export default function WorkflowTestLab() {
           res = await base44.functions.invoke("executeAutonomousAction", {
             ...baseExec, action: "create_lead",
             full_name: "Test Lead from Workflow Lab",
-            phone: TARGET_NUMBER,
+            phone: targetNumber,
             email: "test+" + Date.now() + "@example.com",
             notes: "Created by Workflow Test Lab — lead capture test",
           });
@@ -155,7 +164,7 @@ export default function WorkflowTestLab() {
             ...baseExec, action: "ai_task",
             prompt: "Generate a 2-sentence executive summary of the top 3 AI communications trends for 2026. Keep it under 160 characters total for SMS.",
             deliver_via: "sms",
-            deliver_to: TARGET_NUMBER,
+            deliver_to: targetNumber,
           });
           break;
         case 9: // Browser Agent Report
@@ -164,7 +173,7 @@ export default function WorkflowTestLab() {
             task: "Go to https://news.ycombinator.com and find the top 3 story titles. Return them as a short summary.",
             wait_for_completion: true,
             deliver_via: "sms",
-            deliver_to: TARGET_NUMBER,
+            deliver_to: targetNumber,
           });
           break;
         case 10: // Multi-Channel Blast
@@ -197,11 +206,11 @@ export default function WorkflowTestLab() {
                  wf.id === 7 ? "Hi! This is Alex from XTREME Communications. I wanted to follow up on your interest in our AI communications platform. Are you available for a quick 10-min call this week? Reply with a good time or STOP to opt out." :
                  wf.id === 10 ? "💥 Multi-channel blast: SMS channel confirmed working!" : "",
         from: fromNumber,
-        to: TARGET_NUMBER,
+        to: targetNumber,
         body: wf.id === 2 ? "📸 XTREME Test: MMS with image attachment is working!" : undefined,
         media_urls: wf.id === 2 ? ["https://images.unsplash.com/photo-1557804506-669a67965ba0?w=400"] : undefined,
         task: wf.id === 9 ? "Go to https://news.ycombinator.com and find the top 3 story titles. Return them as a short summary." : undefined,
-        phone: wf.id === 5 ? TARGET_NUMBER : undefined,
+        phone: wf.id === 5 ? targetNumber : undefined,
         email: wf.id === 5 ? "test@example.com" : undefined,
       };
       const enrichedData = { ...data, ...sentData, from_number: data.from_number || fromNumber };
@@ -235,14 +244,19 @@ export default function WorkflowTestLab() {
         <div className="flex items-center gap-3">
           <div className="text-right">
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Target Number</p>
-            <p className="text-lg font-display font-bold text-primary">{TARGET_NUMBER}</p>
+            <input
+              value={targetNumber}
+              onChange={(e) => updateTargetNumber(e.target.value)}
+              placeholder="Enter your number"
+              className="w-40 text-right text-sm font-display font-bold text-primary bg-transparent border-b border-primary/30 focus:border-primary outline-none"
+            />
           </div>
           <button
             onClick={runAll}
-            disabled={running.size > 0 || !fromNumber || !apiKey}
+            disabled={running.size > 0 || !fromNumber || !apiKey || !targetNumber}
             className={cn(
               "flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors",
-              running.size > 0 || !fromNumber || !apiKey
+              running.size > 0 || !fromNumber || !apiKey || !targetNumber
                 ? "bg-muted text-muted-foreground cursor-not-allowed"
                 : "bg-primary text-primary-foreground hover:opacity-90"
             )}
@@ -277,7 +291,7 @@ export default function WorkflowTestLab() {
         </div>
         <div className="flex items-center gap-2 ml-auto">
           <span className="text-xs text-muted-foreground">→</span>
-          <span className="text-sm font-mono font-medium text-foreground">{TARGET_NUMBER}</span>
+          <span className="text-sm font-mono font-medium text-foreground">{targetNumber}</span>
         </div>
       </div>
 

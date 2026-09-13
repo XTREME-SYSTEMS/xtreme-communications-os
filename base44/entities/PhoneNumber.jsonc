@@ -5,6 +5,10 @@
     "e164": {
       "type": "string"
     },
+    "user_id": {
+      "type": "string",
+      "description": "Owner user ID for per-user data isolation"
+    },
     "tenant_id": {
       "type": "string"
     },

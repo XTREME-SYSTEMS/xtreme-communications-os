@@ -82,7 +82,8 @@ export default async function(req) {
       const providers = await base44.asServiceRole.entities.Provider.filter({ enabled: true, status: "connected" });
       const connected = providers[0];
       const number = await base44.asServiceRole.entities.PhoneNumber.create({
-        e164, tenant_id: tenant.id, country_code: body.country_code || "US",
+        e164, tenant_id: tenant.id, user_id: body.user_id || null,
+        country_code: body.country_code || "US",
         type: body.type || "local", capabilities: body.capabilities || ["voice", "sms"],
         status: "assigned", classification: "LIVE",
         provider_id: connected ? connected.id : null,

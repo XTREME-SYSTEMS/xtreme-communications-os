@@ -2,23 +2,19 @@ import { useState } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
-import   { LayoutDashboard, CheckCircle2, Phone, PhoneCall, Brain, KeyRound, Settings, LogOut, ExternalLink, FileText, MessageCircle, ArrowLeftRight, Shield, Sparkles, FlaskConical, Palette, HardDrive, GitBranch, Share2, Radio, BookOpen, Users, Tag, Building2, Link2, CreditCard, Rocket, Zap, MessageSquare, ChevronDown, UserCircle, Gauge } from "lucide-react";
+import   { LayoutDashboard, CheckCircle2, Phone, PhoneCall, Brain, KeyRound, Settings, LogOut, ExternalLink, FileText, MessageCircle, ArrowLeftRight, Sparkles, FlaskConical, Palette, HardDrive, GitBranch, Share2, Radio, Users, Tag, Building2, Link2, CreditCard, Rocket, Zap, MessageSquare, ChevronDown, UserCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import MobileNav from "@/components/portal/MobileNav";
 import AccountButton from "@/components/portal/AccountButton";
 import BreezeCopilot from "@/components/portal/BreezeCopilot";
 
-// ── CORE NAV: the 7 most important daily tools ──
+// ── CORE NAV: the primary daily tools (no admin/engineering here) ──
 const CORE_NAV = [
-  { path: "/portal/fabric", label: "Fabric", icon: Brain },
-  { path: "/portal/parity-matrix", label: "Parity Matrix", icon: Gauge },
   { path: "/portal", label: "Dashboard", icon: LayoutDashboard, exact: true },
-  { path: "/portal/admin-dashboard", label: "Admin", icon: Shield },
   { path: "/portal/crm", label: "CRM", icon: Users },
   { path: "/portal/contacts-manager", label: "Contacts", icon: UserCircle },
   { path: "/portal/agent-factory", label: "Agent Factory", icon: Rocket },
   { path: "/portal/sms-inbox", label: "SMS Inbox", icon: MessageSquare },
-  { path: "/portal/workflow-test-lab", label: "Test Lab", icon: FlaskConical },
 ];
 
 // ── MORE TOOLS: secondary tools, collapsible ──
@@ -54,11 +50,10 @@ const SETTINGS_NAV = [
   { path: "/portal/google-workspace", label: "Google Workspace", icon: HardDrive },
   { path: "/portal/whatsapp", label: "WhatsApp Setup", icon: MessageCircle },
   { path: "/portal/porting", label: "Number Porting", icon: ArrowLeftRight },
-  { path: "/portal/core-docs", label: "Core Docs", icon: BookOpen },
+  { path: "/portal/workflow-test-lab", label: "Test Lab", icon: FlaskConical },
   { path: "/portal/connect", label: "Connect AI Assistant", icon: Link2 },
   { path: "/portal/keys", label: "API Keys", icon: KeyRound },
   { path: "/portal/settings", label: "Settings", icon: Settings },
-  { path: "/admin-portal", label: "Admin Portal", icon: Shield, external: true },
 ];
 
 export default function PortalLayout() {
@@ -85,7 +80,7 @@ export default function PortalLayout() {
           </div>
 
           {/* Nav */}
-          <nav className="flex-1 py-3 space-y-0.5 px-2 overflow-y-auto scrollbar-thin">
+          <nav className="portal-sidebar-nav flex-1 py-3 space-y-0.5 px-2 overflow-y-auto scrollbar-thin">
             {CORE_NAV.map((item) => {
               const active = item.exact ? location.pathname === item.path : location.pathname.startsWith(item.path);
               return (
@@ -152,7 +147,7 @@ export default function PortalLayout() {
         </aside>
 
         {/* Main content */}
-        <main className="flex-1 overflow-y-auto pb-16 md:pb-0 min-h-screen">
+        <main className="portal-gold-scope flex-1 overflow-y-auto pb-16 md:pb-0 min-h-screen">
           {/* ===== MOBILE: top bar ===== */}
           <div className="md:hidden sticky top-0 z-30 border-b border-border bg-card/95 backdrop-blur-xl">
             <div className="flex items-center justify-between px-4 h-14">

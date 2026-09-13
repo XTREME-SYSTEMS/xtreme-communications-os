@@ -31,12 +31,34 @@
       "type": "string",
       "enum": [
         "active",
-        "completed",
-        "failed",
         "queued",
-        "ringing"
+        "sent",
+        "delivered",
+        "completed",
+        "ringing",
+        "failed",
+        "undelivered",
+        "expired",
+        "suppressed",
+        "cancelled"
       ],
       "default": "active"
+    },
+    "provider_id": {
+      "type": "string",
+      "description": "ID of the provider that handled this event"
+    },
+    "provider_message_id": {
+      "type": "string",
+      "description": "Provider's message/call ID for correlation"
+    },
+    "error_code": {
+      "type": "string",
+      "description": "Carrier or provider error code"
+    },
+    "error_detail": {
+      "type": "string",
+      "description": "Human-readable error description"
     },
     "duration_sec": {
       "type": "number"
@@ -66,6 +88,23 @@
         "failed"
       ],
       "default": "none"
+    },
+    "tenant_id": {
+      "type": "string",
+      "description": "Tenant ownership for multi-tenant isolation"
+    },
+    "idempotency_key": {
+      "type": "string",
+      "description": "Idempotency key to prevent duplicate sends"
+    },
+    "campaign_id": {
+      "type": "string",
+      "description": "Campaign this event belongs to"
+    },
+    "cost": {
+      "type": "number",
+      "default": 0,
+      "description": "Cost of this communication event"
     }
   },
   "required": [

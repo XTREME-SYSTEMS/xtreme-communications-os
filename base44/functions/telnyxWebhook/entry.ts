@@ -83,6 +83,9 @@ export default async function(req) {
         from_addr: from, to_addr: to,
         status: "completed", classification: "PROVIDER-BACKED",
         summary: (payload.text || "").slice(0, 200) || `inbound ${channel}`,
+        provider_id: "telnyx",
+        provider_message_id: payload.id || undefined,
+        tenant_id: tenantId,
       });
 
       // Thread into conversation
@@ -147,6 +150,9 @@ export default async function(req) {
         status: eventType === "call.answered" ? "active" : "ringing",
         classification: "PROVIDER-BACKED",
         summary: `${direction} call ${eventType} — ccc:${callControlId}`,
+        provider_id: "telnyx",
+        provider_message_id: callControlId || undefined,
+        tenant_id: tenantId,
       });
 
       // When the callee answers, answer the call leg and speak a greeting

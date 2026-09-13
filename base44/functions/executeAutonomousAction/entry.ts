@@ -67,7 +67,13 @@ export default async function(req) {
       await base44.asServiceRole.entities.CommsEvent.create({
         channel: "sms", direction: "outbound",
         from_addr: from_number || "+18334843799", to_addr: to_number, summary: message,
-        status: delivery.delivered && delivery.to_status !== "delivery_failed" ? "completed" : "failed", classification: "PROVIDER-BACKED",
+        status: delivery.delivered && delivery.to_status !== "delivery_failed" ? "delivered" : "failed",
+        classification: "PROVIDER-BACKED",
+        provider_id: "telnyx",
+        provider_message_id: messageId || undefined,
+        error_code: delivery.error_code || undefined,
+        error_detail: delivery.error_detail || undefined,
+        tenant_id: tenant?.id,
       });
       const actuallyDelivered = delivery.delivered && delivery.to_status !== "delivery_failed" && delivery.to_status !== "queued";
       return Response.json({
@@ -93,10 +99,17 @@ export default async function(req) {
       const payload = buildTelnyxPayload("whatsapp", { from: from_number || "+18334843799", to: to_number, text: message });
       const result = await sendTelnyx(telnyxKey, endpoint, payload);
       const delivery = extractDeliveryStatus(result.data);
+      const waMessageId = result.data?.data?.id || null;
       await base44.asServiceRole.entities.CommsEvent.create({
         channel: "whatsapp", direction: "outbound",
         from_addr: from_number || "+18334843799", to_addr: to_number, summary: message,
-        status: delivery.delivered ? "completed" : "failed", classification: "PROVIDER-BACKED",
+        status: delivery.delivered ? "delivered" : "failed",
+        classification: "PROVIDER-BACKED",
+        provider_id: "telnyx",
+        provider_message_id: waMessageId || undefined,
+        error_code: delivery.error_code || undefined,
+        error_detail: delivery.error_detail || undefined,
+        tenant_id: tenant?.id,
       });
       return Response.json({
         action: "send_whatsapp", ok: result.ok, to: to_number, message,
@@ -133,6 +146,11 @@ export default async function(req) {
         channel: "voice", direction: "outbound",
         from_addr: from_number || "+19549102671", to_addr: to_number, summary: `AI voice call`,
         status: res.ok ? "active" : "failed", classification: "PROVIDER-BACKED",
+        provider_id: "telnyx",
+        provider_message_id: callControlId || undefined,
+        error_code: res.ok ? undefined : (data?.errors?.[0]?.code ? String(data.errors[0].code) : undefined),
+        error_detail: res.ok ? undefined : (data?.errors?.[0]?.detail || data?.errors?.[0]?.title || undefined),
+        tenant_id: tenant?.id,
       });
       return Response.json({ action: "make_call", ok: res.ok, call_control_id: callControlId, call_leg_id: data?.data?.call_leg_id || null, is_alive: data?.data?.is_alive || false, from: from_number || "+19549102671", to: to_number, status: res.ok ? "call_initiated" : "failed", error: res.ok ? null : (data?.errors?.[0]?.detail || data?.errors?.[0]?.title || "unknown") });
     }

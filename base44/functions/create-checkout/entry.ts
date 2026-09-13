@@ -71,26 +71,42 @@ Deno.serve(async (req: Request) => {
     // ===== APP-SPECIFIC =====
     // Server-side product catalog — authoritative prices, NEVER trust client-sent prices.
     const PRODUCTS: Record<string, { name: string; price: string; subscription?: { frequency: string; interval?: number } }> = {
-      "plan-starter":         { name: "Starter Plan — Monthly",       price: "49.00",  subscription: { frequency: "MONTH" } },
-      "plan-essential":       { name: "Essential Plan — Monthly",     price: "99.00",  subscription: { frequency: "MONTH" } },
-      "plan-professional":    { name: "Professional Plan — Monthly", price: "149.00", subscription: { frequency: "MONTH" } },
-      "plan-growth":          { name: "Growth Plan — Monthly",        price: "199.00", subscription: { frequency: "MONTH" } },
-      "plan-starter-annual":      { name: "Starter Plan — Annual",       price: "39.20",  subscription: { frequency: "YEAR" } },
-      "plan-essential-annual":      { name: "Essential Plan — Annual",     price: "79.20",  subscription: { frequency: "YEAR" } },
-      "plan-professional-annual":  { name: "Professional Plan — Annual",   price: "119.20", subscription: { frequency: "YEAR" } },
-      "plan-growth-annual":         { name: "Growth Plan — Annual",        price: "159.20", subscription: { frequency: "YEAR" } },
-      "payg-sms-1000":         { name: "SMS Credit (1,000 msgs)",         price: "4.00" },
-      "payg-mms-1000":         { name: "MMS Credit (1,000 msgs)",         price: "12.00" },
-      "payg-whatsapp-1000":    { name: "WhatsApp Credit (1,000 min)",     price: "2.50" },
-      "payg-voice-out-1000":   { name: "Outbound Call Credit (1,000 min)",price: "7.00" },
-      "payg-voice-in-1000":    { name: "Inbound Call Credit (1,000 min)",  price: "3.20" },
-      "payg-recording-1000":   { name: "Call Recording Credit (1,000 min)",price: "2.00" },
-      "payg-ai-100":           { name: "Conversational AI Credit (100 min)",price: "5.00" },
-      "payg-stt-1000":         { name: "Speech-to-Text Credit (1,000 min)", price: "7.40" },
-      "payg-tts-100k":         { name: "Text-to-Speech Credit (100K chars)", price: "0.50" },
-      "payg-email-10000":      { name: "Email Credit (10,000 emails)",     price: "13.00" },
-      "payg-local-number":     { name: "Local Phone Number — Monthly",    price: "1.00", subscription: { frequency: "MONTH" } },
-      "payg-tollfree-number": { name: "Toll-Free Phone Number — Monthly",  price: "1.00", subscription: { frequency: "MONTH" } },
+      // Plans — monthly
+      "plan-launch":           { name: "Launch Plan — Monthly",          price: "99.00",   subscription: { frequency: "MONTH" } },
+      "plan-essential":        { name: "Essential Plan — Monthly",       price: "249.00",  subscription: { frequency: "MONTH" } },
+      "plan-professional":     { name: "Professional Plan — Monthly",    price: "599.00",  subscription: { frequency: "MONTH" } },
+      "plan-growth":           { name: "Growth Plan — Monthly",          price: "1499.00", subscription: { frequency: "MONTH" } },
+      "plan-agency":           { name: "Agency Plan — Monthly",          price: "2999.00", subscription: { frequency: "MONTH" } },
+      "plan-enterprise":       { name: "Enterprise Plan — Monthly",      price: "7500.00", subscription: { frequency: "MONTH" } },
+      // Plans — annual (20% off)
+      "plan-launch-annual":       { name: "Launch Plan — Annual",          price: "79.00",   subscription: { frequency: "YEAR" } },
+      "plan-essential-annual":    { name: "Essential Plan — Annual",       price: "199.00",  subscription: { frequency: "YEAR" } },
+      "plan-professional-annual": { name: "Professional Plan — Annual",  price: "479.00",  subscription: { frequency: "YEAR" } },
+      "plan-growth-annual":       { name: "Growth Plan — Annual",          price: "1199.00", subscription: { frequency: "YEAR" } },
+      "plan-agency-annual":       { name: "Agency Plan — Annual",          price: "2399.00", subscription: { frequency: "YEAR" } },
+      "plan-enterprise-annual":   { name: "Enterprise Plan — Annual",      price: "6000.00", subscription: { frequency: "YEAR" } },
+      // PAYG — Phone Numbers
+      "payg-local-number":     { name: "Local Phone Number — Monthly",     price: "3.00", subscription: { frequency: "MONTH" } },
+      "payg-tollfree-number":  { name: "Toll-Free Phone Number — Monthly", price: "5.00", subscription: { frequency: "MONTH" } },
+      // PAYG — Messaging
+      "payg-sms-1000":         { name: "SMS Credit (1,000 msgs)",          price: "12.00" },
+      "payg-mms-1000":         { name: "MMS Credit (1,000 msgs)",          price: "35.00" },
+      "payg-whatsapp-1000":    { name: "WhatsApp Credit (1,000 msgs)",    price: "10.00" },
+      "payg-rcs-text-1000":    { name: "RCS Rich Text (1,000 segments)",  price: "18.00" },
+      // PAYG — Voice
+      "payg-voice-1000":       { name: "Programmable Voice (1,000 min)",  price: "25.00" },
+      "payg-ai-voice-1000":    { name: "AI Voice Credit (1,000 min)",     price: "140.00" },
+      "payg-recording-1000":   { name: "Call Recording (1,000 min)",      price: "10.00" },
+      "payg-branded-100":      { name: "Branded Calling (100 calls)",     price: "15.00" },
+      // PAYG — AI Agents & Add-ons
+      "payg-managed-agent":    { name: "Managed AI Employee — Monthly",   price: "499.00", subscription: { frequency: "MONTH" } },
+      "payg-whitelabel-tenant":{ name: "White-label Tenant — Monthly",     price: "999.00", subscription: { frequency: "MONTH" } },
+      "payg-dedicated-support":{ name: "Dedicated Support — Monthly",     price: "1500.00", subscription: { frequency: "MONTH" } },
+      // PAYG — Email & Utilities
+      "payg-email-1000":       { name: "Email Credit (1,000 emails)",     price: "1.50" },
+      "payg-lookup-1000":      { name: "Lookup (1,000 queries)",          price: "5.00" },
+      "payg-verify-100":       { name: "Verify (100 successes)",          price: "8.00" },
+      "payg-fax-100":          { name: "Fax (100 pages)",                 price: "3.00" },
     };
 
     // Accept either a single product or an array of items (cart).

@@ -7,71 +7,84 @@ import CartDrawer from "@/components/CartDrawer";
 
 const PLANS = [
   {
-    name: "Starter",
-    price: 49,
+    name: "Launch",
+    price: 99,
     period: "/mo",
-    desc: "For small teams getting started with AI communications",
-    features: ["1 phone number included", "1 AI voice agent", "500 SMS / month", "100 voice minutes / month", "1,000 emails / month", "Email support", "Basic analytics"],
+    desc: "Small business entry — basic AI receptionist + inbox",
+    features: ["1 AI agent included", "1 phone number included", "500 SMS / month", "100 AI voice minutes / month", "5,000 emails / month", "10 workflow slots", "Unified SMS inbox", "Basic analytics", "Email support"],
     cta: "Add to Cart",
   },
   {
     name: "Essential",
-    price: 99,
+    price: 249,
     period: "/mo",
-    desc: "For growing teams that need more capacity",
-    features: ["3 phone numbers included", "2 AI voice agents", "2,000 SMS / month", "500 voice minutes / month", "5,000 emails / month", "Call recording", "Standard support", "Advanced analytics"],
+    desc: "Core SMB — receptionist + sales + support automations",
+    features: ["3 AI agents included", "3 phone numbers included", "2,000 SMS / month", "500 AI voice minutes / month", "25,000 emails / month", "30 workflow slots", "WhatsApp Business API", "Call recording", "XTREME CRM", "Breeze AI Copilot", "Standard support", "Advanced analytics"],
     cta: "Add to Cart",
   },
   {
     name: "Professional",
-    price: 149,
+    price: 599,
     period: "/mo",
-    desc: "For businesses scaling their communications",
-    features: ["5 phone numbers included", "3 AI voice agents", "4,000 SMS / month", "800 voice minutes / month", "8,000 emails / month", "WhatsApp Business API", "Custom templates", "Priority support", "Advanced analytics"],
-    cta: "Add to Cart",
-  },
-  {
-    name: "Growth",
-    price: 199,
-    period: "/mo",
-    desc: "For growing businesses that need more channels and agents",
-    features: ["5 phone numbers included", "5 AI voice agents", "5,000 SMS / month", "1,000 voice minutes / month", "10,000 emails / month", "WhatsApp Business API", "Workflow Generator", "Content Library", "Google Workspace Sync", "Live Monitoring", "Xtreme Social", "Priority support", "Advanced analytics", "Custom templates"],
+    desc: "High-value SMB — full AI team + advanced workflows",
+    features: ["10 AI agents included", "10 phone numbers included", "10,000 SMS / month", "2,000 AI voice minutes / month", "100,000 emails / month", "75 workflow slots", "WhatsApp Business API", "Lead Scraper + enrichment", "Coupon & Business Card generators", "HubSpot sync", "Link Builder & QR", "Agent Memory", "Priority support", "Advanced analytics"],
     cta: "Add to Cart",
     featured: true,
   },
   {
+    name: "Growth",
+    price: 1499,
+    period: "/mo",
+    desc: "Multi-location — campaigns, live monitoring & API access",
+    features: ["25 AI agents included", "25 phone numbers included", "50,000 SMS / month", "5,000 AI voice minutes / month", "500,000 emails / month", "200 workflow slots", "All Professional features", "Workflow Generator", "Content Library", "Google Workspace Sync", "Live Monitoring", "Xtreme Social", "Company Showcase", "API access", "Priority support"],
+    cta: "Add to Cart",
+  },
+  {
+    name: "Agency",
+    price: 2999,
+    period: "/mo",
+    desc: "Agencies & resellers — white-label + multi-tenant",
+    features: ["75 AI agents included", "100 phone numbers included", "250,000 SMS / month", "15,000 AI voice minutes / month", "2,000,000 emails / month", "500 workflow slots", "All Growth features", "White-label dashboard", "Multi-tenant subaccounts", "Reseller billing & markup controls", "Client template library", "Dedicated support"],
+    cta: "Add to Cart",
+  },
+  {
     name: "Enterprise",
-    price: null,
-    period: "",
-    desc: "For high-volume operations with custom needs",
-    features: ["Unlimited phone numbers", "Unlimited AI agents", "Volume-based pricing", "All features included", "Dedicated account manager", "Custom integrations", "SLA guarantee (99.99%)", "On-premise option", "White-label dashboard", "24/7 phone support"],
+    price: 7500,
+    period: "/mo",
+    desc: "Platform-scale — SSO, SLA & custom integrations",
+    features: ["250 AI agents included", "250 phone numbers included", "500,000 SMS / month", "30,000 AI voice minutes / month", "5,000,000 emails / month", "1,000 workflow slots", "All Agency features", "SSO & SAML", "99.99% SLA guarantee", "Dedicated routing", "Custom integrations", "Governance & audit controls", "Dedicated account manager", "24/7 phone support"],
     cta: "Contact Sales",
   },
 ];
 
 const PAYG = [
   { category: "Phone Numbers", items: [
-    { name: "Local number", price: 1.00, unit: "/mo", desc: "per month", qty: 1 },
-    { name: "Toll-free number", price: 1.00, unit: "/mo", desc: "per month", qty: 1 },
-    { name: "Number porting", price: 0, unit: "", desc: "Free porting", qty: 1 },
+    { slug: "local-number", name: "Local number", price: 3.00, unit: "/mo", desc: "Carrier included · $3/mo", qty: 1 },
+    { slug: "tollfree-number", name: "Toll-free number", price: 5.00, unit: "/mo", desc: "Carrier included · $5/mo", qty: 1 },
+    { slug: "number-porting", name: "Number porting", price: 0, unit: "", desc: "Free porting", qty: 1 },
   ]},
   { category: "Messaging", items: [
-    { name: "SMS Credit (1,000 msgs)", price: 4.00, unit: "", desc: "$0.004/msg · 1,000 messages", qty: 1 },
-    { name: "MMS Credit (1,000 msgs)", price: 12.00, unit: "", desc: "$0.012/msg · 1,000 messages", qty: 1 },
-    { name: "WhatsApp Credit (1,000 min)", price: 2.50, unit: "", desc: "$0.0025/min · 1,000 minutes", qty: 1 },
+    { slug: "sms-1000", name: "SMS Credit (1,000 msgs)", price: 12.00, unit: "", desc: "$0.012/msg · carrier fees pass-through", qty: 1 },
+    { slug: "mms-1000", name: "MMS Credit (1,000 msgs)", price: 35.00, unit: "", desc: "$0.035/msg · carrier fees pass-through", qty: 1 },
+    { slug: "whatsapp-1000", name: "WhatsApp Credit (1,000 msgs)", price: 10.00, unit: "", desc: "$0.01/msg · Meta fee pass-through", qty: 1 },
+    { slug: "rcs-text-1000", name: "RCS Rich Text (1,000 segments)", price: 18.00, unit: "", desc: "$0.018/segment · carrier pass-through", qty: 1 },
   ]},
   { category: "Voice", items: [
-    { name: "Outbound Call Credit (1,000 min)", price: 7.00, unit: "", desc: "$0.007/min · 1,000 minutes", qty: 1 },
-    { name: "Inbound Call Credit (1,000 min)", price: 3.20, unit: "", desc: "$0.0032/min · 1,000 minutes", qty: 1 },
-    { name: "Call Recording Credit (1,000 min)", price: 2.00, unit: "", desc: "$0.002/min · 1,000 minutes", qty: 1 },
+    { slug: "voice-1000", name: "Programmable Voice (1,000 min)", price: 25.00, unit: "", desc: "$0.025/min · outbound API+SIP baseline", qty: 1 },
+    { slug: "ai-voice-1000", name: "AI Voice Credit (1,000 min)", price: 140.00, unit: "", desc: "$0.14/min · all-in AI voice (premium LLM extra)", qty: 1 },
+    { slug: "recording-1000", name: "Call Recording (1,000 min)", price: 10.00, unit: "", desc: "$0.01/min · storage beyond included retention", qty: 1 },
+    { slug: "branded-100", name: "Branded Calling (100 calls)", price: 15.00, unit: "", desc: "$0.15/call · brand setup billed separately", qty: 1 },
   ]},
-  { category: "AI Agents", items: [
-    { name: "Conversational AI Credit (100 min)", price: 5.00, unit: "", desc: "$0.05/min · 100 minutes", qty: 1 },
-    { name: "Speech-to-Text Credit (1,000 min)", price: 7.40, unit: "", desc: "$0.0074/min · 1,000 minutes", qty: 1 },
-    { name: "Text-to-Speech Credit (100K chars)", price: 0.30, unit: "", desc: "$0.000003/char · 100K chars", qty: 1 },
+  { category: "AI Agents & Add-ons", items: [
+    { slug: "managed-agent", name: "Managed AI Employee", price: 499.00, unit: "/mo", desc: "Per agent/month · usage separate", qty: 1 },
+    { slug: "whitelabel-tenant", name: "White-label Tenant", price: 999.00, unit: "/mo", desc: "Per tenant/month · plus usage", qty: 1 },
+    { slug: "dedicated-support", name: "Dedicated Support", price: 1500.00, unit: "/mo", desc: "Tiered by SLA", qty: 1 },
   ]},
-  { category: "Email", items: [
-    { name: "Email Credit (10,000 emails)", price: 13.00, unit: "", desc: "$0.0013/email · 10,000 emails", qty: 1 },
+  { category: "Email & Utilities", items: [
+    { slug: "email-1000", name: "Email Credit (1,000 emails)", price: 1.50, unit: "", desc: "$0.0015/email · higher volumes reduce cost", qty: 1 },
+    { slug: "lookup-1000", name: "Lookup (1,000 queries)", price: 5.00, unit: "", desc: "$0.005/query · number intelligence", qty: 1 },
+    { slug: "verify-100", name: "Verify (100 successes)", price: 8.00, unit: "", desc: "$0.08/success · channel cost pass-through", qty: 1 },
+    { slug: "fax-100", name: "Fax (100 pages)", price: 3.00, unit: "", desc: "$0.03/page · SIP pass-through", qty: 1 },
   ]},
 ];
 
@@ -152,8 +165,8 @@ export default function Pricing() {
 
       {/* Header */}
       <div className="max-w-4xl mx-auto px-4 pt-16 pb-8 text-center">
-        <h1 className="text-4xl font-display font-bold text-foreground mb-2">Simple, Transparent Pricing</h1>
-        <p className="text-muted-foreground">Start free. Pay-as-you-go or pick a plan. No hidden fees, ever.</p>
+        <h1 className="text-4xl font-display font-bold text-foreground mb-2">The AI Communications OS</h1>
+        <p className="text-muted-foreground">Full-stack AI agents, CRM, workflows & omnichannel messaging. Platform subscription + metered usage. No hidden fees.</p>
         <div className="inline-flex items-center gap-1 p-1 rounded-lg border border-border bg-card mt-6">
           <button onClick={() => setBilling("monthly")} className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${billing === "monthly" ? "gold-gradient text-black" : "text-muted-foreground"}`}>Monthly</button>
           <button onClick={() => setBilling("annual")} className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${billing === "annual" ? "gold-gradient text-black" : "text-muted-foreground"}`}>Annual <span className="text-xs opacity-80">(Save 20%)</span></button>
@@ -162,7 +175,7 @@ export default function Pricing() {
 
       {/* Plans */}
       <div className="max-w-6xl mx-auto px-4 pb-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {PLANS.map((p) => {
             const displayPrice = p.price === null ? "Custom" : billing === "annual" ? `$${Math.round(p.price * 0.8)}` : `$${p.price}`;
             return (
@@ -188,7 +201,7 @@ export default function Pricing() {
                     {p.cta} <ArrowRight className="h-4 w-4" />
                   </Link>
                 ) : (
-                  <button onClick={() => addToCart({ id: `plan-${p.name}`, name: `${p.name} Plan`, desc: `${p.features.length} features · ${billing}`, price: billing === "annual" ? Math.round(p.price * 0.8) : p.price })}
+                  <button onClick={() => addToCart({ id: billing === "annual" ? `plan-${p.name.toLowerCase()}-annual` : `plan-${p.name.toLowerCase()}`, name: `${p.name} Plan`, desc: `${p.features.length} features · ${billing}`, price: billing === "annual" ? Math.round(p.price * 0.8) : p.price })}
                     className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium gold-gradient text-black hover:opacity-90">
                     <Plus className="h-4 w-4" /> {p.cta}
                   </button>
@@ -251,7 +264,7 @@ export default function Pricing() {
                         <span className="text-sm font-medium text-foreground">${item.price.toFixed(2)}</span>
                       </div>
                       {item.price > 0 && (
-                        <button onClick={() => addToCart({ id: `payg-${item.name}`, name: item.name, desc: item.desc, price: item.price })}
+                        <button onClick={() => addToCart({ id: `payg-${item.slug}`, name: item.name, desc: item.desc, price: item.price })}
                           className="shrink-0 px-2 py-1 rounded-lg gold-gradient text-black text-xs font-medium hover:opacity-90 flex items-center gap-1">
                           <Plus className="h-3 w-3" /> Add
                         </button>
@@ -263,7 +276,7 @@ export default function Pricing() {
             ))}
           </div>
           <div className="text-center mt-8">
-            <p className="text-xs text-muted-foreground mb-3">All rates are published. No markup on carrier passthrough. Volume discounts start at $500/mo committed spend.</p>
+            <p className="text-xs text-muted-foreground mb-3">All rates published. Carrier & Meta fees pass-through at cost. Platform fees create durable margin. Volume discounts start at $1,000/mo committed spend.</p>
             <Link to="/register" className="inline-flex items-center gap-2 px-6 py-3 rounded-lg border border-border bg-card text-foreground font-medium hover:bg-accent transition-colors">
               Start Pay-As-You-Go <ArrowRight className="h-4 w-4" />
             </Link>
@@ -280,51 +293,58 @@ export default function Pricing() {
               <thead>
                 <tr className="border-b border-border">
                   <th className="text-left py-3 text-muted-foreground font-medium">Feature</th>
-                  <th className="text-center py-3 text-muted-foreground font-medium">Starter</th>
+                  <th className="text-center py-3 text-muted-foreground font-medium">Launch</th>
                   <th className="text-center py-3 text-muted-foreground font-medium">Essential</th>
-                  <th className="text-center py-3 text-muted-foreground font-medium">Pro</th>
-                  <th className="text-center py-3 text-primary font-medium">Growth</th>
+                  <th className="text-center py-3 text-primary font-medium">Professional</th>
+                  <th className="text-center py-3 text-muted-foreground font-medium">Growth</th>
+                  <th className="text-center py-3 text-muted-foreground font-medium">Agency</th>
                   <th className="text-center py-3 text-muted-foreground font-medium">Enterprise</th>
                 </tr>
               </thead>
               <tbody>
                 {[
-                  { feature: "Phone numbers", s: "1", e: "3", p: "5", g: "5", ent: "Unlimited" },
-                  { feature: "AI voice agents", s: "1", e: "2", p: "3", g: "5", ent: "Unlimited" },
-                  { feature: "SMS / month", s: "500", e: "2,000", p: "4,000", g: "5,000", ent: "Volume" },
-                  { feature: "Voice minutes / month", s: "100", e: "500", p: "800", g: "1,000", ent: "Volume" },
-                  { feature: "WhatsApp Business", s: "—", e: "—", p: "✓", g: "✓", ent: "✓" },
-                  { feature: "Call recording", s: "—", e: "✓", p: "✓", g: "✓", ent: "✓" },
-                  { feature: "Custom templates", s: "—", e: "—", p: "✓", g: "✓", ent: "✓" },
-                  { feature: "Advanced analytics", s: "—", e: "✓", p: "✓", g: "✓", ent: "✓" },
-                  { feature: "Priority support", s: "—", e: "—", p: "✓", g: "✓", ent: "✓" },
-                  { feature: "Dedicated manager", s: "—", e: "—", p: "—", g: "—", ent: "✓" },
-                  { feature: "SLA guarantee", s: "—", e: "—", p: "—", g: "—", ent: "99.99%" },
-                  { feature: "White-label", s: "—", e: "—", p: "—", g: "—", ent: "✓" },
-                  { feature: "Testing Studio", s: "✓", e: "✓", p: "✓", g: "✓", ent: "✓" },
-                  { feature: "Brand Kit", s: "—", e: "✓", p: "✓", g: "✓", ent: "✓" },
-                  { feature: "Agent Memory", s: "—", e: "—", p: "✓", g: "✓", ent: "✓" },
-                  { feature: "Workflow Generator", s: "—", e: "—", p: "—", g: "✓", ent: "✓" },
-                  { feature: "Content Library", s: "—", e: "—", p: "—", g: "✓", ent: "✓" },
-                  { feature: "Google Workspace Sync", s: "—", e: "—", p: "—", g: "✓", ent: "✓" },
-                  { feature: "Live Monitoring", s: "—", e: "—", p: "—", g: "✓", ent: "✓" },
-                  { feature: "Xtreme Social", s: "—", e: "—", p: "—", g: "✓", ent: "✓" },
-                  { feature: "XTREME CRM", s: "—", e: "✓", p: "✓", g: "✓", ent: "✓" },
-                  { feature: "Lead Scraper", s: "—", e: "—", p: "✓", g: "✓", ent: "✓" },
-                  { feature: "Breeze AI Copilot", s: "—", e: "✓", p: "✓", g: "✓", ent: "✓" },
-                  { feature: "Coupon Generator", s: "—", e: "—", p: "✓", g: "✓", ent: "✓" },
-                  { feature: "Business Cards", s: "—", e: "—", p: "✓", g: "✓", ent: "✓" },
-                  { feature: "Company Showcase", s: "—", e: "—", p: "—", g: "✓", ent: "✓" },
-                  { feature: "Link Builder & QR", s: "—", e: "—", p: "✓", g: "✓", ent: "✓" },
-                  { feature: "HubSpot Sync", s: "—", e: "—", p: "✓", g: "✓", ent: "✓" },
-                  { feature: "Core Documentation", s: "✓", e: "✓", p: "✓", g: "✓", ent: "✓" },
+                  { feature: "Platform price / mo", l: "$99", e: "$249", p: "$599", g: "$1,499", a: "$2,999", ent: "$7,500" },
+                  { feature: "AI agents included", l: "1", e: "3", p: "10", g: "25", a: "75", ent: "250" },
+                  { feature: "Phone numbers included", l: "1", e: "3", p: "10", g: "25", a: "100", ent: "250" },
+                  { feature: "SMS / month", l: "500", e: "2,000", p: "10,000", g: "50,000", a: "250,000", ent: "500,000" },
+                  { feature: "AI voice minutes / month", l: "100", e: "500", p: "2,000", g: "5,000", a: "15,000", ent: "30,000" },
+                  { feature: "Emails / month", l: "5,000", e: "25,000", p: "100,000", g: "500,000", a: "2,000,000", ent: "5,000,000" },
+                  { feature: "Workflow slots", l: "10", e: "30", p: "75", g: "200", a: "500", ent: "1,000" },
+                  { feature: "Unified SMS Inbox", l: "✓", e: "✓", p: "✓", g: "✓", a: "✓", ent: "✓" },
+                  { feature: "XTREME CRM", l: "—", e: "✓", p: "✓", g: "✓", a: "✓", ent: "✓" },
+                  { feature: "Breeze AI Copilot", l: "—", e: "✓", p: "✓", g: "✓", a: "✓", ent: "✓" },
+                  { feature: "WhatsApp Business API", l: "—", e: "✓", p: "✓", g: "✓", a: "✓", ent: "✓" },
+                  { feature: "Call recording", l: "—", e: "✓", p: "✓", g: "✓", a: "✓", ent: "✓" },
+                  { feature: "Lead Scraper + enrichment", l: "—", e: "—", p: "✓", g: "✓", a: "✓", ent: "✓" },
+                  { feature: "Coupon & Business Cards", l: "—", e: "—", p: "✓", g: "✓", a: "✓", ent: "✓" },
+                  { feature: "Link Builder & QR", l: "—", e: "—", p: "✓", g: "✓", a: "✓", ent: "✓" },
+                  { feature: "HubSpot Sync", l: "—", e: "—", p: "✓", g: "✓", a: "✓", ent: "✓" },
+                  { feature: "Agent Memory", l: "—", e: "—", p: "✓", g: "✓", a: "✓", ent: "✓" },
+                  { feature: "Workflow Generator", l: "—", e: "—", p: "—", g: "✓", a: "✓", ent: "✓" },
+                  { feature: "Content Library", l: "—", e: "—", p: "—", g: "✓", a: "✓", ent: "✓" },
+                  { feature: "Google Workspace Sync", l: "—", e: "—", p: "—", g: "✓", a: "✓", ent: "✓" },
+                  { feature: "Live Monitoring", l: "—", e: "—", p: "—", g: "✓", a: "✓", ent: "✓" },
+                  { feature: "Xtreme Social", l: "—", e: "—", p: "—", g: "✓", a: "✓", ent: "✓" },
+                  { feature: "Company Showcase", l: "—", e: "—", p: "—", g: "✓", a: "✓", ent: "✓" },
+                  { feature: "API access", l: "—", e: "—", p: "—", g: "✓", a: "✓", ent: "✓" },
+                  { feature: "White-label dashboard", l: "—", e: "—", p: "—", g: "—", a: "✓", ent: "✓" },
+                  { feature: "Multi-tenant subaccounts", l: "—", e: "—", p: "—", g: "—", a: "✓", ent: "✓" },
+                  { feature: "Reseller billing & markup", l: "—", e: "—", p: "—", g: "—", a: "✓", ent: "✓" },
+                  { feature: "SSO / SAML", l: "—", e: "—", p: "—", g: "—", a: "—", ent: "✓" },
+                  { feature: "SLA guarantee", l: "—", e: "—", p: "—", g: "—", a: "—", ent: "99.99%" },
+                  { feature: "Dedicated routing", l: "—", e: "—", p: "—", g: "—", a: "—", ent: "✓" },
+                  { feature: "Dedicated account manager", l: "—", e: "—", p: "—", g: "—", a: "✓", ent: "✓" },
+                  { feature: "24/7 phone support", l: "—", e: "—", p: "—", g: "—", a: "—", ent: "✓" },
+                  { feature: "Testing Studio", l: "✓", e: "✓", p: "✓", g: "✓", a: "✓", ent: "✓" },
+                  { feature: "Core Documentation", l: "✓", e: "✓", p: "✓", g: "✓", a: "✓", ent: "✓" },
                 ].map((row) => (
                   <tr key={row.feature} className="border-b border-border/50">
                     <td className="py-2.5 text-foreground">{row.feature}</td>
-                    <td className="text-center py-2.5 text-muted-foreground">{row.s}</td>
+                    <td className="text-center py-2.5 text-muted-foreground">{row.l}</td>
                     <td className="text-center py-2.5 text-muted-foreground">{row.e}</td>
-                    <td className="text-center py-2.5 text-muted-foreground">{row.p}</td>
-                    <td className="text-center py-2.5 text-primary font-medium">{row.g}</td>
+                    <td className="text-center py-2.5 text-primary font-medium">{row.p}</td>
+                    <td className="text-center py-2.5 text-muted-foreground">{row.g}</td>
+                    <td className="text-center py-2.5 text-muted-foreground">{row.a}</td>
                     <td className="text-center py-2.5 text-muted-foreground">{row.ent}</td>
                   </tr>
                 ))}
@@ -340,19 +360,22 @@ export default function Pricing() {
           <h2 className="text-2xl font-display font-bold text-foreground text-center mb-8">Pricing FAQ</h2>
           <div className="space-y-3">
             {[
-              { q: "What's included in the Workflow Generator?", a: "The Workflow Generator provides drag-and-drop workflow building with 5 channel types (Mobile, Voice, WhatsApp, Email, Custom) and 9 step types (AI Agent, Time Window, Day of Week, Delay, Script, Template, Message, Image, Condition). Available on Growth and Enterprise plans." },
-              { q: "What does Content Library include?", a: "AI-generated images, lifelike human photos, emoji sets, GIFs, jokes, social media posts, and videos. All generated content is saved to your CreativeAsset library for reuse. Available on Growth and Enterprise plans." },
-              { q: "How does Google Workspace sync work?", a: "Connect your Google Drive, Gmail, Calendar, Tasks, Docs, and Sheets to auto-sync intelligence reports, communication templates, agent schedules, and action items. Auto-sync runs in the background. Available on Growth and Enterprise plans." },
-              { q: "Can I monitor calls in real-time?", a: "Yes. The Live Monitoring dashboard shows active calls with live transcripts, audio playback, and agent performance metrics. Auto-refreshes every 3 seconds. Available on Growth and Enterprise plans." },
-              { q: "What is Xtreme Social?", a: "AI-powered social media content generation and scheduling across Facebook, Instagram, TikTok, X/Twitter, Snapchat, and LinkedIn. Generate posts, captions, hashtags, and video scripts with your brand kit. Available on Growth and Enterprise plans." },
-              { q: "Is the Core Documentation available on all plans?", a: "Yes. The Core Documentation page — covering all entities, backend functions, integrations, and API endpoints — is available on all plans including Starter and Pay-As-You-Go." },
+              { q: "What's included in the Workflow Generator?", a: "The Workflow Generator provides drag-and-drop workflow building with 5 channel types (Mobile, Voice, WhatsApp, Email, Custom) and 9 step types (AI Agent, Time Window, Day of Week, Delay, Script, Template, Message, Image, Condition). Available on Growth and above." },
+              { q: "What does Content Library include?", a: "AI-generated images, lifelike human photos, emoji sets, GIFs, jokes, social media posts, and videos. All generated content is saved to your CreativeAsset library for reuse. Available on Growth and above." },
+              { q: "How does Google Workspace sync work?", a: "Connect your Google Drive, Gmail, Calendar, Tasks, Docs, and Sheets to auto-sync intelligence reports, communication templates, agent schedules, and action items. Auto-sync runs in the background. Available on Growth and above." },
+              { q: "Can I monitor calls in real-time?", a: "Yes. The Live Monitoring dashboard shows active calls with live transcripts, audio playback, and agent performance metrics. Auto-refreshes every 3 seconds. Available on Growth and above." },
+              { q: "What is Xtreme Social?", a: "AI-powered social media content generation and scheduling across Facebook, Instagram, TikTok, X/Twitter, Snapchat, and LinkedIn. Generate posts, captions, hashtags, and video scripts with your brand kit. Available on Growth and above." },
+              { q: "Is the Core Documentation available on all plans?", a: "Yes. The Core Documentation page — covering all entities, backend functions, integrations, and API endpoints — is available on all plans including Launch and Pay-As-You-Go." },
               { q: "What is XTREME CRM?", a: "A full AI-assisted CRM built into the platform. Manage contacts with lifecycle stages, send bulk multi-channel outreach (SMS, MMS, email, voice, WhatsApp), set automated follow-ups, sync with HubSpot, and track your pipeline. Available on Essential and above." },
               { q: "How does the Lead Scraper work?", a: "Search for businesses by industry, location, keyword, and radius. The AI finds real businesses with ratings, reviews, and contact info. Enrich each lead with social profiles, revenue, and decision makers — then one-click ingest into your CRM. Available on Professional and above." },
               { q: "What is Breeze AI Copilot?", a: "A floating AI chat assistant available on every page. It can read your CRM contacts, suggest actions, draft messages, and help execute workflows. Available on Essential and above." },
               { q: "Can I create coupons and offers?", a: "Yes. The Coupon Generator creates coupons with AI-generated visuals, QR codes, smart links, and voice script injection — so your AI agent can mention offers during calls. Available on Professional and above." },
               { q: "Does it sync with HubSpot?", a: "Yes. XTREME CRM has bidirectional HubSpot sync — push contacts to HubSpot or pull them back. Available on Professional and above." },
+              { q: "What is the Agency plan?", a: "The Agency plan is built for resellers and agencies — it includes white-label dashboards, multi-tenant subaccounts, reseller billing with markup controls, and a client template library. $2,999/mo with 75 agents, 100 numbers, and 500 workflow slots included." },
+              { q: "What are Managed AI Employees?", a: "Managed AI Employees are fully-tuned, monitored AI agents available as an add-on at $499/agent/month. Each includes role prompt, tools, knowledge, policies, escalation rules, and a performance scorecard. Usage (voice minutes, SMS, etc.) is metered separately." },
               { q: "Can I switch plans anytime?", a: "Yes. Upgrade or downgrade at any time. Changes are prorated automatically. Cancel anytime with no penalty." },
               { q: "Do unused credits roll over?", a: "Pay-as-you-go credits never expire. Monthly plan included usage resets each billing cycle. Overages are billed at published pay-as-you-go rates." },
+              { q: "How does pricing compare to competitors?", a: "Competitor AI voice platforms charge $0.07–$0.15/min for raw voice infrastructure, and managed platforms like JustCall charge $99/mo for just 100 AI minutes. Xtreme includes the full stack — AI agents, CRM, workflows, multi-channel messaging, lead scraper, and analytics — starting at $99/mo (Launch) with 100 AI voice minutes included. At Professional ($599/mo), you get 10 AI agents and 2,000 AI voice minutes — a fraction of what a single human receptionist costs." },
             ].map((f) => (
               <div key={f.q} className="rounded-lg border border-border bg-card p-4">
                 <h3 className="font-medium text-foreground mb-1 text-sm">{f.q}</h3>

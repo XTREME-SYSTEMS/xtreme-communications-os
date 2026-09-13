@@ -83,6 +83,7 @@ import AgentFactory from './pages/AgentFactory';
 import AdminDashboard from './pages/AdminDashboard';
 import GoogleContactsManager from './pages/GoogleContactsManager';
 import XtremeFabric from './pages/XtremeFabric';
+import TwilioParityMatrix from './pages/TwilioParityMatrix';
 
 function App() {
   return (
@@ -144,6 +145,7 @@ function App() {
                 <Route path="/portal/admin-dashboard" element={<AdminDashboard />} />
                 <Route path="/portal/contacts-manager" element={<GoogleContactsManager />} />
                 <Route path="/portal/fabric" element={<XtremeFabric />} />
+                <Route path="/portal/parity-matrix" element={<TwilioParityMatrix />} />
               </Route>
               {/* Admin */}
               <Route path="/promo-admin" element={<PromoAdmin />} />

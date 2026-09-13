@@ -60,6 +60,24 @@ export default function XtremeFabric() {
     } catch (e) { console.error(e); }
   };
 
+  const [auditing, setAuditing] = useState(false);
+  const [auditResult, setAuditResult] = useState(null);
+
+  const runForensicAudit = async (systemId) => {
+    setAuditing(true);
+    try {
+      const res = await base44.functions.invoke("forensicAudit", { action: "forensic_audit", system_id: systemId });
+      setAuditResult(res?.data || null);
+      await load();
+    } catch (e) { console.error(e); }
+    setAuditing(false);
+  };
+
+  const benchmarkCounts = benchmarks.reduce((acc, b) => {
+    acc[b.status] = (acc[b.status] || 0) + 1;
+    return acc;
+  }, {});
+
   if (loading) {
     return <div className="flex items-center justify-center h-screen"><Loader2 className="h-8 w-8 animate-spin text-accent-orange" /></div>;
   }
@@ -255,10 +273,17 @@ export default function XtremeFabric() {
                         {sys.p1_count > 0 && <span className="flex items-center gap-1 text-chart-4"><AlertTriangle className="h-3 w-3" /> P1:{sys.p1_count}</span>}
                       </div>
                     </div>
-                    <button onClick={() => runBenchmarks(sys.system_id)}
-                      className="px-3 py-1.5 rounded-lg text-xs bg-muted hover:bg-accent text-foreground transition-colors shrink-0">
-                      Run Benchmarks
-                    </button>
+                    <div className="flex gap-2 shrink-0">
+                      <button onClick={() => runForensicAudit(sys.system_id)} disabled={auditing}
+                        className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs bg-accent-orange/10 text-accent-orange hover:bg-accent-orange/20 transition-colors disabled:opacity-50">
+                        {auditing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Shield className="h-3 w-3" />}
+                        Forensic Audit
+                      </button>
+                      <button onClick={() => runBenchmarks(sys.system_id)}
+                        className="px-3 py-1.5 rounded-lg text-xs bg-muted hover:bg-accent text-foreground transition-colors">
+                        Benchmarks
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))
@@ -268,14 +293,44 @@ export default function XtremeFabric() {
 
         {/* BENCHMARKS tab */}
         {activeTab === "benchmarks" && (
-          <div className="h-full overflow-y-auto scrollbar-thin p-4 space-y-2">
+          <div className="h-full overflow-y-auto scrollbar-thin p-4 space-y-3">
             {benchmarks.length === 0 ? (
               <div className="text-center py-12">
                 <Gauge className="h-10 w-10 text-muted-foreground mx-auto mb-3 opacity-40" />
-                <p className="text-sm text-muted-foreground">No benchmark results yet. Run benchmarks from the Systems tab.</p>
+                <p className="text-sm text-muted-foreground">No benchmark results yet. Run a Forensic Audit from the Systems tab.</p>
               </div>
             ) : (
-              benchmarks.map(b => (
+              <>
+                {/* Score gauge + status breakdown */}
+                <div className="rounded-xl border border-border bg-card p-4">
+                  <div className="flex items-center gap-6">
+                    <div className="relative w-20 h-20 shrink-0">
+                      <svg className="w-full h-full -rotate-90" viewBox="0 0 80 80">
+                        <circle cx="40" cy="40" r="34" fill="none" stroke="hsl(var(--muted))" strokeWidth="6" />
+                        <circle cx="40" cy="40" r="34" fill="none" stroke="hsl(var(--accent-orange))" strokeWidth="6"
+                          strokeDasharray={`${2 * Math.PI * 34 * (systems[0]?.verified_score || 0) / 100} ${2 * Math.PI * 34}`}
+                          strokeLinecap="round" />
+                      </svg>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <span className="text-xl font-bold text-foreground">{systems[0]?.verified_score || 0}</span>
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Forensic Audit Score</p>
+                      <div className="flex gap-3 flex-wrap">
+                        <span className="flex items-center gap-1.5 text-xs"><div className="w-2 h-2 rounded-full bg-status-green" /> {benchmarkCounts.pass || 0} pass</span>
+                        <span className="flex items-center gap-1.5 text-xs"><div className="w-2 h-2 rounded-full bg-destructive" /> {benchmarkCounts.fail || 0} fail</span>
+                        <span className="flex items-center gap-1.5 text-xs"><div className="w-2 h-2 rounded-full bg-muted-foreground" /> {benchmarkCounts.unknown || 0} unknown</span>
+                      </div>
+                      {auditResult && (
+                        <p className="text-xs text-muted-foreground mt-2">
+                          {auditResult.mandatory_pass}/{auditResult.mandatory_total} mandatory • {auditResult.repairs_created} repairs created
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                {benchmarks.map(b => (
                 <div key={b.id} className="flex items-center gap-3 p-3 rounded-lg border border-border bg-card">
                   <div className={cn("w-2 h-2 rounded-full shrink-0",
                     b.status === 'pass' ? 'bg-status-green' :
@@ -297,7 +352,9 @@ export default function XtremeFabric() {
                     </span>
                   </div>
                 </div>
-              ))
+                ))
+                }
+              </>
             )}
           </div>
         )}

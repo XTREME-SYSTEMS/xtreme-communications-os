@@ -1,0 +1,82 @@
+{
+  "name": "ApprovalRequest",
+  "type": "object",
+  "properties": {
+    "system_id": {
+      "type": "string"
+    },
+    "action_type": {
+      "type": "string",
+      "enum": [
+        "production_deployment",
+        "destructive_migration",
+        "rls_change",
+        "secret_rotation",
+        "billing_change",
+        "domain_acquisition",
+        "irreversible_deletion",
+        "live_customer_communication",
+        "mass_publish",
+        "governance_change",
+        "base44_cutover"
+      ],
+      "default": "production_deployment"
+    },
+    "description": {
+      "type": "string"
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ],
+      "default": "high"
+    },
+    "repair_id": {
+      "type": "string",
+      "description": "Linked repair if this is a deployment approval"
+    },
+    "payload": {
+      "type": "object",
+      "description": "Action-specific data"
+    },
+    "requested_by": {
+      "type": "string",
+      "description": "Agent or system that requested approval"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected",
+        "expired"
+      ],
+      "default": "pending"
+    },
+    "approved_by": {
+      "type": "string"
+    },
+    "approved_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "rejection_reason": {
+      "type": "string"
+    },
+    "auto_expires_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "system_id",
+    "action_type",
+    "description",
+    "risk_level",
+    "status"
+  ]
+}

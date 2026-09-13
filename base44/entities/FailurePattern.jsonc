@@ -1,0 +1,80 @@
+{
+  "name": "FailurePattern",
+  "type": "object",
+  "properties": {
+    "pattern_id": {
+      "type": "string"
+    },
+    "system_id": {
+      "type": "string",
+      "description": "System where this pattern was first observed (can affect multiple)"
+    },
+    "failure_type": {
+      "type": "string",
+      "enum": [
+        "spec",
+        "architecture",
+        "code",
+        "data",
+        "permissions",
+        "integration",
+        "infrastructure",
+        "provider",
+        "model",
+        "knowledge",
+        "workflow",
+        "deployment"
+      ],
+      "default": "code"
+    },
+    "description": {
+      "type": "string"
+    },
+    "root_cause": {
+      "type": "string"
+    },
+    "frequency": {
+      "type": "integer",
+      "default": 1,
+      "description": "Number of times this pattern has been observed"
+    },
+    "successful_repair": {
+      "type": "string",
+      "description": "Description of the repair that worked"
+    },
+    "repair_template": {
+      "type": "string",
+      "description": "Reusable repair steps for this pattern"
+    },
+    "regression_test": {
+      "type": "string",
+      "description": "Regression test that prevents recurrence"
+    },
+    "benchmark_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Benchmarks that detect this pattern"
+    },
+    "first_seen_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_seen_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "resolved": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "pattern_id",
+    "system_id",
+    "failure_type",
+    "description"
+  ]
+}

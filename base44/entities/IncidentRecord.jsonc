@@ -1,0 +1,80 @@
+{
+  "name": "IncidentRecord",
+  "type": "object",
+  "properties": {
+    "incident_id": {
+      "type": "string"
+    },
+    "system_id": {
+      "type": "string"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "p0",
+        "p1",
+        "p2",
+        "p3"
+      ],
+      "default": "p1"
+    },
+    "description": {
+      "type": "string"
+    },
+    "evidence": {
+      "type": "string"
+    },
+    "affected_systems": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "repair_job_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "investigating",
+        "repairing",
+        "validating",
+        "resolved",
+        "closed"
+      ],
+      "default": "active"
+    },
+    "auto_rollback_attempted": {
+      "type": "boolean",
+      "default": false
+    },
+    "rollback_result": {
+      "type": "string"
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "resolved_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "postcondition_proof": {
+      "type": "string",
+      "description": "Proof required before incident can close"
+    }
+  },
+  "required": [
+    "incident_id",
+    "system_id",
+    "severity",
+    "description",
+    "status"
+  ]
+}

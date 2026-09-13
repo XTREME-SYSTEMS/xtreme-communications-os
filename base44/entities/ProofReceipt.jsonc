@@ -1,0 +1,80 @@
+{
+  "name": "ProofReceipt",
+  "type": "object",
+  "properties": {
+    "receipt_id": {
+      "type": "string"
+    },
+    "system_id": {
+      "type": "string"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "environment": {
+      "type": "string",
+      "enum": [
+        "production",
+        "preview",
+        "sandbox",
+        "local"
+      ],
+      "default": "production"
+    },
+    "source_sha": {
+      "type": "string"
+    },
+    "deployment_id": {
+      "type": "string"
+    },
+    "benchmark_id": {
+      "type": "string"
+    },
+    "validator": {
+      "type": "string",
+      "description": "Agent or tool that produced this receipt"
+    },
+    "expected": {
+      "type": "string"
+    },
+    "observed": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pass",
+        "fail",
+        "blocked",
+        "unknown"
+      ],
+      "default": "unknown"
+    },
+    "evidence": {
+      "type": "string",
+      "description": "Logs, test output, screenshots, etc."
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "URLs to artifacts (screenshots, reports, etc.)"
+    },
+    "rollback_plan": {
+      "type": "string"
+    },
+    "cost": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "receipt_id",
+    "system_id",
+    "benchmark_id",
+    "status"
+  ]
+}

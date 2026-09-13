@@ -1,0 +1,107 @@
+{
+  "name": "BenchmarkResult",
+  "type": "object",
+  "properties": {
+    "system_id": {
+      "type": "string"
+    },
+    "benchmark_id": {
+      "type": "string",
+      "description": "e.g. universal.architecture.build, comm.sms_delivery"
+    },
+    "benchmark_version": {
+      "type": "string",
+      "default": "1.0"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "universal_core",
+        "system_type",
+        "system_specific",
+        "external_standards"
+      ],
+      "default": "universal_core"
+    },
+    "test_name": {
+      "type": "string"
+    },
+    "expected": {
+      "type": "string",
+      "description": "Expected result"
+    },
+    "observed": {
+      "type": "string",
+      "description": "Actual observed result"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pass",
+        "fail",
+        "unknown",
+        "stale",
+        "skipped"
+      ],
+      "default": "unknown"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "p0",
+        "p1",
+        "p2",
+        "p3",
+        "info"
+      ],
+      "default": "info"
+    },
+    "mandatory": {
+      "type": "boolean",
+      "default": true
+    },
+    "score": {
+      "type": "number",
+      "default": 0,
+      "description": "0-100 for this individual benchmark"
+    },
+    "evidence": {
+      "type": "string",
+      "description": "Proof evidence (logs, screenshots, test output)"
+    },
+    "receipt_id": {
+      "type": "string"
+    },
+    "source_sha": {
+      "type": "string"
+    },
+    "environment": {
+      "type": "string",
+      "enum": [
+        "production",
+        "preview",
+        "sandbox",
+        "local"
+      ],
+      "default": "production"
+    },
+    "validator": {
+      "type": "string",
+      "description": "Agent or tool that ran this benchmark"
+    },
+    "failure_pattern_id": {
+      "type": "string",
+      "description": "Linked FailurePattern if this is a recurring failure"
+    },
+    "validated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "system_id",
+    "benchmark_id",
+    "test_name",
+    "status"
+  ]
+}

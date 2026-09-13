@@ -1,0 +1,47 @@
+{
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "*/5 * * * *",
+      "one_time_date": null,
+      "timezone": "America/New_York",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "fleet_heartbeat",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "fleet_cycle": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "fleetAlphaPrime",
+            "args": {
+              "action": "fleet_cycle"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Fleet Alpha Prime Cycle",
+            "description": "Inspect fleet, prioritize, record heartbeat"
+          }
+        }
+      }
+    ]
+  },
+  "name": "Fleet Heartbeat",
+  "description": "Primary clock \u2014 wakes Fleet Alpha Prime every 5 minutes to inspect fleet, prioritize work, and record heartbeat"
+}

@@ -1,0 +1,174 @@
+{
+  "name": "RepairPacket",
+  "type": "object",
+  "properties": {
+    "repair_id": {
+      "type": "string",
+      "description": "Unique repair identifier"
+    },
+    "system_id": {
+      "type": "string"
+    },
+    "benchmark_id": {
+      "type": "string",
+      "description": "Benchmark that failed and triggered this repair"
+    },
+    "finding": {
+      "type": "string",
+      "description": "What was found to be broken"
+    },
+    "expected": {
+      "type": "string"
+    },
+    "observed": {
+      "type": "string"
+    },
+    "evidence": {
+      "type": "string"
+    },
+    "reproduction": {
+      "type": "string",
+      "description": "Steps to reproduce the failure"
+    },
+    "root_cause": {
+      "type": "string",
+      "enum": [
+        "spec",
+        "architecture",
+        "code",
+        "data",
+        "permissions",
+        "integration",
+        "infrastructure",
+        "provider",
+        "model",
+        "knowledge",
+        "workflow",
+        "deployment",
+        "unknown"
+      ],
+      "default": "unknown"
+    },
+    "root_cause_detail": {
+      "type": "string"
+    },
+    "proposed_fix": {
+      "type": "string"
+    },
+    "files_affected": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "entities_affected": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "workflows_affected": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ],
+      "default": "medium"
+    },
+    "rollback_plan": {
+      "type": "string"
+    },
+    "acceptance_test": {
+      "type": "string",
+      "description": "Test that must pass for repair to be accepted"
+    },
+    "regression_test": {
+      "type": "string",
+      "description": "Permanent regression test to prevent recurrence"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "in_progress",
+        "ready_for_validation",
+        "validated",
+        "deployed",
+        "failed",
+        "blocked"
+      ],
+      "default": "pending"
+    },
+    "assigned_agent": {
+      "type": "string",
+      "description": "AgentTemplate role assigned to this repair"
+    },
+    "branch_name": {
+      "type": "string",
+      "description": "Git branch for this repair"
+    },
+    "commit_sha": {
+      "type": "string"
+    },
+    "validator_agent": {
+      "type": "string",
+      "description": "Independent validator agent"
+    },
+    "validation_result": {
+      "type": "string",
+      "enum": [
+        "not_run",
+        "passed",
+        "failed",
+        "blocked"
+      ],
+      "default": "not_run"
+    },
+    "failure_pattern_id": {
+      "type": "string"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "p0",
+        "p1",
+        "p2",
+        "p3"
+      ],
+      "default": "p2"
+    },
+    "attempts": {
+      "type": "integer",
+      "default": 0
+    },
+    "max_attempts": {
+      "type": "integer",
+      "default": 3
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "repair_id",
+    "system_id",
+    "finding",
+    "status"
+  ]
+}

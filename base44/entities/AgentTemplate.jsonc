@@ -1,0 +1,121 @@
+{
+  "name": "AgentTemplate",
+  "type": "object",
+  "properties": {
+    "role": {
+      "type": "string",
+      "description": "e.g. ProductStrategist, FrontendEngineer, SecurityAuditor, QAValidator"
+    },
+    "mission": {
+      "type": "string"
+    },
+    "tier": {
+      "type": "string",
+      "enum": [
+        "vision_cortex",
+        "fleet_alpha_prime",
+        "local_alpha_prime",
+        "specialist"
+      ],
+      "default": "specialist"
+    },
+    "skills": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Skill IDs from SkillRegistry"
+    },
+    "tools": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "allowed_data": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "allowed_writes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "forbidden_actions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "model_routing": {
+      "type": "string",
+      "description": "Preferred model for this agent"
+    },
+    "budget_per_run": {
+      "type": "number",
+      "default": 0.1
+    },
+    "timeout_seconds": {
+      "type": "integer",
+      "default": 120
+    },
+    "retry_policy": {
+      "type": "object",
+      "properties": {
+        "max_retries": {
+          "type": "integer",
+          "default": 3
+        },
+        "backoff": {
+          "type": "string",
+          "default": "exponential"
+        }
+      },
+      "default": {}
+    },
+    "validator_role": {
+      "type": "string",
+      "description": "Role of the agent that validates this agent's work"
+    },
+    "escalation_role": {
+      "type": "string",
+      "description": "Role to escalate to on failure"
+    },
+    "success_rate": {
+      "type": "number",
+      "default": 0
+    },
+    "avg_cost": {
+      "type": "number",
+      "default": 0
+    },
+    "avg_latency_ms": {
+      "type": "integer",
+      "default": 0
+    },
+    "total_runs": {
+      "type": "integer",
+      "default": 0
+    },
+    "total_failures": {
+      "type": "integer",
+      "default": 0
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "role",
+    "tier"
+  ]
+}

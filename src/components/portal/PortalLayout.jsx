@@ -10,6 +10,7 @@ import BreezeCopilot from "@/components/portal/BreezeCopilot";
 
 // ── CORE NAV: the 7 most important daily tools ──
 const CORE_NAV = [
+  { path: "/portal/fabric", label: "Fabric", icon: Brain },
   { path: "/portal", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { path: "/portal/admin-dashboard", label: "Admin", icon: Shield },
   { path: "/portal/crm", label: "CRM", icon: Users },

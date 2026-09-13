@@ -1,0 +1,107 @@
+{
+  "name": "OperatorIntent",
+  "type": "object",
+  "properties": {
+    "raw_text": {
+      "type": "string",
+      "description": "Original operator natural language input"
+    },
+    "parsed_intent": {
+      "type": "string",
+      "enum": [
+        "finish_system",
+        "audit_system",
+        "repair_system",
+        "release_system",
+        "query_status",
+        "query_fleet",
+        "query_failure",
+        "query_cost",
+        "query_approval",
+        "compare",
+        "prepare_release",
+        "register_system",
+        "governance_change",
+        "general_query"
+      ],
+      "default": "general_query"
+    },
+    "system_id": {
+      "type": "string",
+      "description": "Target system if applicable"
+    },
+    "objective": {
+      "type": "string",
+      "description": "Parsed objective in deterministic terms"
+    },
+    "scope": {
+      "type": "string"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "critical",
+        "high",
+        "medium",
+        "low"
+      ],
+      "default": "medium"
+    },
+    "constraints": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ],
+      "default": "medium"
+    },
+    "target_benchmarks": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "approval_policy": {
+      "type": "string",
+      "enum": [
+        "auto",
+        "operator_required",
+        "protected"
+      ],
+      "default": "auto"
+    },
+    "vision_cortex_response": {
+      "type": "string",
+      "description": "Shadow Vision Cortex's response to the operator"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "parsed",
+        "dispatched",
+        "in_progress",
+        "completed",
+        "blocked",
+        "failed"
+      ],
+      "default": "parsed"
+    },
+    "created_by": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "raw_text",
+    "parsed_intent"
+  ]
+}

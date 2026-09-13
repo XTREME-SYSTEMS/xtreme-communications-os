@@ -82,6 +82,7 @@ import Connect from './pages/Connect';
 import AgentFactory from './pages/AgentFactory';
 import AdminDashboard from './pages/AdminDashboard';
 import GoogleContactsManager from './pages/GoogleContactsManager';
+import XtremeFabric from './pages/XtremeFabric';
 
 function App() {
   return (
@@ -142,6 +143,7 @@ function App() {
                 <Route path="/portal/agent-factory" element={<AgentFactory />} />
                 <Route path="/portal/admin-dashboard" element={<AdminDashboard />} />
                 <Route path="/portal/contacts-manager" element={<GoogleContactsManager />} />
+                <Route path="/portal/fabric" element={<XtremeFabric />} />
               </Route>
               {/* Admin */}
               <Route path="/promo-admin" element={<PromoAdmin />} />

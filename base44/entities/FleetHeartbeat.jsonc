@@ -1,0 +1,108 @@
+{
+  "name": "FleetHeartbeat",
+  "type": "object",
+  "properties": {
+    "clock_type": {
+      "type": "string",
+      "enum": [
+        "primary",
+        "watchdog",
+        "recovery"
+      ],
+      "default": "primary"
+    },
+    "fleet_status": {
+      "type": "string",
+      "enum": [
+        "healthy",
+        "degraded",
+        "critical",
+        "recovering"
+      ],
+      "default": "healthy"
+    },
+    "systems_total": {
+      "type": "integer",
+      "default": 0
+    },
+    "systems_verified_100": {
+      "type": "integer",
+      "default": 0
+    },
+    "systems_in_sprint": {
+      "type": "integer",
+      "default": 0
+    },
+    "systems_degraded": {
+      "type": "integer",
+      "default": 0
+    },
+    "systems_blocked": {
+      "type": "integer",
+      "default": 0
+    },
+    "active_jobs": {
+      "type": "integer",
+      "default": 0
+    },
+    "active_agents": {
+      "type": "integer",
+      "default": 0
+    },
+    "active_repairs": {
+      "type": "integer",
+      "default": 0
+    },
+    "pending_validations": {
+      "type": "integer",
+      "default": 0
+    },
+    "pending_approvals": {
+      "type": "integer",
+      "default": 0
+    },
+    "p0_count": {
+      "type": "integer",
+      "default": 0
+    },
+    "p1_count": {
+      "type": "integer",
+      "default": 0
+    },
+    "queue_depth": {
+      "type": "integer",
+      "default": 0
+    },
+    "worker_health": {
+      "type": "string",
+      "enum": [
+        "healthy",
+        "partial",
+        "down"
+      ],
+      "default": "healthy"
+    },
+    "cost_this_cycle": {
+      "type": "number",
+      "default": 0
+    },
+    "lease_held": {
+      "type": "boolean",
+      "default": false
+    },
+    "actions_taken": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "next_action": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "clock_type",
+    "fleet_status"
+  ]
+}

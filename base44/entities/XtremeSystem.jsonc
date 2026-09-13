@@ -1,0 +1,179 @@
+{
+  "name": "XtremeSystem",
+  "type": "object",
+  "properties": {
+    "system_id": {
+      "type": "string",
+      "description": "Unique system identifier (e.g. xtreme-comms, xtreme-fabric)"
+    },
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "system_type": {
+      "type": "string",
+      "enum": [
+        "communications",
+        "browser",
+        "seo",
+        "ai",
+        "saas",
+        "marketplace",
+        "construction",
+        "financial",
+        "data",
+        "crm",
+        "website",
+        "pwa",
+        "agent_platform",
+        "research",
+        "automation",
+        "unknown"
+      ],
+      "default": "unknown"
+    },
+    "business_purpose": {
+      "type": "string"
+    },
+    "repository": {
+      "type": "string",
+      "description": "GitHub repo URL"
+    },
+    "default_branch": {
+      "type": "string",
+      "default": "main"
+    },
+    "vercel_project": {
+      "type": "string"
+    },
+    "railway_project": {
+      "type": "string"
+    },
+    "supabase_project": {
+      "type": "string"
+    },
+    "domains": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "drive_root": {
+      "type": "string",
+      "description": "Google Drive folder ID for system knowledge"
+    },
+    "owner": {
+      "type": "string"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "critical",
+        "high",
+        "medium",
+        "low"
+      ],
+      "default": "medium"
+    },
+    "lifecycle_mode": {
+      "type": "string",
+      "enum": [
+        "bootstrap",
+        "completion_sprint",
+        "preservation",
+        "degraded",
+        "blocked"
+      ],
+      "default": "bootstrap"
+    },
+    "verified_score": {
+      "type": "number",
+      "default": 0,
+      "description": "0-100 internal benchmark score"
+    },
+    "distance_to_100": {
+      "type": "number",
+      "default": 100,
+      "description": "100 - verified_score"
+    },
+    "source_parity": {
+      "type": "string",
+      "enum": [
+        "pass",
+        "fail",
+        "unknown"
+      ],
+      "default": "unknown"
+    },
+    "deployment_parity": {
+      "type": "string",
+      "enum": [
+        "pass",
+        "fail",
+        "unknown"
+      ],
+      "default": "unknown"
+    },
+    "p0_count": {
+      "type": "integer",
+      "default": 0
+    },
+    "p1_count": {
+      "type": "integer",
+      "default": 0
+    },
+    "current_version": {
+      "type": "string"
+    },
+    "production_version": {
+      "type": "string"
+    },
+    "consecutive_passes": {
+      "type": "integer",
+      "default": 0,
+      "description": "Consecutive VERIFIED_100 passes (3 = preservation mode)"
+    },
+    "manifest": {
+      "type": "object",
+      "description": "Full system.manifest.yaml content"
+    },
+    "base44_migration_status": {
+      "type": "string",
+      "enum": [
+        "not_started",
+        "discovered",
+        "mapped",
+        "replacement_built",
+        "data_migrated",
+        "shadow_run",
+        "parity_tested",
+        "cutover_ready",
+        "approved",
+        "cutover",
+        "observed",
+        "decommissioned"
+      ],
+      "default": "not_started"
+    },
+    "last_benchmark_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_heartbeat_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "system_id",
+    "name",
+    "system_type"
+  ]
+}

@@ -158,7 +158,7 @@ export const USAGE_RATE_REGISTRY: UsageRateDefinition[] = [
     unit: "minute",
     customer_rate_micros: dollarsToMicros(0.025),   // $0.025/min
     provider_cost_micros: dollarsToMicros(0.015),
-    currency: "USD", billing_increment: 60, rounding_rule: "ceil",  // bill per 60 seconds
+    currency: "USD", billing_increment: 1, rounding_rule: "exact",  // input is in minutes
     included_allowance: 0, overage_rate_micros: 0,
     effective_from: "2026-09-14T00:00:00Z", effective_to: null,
     version: 1, status: "active",
@@ -170,7 +170,7 @@ export const USAGE_RATE_REGISTRY: UsageRateDefinition[] = [
     unit: "minute",
     customer_rate_micros: dollarsToMicros(0.015),   // $0.015/min inbound
     provider_cost_micros: dollarsToMicros(0.010),
-    currency: "USD", billing_increment: 60, rounding_rule: "ceil",
+    currency: "USD", billing_increment: 1, rounding_rule: "exact",
     included_allowance: 0, overage_rate_micros: 0,
     effective_from: "2026-09-14T00:00:00Z", effective_to: null,
     version: 1, status: "active",
@@ -196,7 +196,7 @@ export const USAGE_RATE_REGISTRY: UsageRateDefinition[] = [
     unit: "minute",
     customer_rate_micros: dollarsToMicros(0.01),    // $0.01/min
     provider_cost_micros: dollarsToMicros(0.003),    // storage cost
-    currency: "USD", billing_increment: 60, rounding_rule: "ceil",
+    currency: "USD", billing_increment: 1, rounding_rule: "exact",
     included_allowance: 0, overage_rate_micros: 0,
     effective_from: "2026-09-14T00:00:00Z", effective_to: null,
     version: 1, status: "active",
@@ -339,7 +339,7 @@ export const USAGE_RATE_REGISTRY: UsageRateDefinition[] = [
     unit: "minute",
     customer_rate_micros: -1,  // UNKNOWN_RATE
     provider_cost_micros: -1,
-    currency: "USD", billing_increment: 60, rounding_rule: "ceil",
+    currency: "USD", billing_increment: 1, rounding_rule: "exact",
     included_allowance: 0, overage_rate_micros: 0,
     effective_from: "2026-09-14T00:00:00Z", effective_to: null,
     version: 1, status: "active",
@@ -351,7 +351,7 @@ export const USAGE_RATE_REGISTRY: UsageRateDefinition[] = [
     unit: "minute",
     customer_rate_micros: -1,  // UNKNOWN_RATE
     provider_cost_micros: -1,
-    currency: "USD", billing_increment: 60, rounding_rule: "ceil",
+    currency: "USD", billing_increment: 1, rounding_rule: "exact",
     included_allowance: 0, overage_rate_micros: 0,
     effective_from: "2026-09-14T00:00:00Z", effective_to: null,
     version: 1, status: "active",

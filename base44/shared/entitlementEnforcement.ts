@@ -220,7 +220,7 @@ export async function getUserEntitlements(base44: any, userId: string): Promise<
         has_lead_scraper: sub.has_lead_scraper,
         has_api_access: sub.has_api_access,
         has_white_label: sub.has_white_label,
-        has_multi_tenant: sub.has_multi_ttenant,
+        has_multi_tenant: sub.has_multi_tenant,
         has_sso: sub.has_sso,
         sla_tier: sub.sla_tier,
         support_tier: sub.support_tier,

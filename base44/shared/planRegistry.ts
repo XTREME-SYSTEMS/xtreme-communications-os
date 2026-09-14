@@ -198,9 +198,13 @@ for (const def of Object.values(PLAN_REGISTRY)) {
     price: def.monthlyPrice.toFixed(2),
     subscription: { frequency: "MONTH" },
   };
+  // CRITICAL: annualPrice is the monthly-equivalent (e.g. $79/mo for Launch).
+  // Wix frequency "YEAR" charges the price ONCE PER YEAR, so we must multiply by 12.
+  // $79/mo × 12 = $948/year — this is what Wix charges annually.
+  // The Pricing UI displays "$79/mo" (the monthly equivalent) which is transparent.
   ALL_PRODUCTS[def.annualProductId] = {
     name: `${def.displayName} Plan — Annual`,
-    price: def.annualPrice.toFixed(2),
+    price: (def.annualPrice * 12).toFixed(2),
     subscription: { frequency: "YEAR" },
   };
 }

@@ -12,6 +12,7 @@
 
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.31";
 import { importSPKI, jwtVerify } from "npm:jose@5.9.6";
+import { resolvePlanFromProductId } from "../../shared/planRegistry.ts";
 
 // Wix event types (verbatim from Wix docs).
 const ORDER_APPROVED = "wix.ecom.v1.order_approved";
@@ -148,18 +149,43 @@ async function handleOrderApproved(db: any, eventData: any): Promise<Response> {
 
   for (const pid of productIds) {
     if (pid.startsWith("plan-")) {
-      // Subscription plan: update or create CustomerSubscription for the buyer.
-      const planName = pid.replace("plan-", "").replace("-annual", "");
+      // Subscription plan: resolve via explicit deterministic mapping (NOT string stripping).
+      const resolved = resolvePlanFromProductId(pid);
+      if (!resolved) {
+        console.error("payments-webhook: unknown plan product ID, skipping grant", { pid });
+        continue; // Fail closed — unknown product IDs do NOT grant entitlements.
+      }
+      const { plan: planSlug, billingInterval, entitlements } = resolved;
       if (purchase.appUserId) {
         const existing = await db.entities.CustomerSubscription.filter({ user_id: purchase.appUserId });
+        const entFields = {
+          plan: planSlug,
+          billing_interval: billingInterval,
+          status: "active",
+          started_at: new Date().toISOString(),
+          max_agents: entitlements.max_agents,
+          max_phone_numbers: entitlements.max_phone_numbers,
+          monthly_sms_allowance: entitlements.monthly_sms,
+          monthly_ai_voice_minutes: entitlements.monthly_ai_voice_minutes,
+          monthly_email_allowance: entitlements.monthly_email,
+          workflow_limit: entitlements.workflow_limit,
+          has_crm: entitlements.has_crm,
+          has_breeze_copilot: entitlements.has_breeze_copilot,
+          has_whatsapp: entitlements.has_whatsapp,
+          has_call_recording: entitlements.has_call_recording,
+          has_lead_scraper: entitlements.has_lead_scraper,
+          has_api_access: entitlements.has_api_access,
+          has_white_label: entitlements.has_white_label,
+          has_multi_tenant: entitlements.has_multi_tenant,
+          has_sso: entitlements.has_sso,
+          sla_tier: entitlements.sla_tier,
+          support_tier: entitlements.support_tier,
+        };
         if (existing.length > 0) {
-          await db.entities.CustomerSubscription.update(existing[0].id, {
-            plan: planName, status: "active", started_at: new Date().toISOString(),
-          });
+          await db.entities.CustomerSubscription.update(existing[0].id, entFields);
         } else {
           await db.entities.CustomerSubscription.create({
-            user_id: purchase.appUserId, plan: planName, status: "active",
-            started_at: new Date().toISOString(), buyer_email: buyerEmail,
+            user_id: purchase.appUserId, ...entFields, buyer_email: buyerEmail,
           });
         }
       }

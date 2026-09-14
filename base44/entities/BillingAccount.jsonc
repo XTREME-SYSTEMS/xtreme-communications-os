@@ -8,11 +8,15 @@
     "plan": {
       "type": "string",
       "enum": [
-        "starter",
+        "launch",
+        "essential",
+        "professional",
         "growth",
-        "enterprise"
+        "agency",
+        "enterprise",
+        "pay_as_you_go"
       ],
-      "default": "starter"
+      "default": "pay_as_you_go"
     },
     "balance_cents": {
       "type": "integer",

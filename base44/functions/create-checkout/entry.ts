@@ -15,6 +15,7 @@
 // (order.checkoutId === checkoutSession.id). Skipping this write makes fulfillment impossible.
 
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.31";
+import { ALL_PRODUCTS, PLAN_REGISTRY, resolvePlanFromProductId } from "../../shared/planRegistry.ts";
 
 const CONSTRUCT_URL = "https://www.wixapis.com/payments/platform/v1/checkout-sessions/construct";
 
@@ -70,44 +71,8 @@ Deno.serve(async (req: Request) => {
 
     // ===== APP-SPECIFIC =====
     // Server-side product catalog — authoritative prices, NEVER trust client-sent prices.
-    const PRODUCTS: Record<string, { name: string; price: string; subscription?: { frequency: string; interval?: number } }> = {
-      // Plans — monthly
-      "plan-launch":           { name: "Launch Plan — Monthly",          price: "99.00",   subscription: { frequency: "MONTH" } },
-      "plan-essential":        { name: "Essential Plan — Monthly",       price: "249.00",  subscription: { frequency: "MONTH" } },
-      "plan-professional":     { name: "Professional Plan — Monthly",    price: "599.00",  subscription: { frequency: "MONTH" } },
-      "plan-growth":           { name: "Growth Plan — Monthly",          price: "1499.00", subscription: { frequency: "MONTH" } },
-      "plan-agency":           { name: "Agency Plan — Monthly",          price: "2999.00", subscription: { frequency: "MONTH" } },
-      "plan-enterprise":       { name: "Enterprise Plan — Monthly",      price: "7500.00", subscription: { frequency: "MONTH" } },
-      // Plans — annual (20% off)
-      "plan-launch-annual":       { name: "Launch Plan — Annual",          price: "79.00",   subscription: { frequency: "YEAR" } },
-      "plan-essential-annual":    { name: "Essential Plan — Annual",       price: "199.00",  subscription: { frequency: "YEAR" } },
-      "plan-professional-annual": { name: "Professional Plan — Annual",  price: "479.00",  subscription: { frequency: "YEAR" } },
-      "plan-growth-annual":       { name: "Growth Plan — Annual",          price: "1199.00", subscription: { frequency: "YEAR" } },
-      "plan-agency-annual":       { name: "Agency Plan — Annual",          price: "2399.00", subscription: { frequency: "YEAR" } },
-      "plan-enterprise-annual":   { name: "Enterprise Plan — Annual",      price: "6000.00", subscription: { frequency: "YEAR" } },
-      // PAYG — Phone Numbers
-      "payg-local-number":     { name: "Local Phone Number — Monthly",     price: "3.00", subscription: { frequency: "MONTH" } },
-      "payg-tollfree-number":  { name: "Toll-Free Phone Number — Monthly", price: "5.00", subscription: { frequency: "MONTH" } },
-      // PAYG — Messaging
-      "payg-sms-1000":         { name: "SMS Credit (1,000 msgs)",          price: "12.00" },
-      "payg-mms-1000":         { name: "MMS Credit (1,000 msgs)",          price: "35.00" },
-      "payg-whatsapp-1000":    { name: "WhatsApp Credit (1,000 msgs)",    price: "10.00" },
-      "payg-rcs-text-1000":    { name: "RCS Rich Text (1,000 segments)",  price: "18.00" },
-      // PAYG — Voice
-      "payg-voice-1000":       { name: "Programmable Voice (1,000 min)",  price: "25.00" },
-      "payg-ai-voice-1000":    { name: "AI Voice Credit (1,000 min)",     price: "140.00" },
-      "payg-recording-1000":   { name: "Call Recording (1,000 min)",      price: "10.00" },
-      "payg-branded-100":      { name: "Branded Calling (100 calls)",     price: "15.00" },
-      // PAYG — AI Agents & Add-ons
-      "payg-managed-agent":    { name: "Managed AI Employee — Monthly",   price: "499.00", subscription: { frequency: "MONTH" } },
-      "payg-whitelabel-tenant":{ name: "White-label Tenant — Monthly",     price: "999.00", subscription: { frequency: "MONTH" } },
-      "payg-dedicated-support":{ name: "Dedicated Support — Monthly",     price: "1500.00", subscription: { frequency: "MONTH" } },
-      // PAYG — Email & Utilities
-      "payg-email-1000":       { name: "Email Credit (1,000 emails)",     price: "1.50" },
-      "payg-lookup-1000":      { name: "Lookup (1,000 queries)",          price: "5.00" },
-      "payg-verify-100":       { name: "Verify (100 successes)",          price: "8.00" },
-      "payg-fax-100":          { name: "Fax (100 pages)",                 price: "3.00" },
-    };
+    // Sourced from the canonical plan registry (base44/shared/planRegistry.ts).
+    const PRODUCTS = ALL_PRODUCTS;
 
     // Accept either a single product or an array of items (cart).
     const rawItems: Array<{ productId: string; quantity: number }> = Array.isArray(body.items) && body.items.length > 0
@@ -139,7 +104,7 @@ Deno.serve(async (req: Request) => {
     // Combined values for the Base44Purchase record.
     const productId = rawItems.map(i => i.productId).join(",");
     const productName = cartItems.map(i => i.name).join(" + ");
-    const quantity = cartItems.reduce((s, i) => s + i.quantity, 1);
+    const quantity = cartItems.reduce((s, i) => s + i.quantity, 0);
     const currency = "USD";
 
     const thankYouPath = "/ThankYou";

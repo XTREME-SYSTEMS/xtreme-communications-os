@@ -34,7 +34,7 @@ export default async function(req) {
     if (!accounts.length) {
       const today = meteredAt.slice(0, 10);
       const account = await base44.asServiceRole.entities.BillingAccount.create({
-        tenant_id: tenant.id, plan: "starter", balance_cents: -amountCents, credit_cents: 0,
+        tenant_id: tenant.id, plan: "pay_as_you_go", balance_cents: -amountCents, credit_cents: 0,
         billing_cycle_start: today, billing_cycle_end: today,
         status: "active", auto_recharge: false, usage_this_cycle_cents: amountCents,
       });

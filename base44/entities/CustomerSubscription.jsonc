@@ -16,14 +16,23 @@
     "plan": {
       "type": "string",
       "enum": [
-        "starter",
+        "launch",
         "essential",
         "professional",
         "growth",
+        "agency",
         "enterprise",
         "pay_as_you_go"
       ],
       "default": "pay_as_you_go"
+    },
+    "billing_interval": {
+      "type": "string",
+      "enum": [
+        "MONTH",
+        "YEAR"
+      ],
+      "default": "MONTH"
     },
     "status": {
       "type": "string",
@@ -90,6 +99,80 @@
     "monthly_spend": {
       "type": "number",
       "default": 0
+    },
+    "max_agents": {
+      "type": "integer",
+      "default": 0,
+      "description": "Entitlement: max AI agents allowed"
+    },
+    "max_phone_numbers": {
+      "type": "integer",
+      "default": 0,
+      "description": "Entitlement: max phone numbers allowed"
+    },
+    "monthly_sms_allowance": {
+      "type": "integer",
+      "default": 0,
+      "description": "Entitlement: SMS messages included per month"
+    },
+    "monthly_ai_voice_minutes": {
+      "type": "integer",
+      "default": 0,
+      "description": "Entitlement: AI voice minutes included per month"
+    },
+    "monthly_email_allowance": {
+      "type": "integer",
+      "default": 0,
+      "description": "Entitlement: emails included per month"
+    },
+    "workflow_limit": {
+      "type": "integer",
+      "default": 0,
+      "description": "Entitlement: max workflow slots"
+    },
+    "has_crm": {
+      "type": "boolean",
+      "default": false
+    },
+    "has_breeze_copilot": {
+      "type": "boolean",
+      "default": false
+    },
+    "has_whatsapp": {
+      "type": "boolean",
+      "default": false
+    },
+    "has_call_recording": {
+      "type": "boolean",
+      "default": false
+    },
+    "has_lead_scraper": {
+      "type": "boolean",
+      "default": false
+    },
+    "has_api_access": {
+      "type": "boolean",
+      "default": false
+    },
+    "has_white_label": {
+      "type": "boolean",
+      "default": false
+    },
+    "has_multi_tenant": {
+      "type": "boolean",
+      "default": false
+    },
+    "has_sso": {
+      "type": "boolean",
+      "default": false
+    },
+    "sla_tier": {
+      "type": "string",
+      "default": "none"
+    },
+    "support_tier": {
+      "type": "string",
+      "default": "email"
     }
   },
   "required": [

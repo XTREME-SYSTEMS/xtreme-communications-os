@@ -2,6 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { aiCompleteJson, aiComplete, MODELS } from '../../shared/aiGateway.ts';
 import { sendTelnyx, getTelnyxEndpoint, personalize, buildTelnyxPayload, extractDeliveryStatus } from '../../shared/telnyxMessaging.ts';
 import { isConfigured as bbConfigured, runAgent as bbRunAgent, pollAgentRun as bbPoll, createSession as bbCreateSession, getSession as bbGetSession, endSession as bbEndSession } from '../../shared/browserbase.ts';
+import { checkEntitlement } from '../../shared/entitlementEnforcement.ts';
 
 // ─── AUTONOMOUS ACTION EXECUTOR ────────────────────────────────────
 // Real trigger → real task → real action → real result.
@@ -15,11 +16,22 @@ export default async function(req) {
     let body: any = {};
     try { body = await req.json(); } catch (_) {}
 
-    const apiKey = body.api_key || (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "");
-    if (!apiKey) return Response.json({ error: "api_key required" }, { status: 401 });
-    const keys = await base44.asServiceRole.entities.ApiKey.filter({ key_value: apiKey, status: "active" });
-    if (!keys.length) return Response.json({ error: "invalid api key" }, { status: 403 });
-    const tenant = await base44.asServiceRole.entities.Tenant.get(keys[0].tenant_id);
+    // ── AUTH: user session (portal) or API key (API) ──
+    let userId: string | null = null;
+    let tenant: any = null;
+    try {
+      const user = await base44.auth.me();
+      if (user?.id) userId = user.id;
+    } catch (_) {}
+    if (!userId) {
+      const apiKey = body.api_key || (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "");
+      if (!apiKey) return Response.json({ error: "Authentication required" }, { status: 401 });
+      const keys = await base44.asServiceRole.entities.ApiKey.filter({ key_value: apiKey, status: "active" });
+      if (!keys.length) return Response.json({ error: "Invalid API key" }, { status: 403 });
+      tenant = await base44.asServiceRole.entities.Tenant.get(keys[0].tenant_id);
+      userId = tenant?.created_by_id || null;
+      if (!userId) return Response.json({ error: "Cannot resolve user from credentials" }, { status: 403 });
+    }
     const now = new Date().toISOString();
     const action = body.action;
 
@@ -42,6 +54,8 @@ export default async function(req) {
 
     // ── SEND SMS ──
     if (action === "send_sms") {
+      const entSms = await checkEntitlement(base44, userId, "monthly_sms_allowance", { functionName: "executeAutonomousAction", requestedAction: "send_sms" });
+      if (!entSms.allowed) return Response.json({ error: entSms.reason, entitlement_denied: true }, { status: 403 });
       const telnyxKey = process.env.TELNYX_API_KEY;
       if (!telnyxKey) return Response.json({ error: "TELNYX_API_KEY not configured" }, { status: 503 });
       const { from_number, to_number, message } = body;
@@ -91,6 +105,8 @@ export default async function(req) {
 
     // ── SEND WHATSAPP ──
     if (action === "send_whatsapp") {
+      const entWa = await checkEntitlement(base44, userId, "has_whatsapp", { functionName: "executeAutonomousAction", requestedAction: "send_whatsapp" });
+      if (!entWa.allowed) return Response.json({ error: entWa.reason, entitlement_denied: true }, { status: 403 });
       const telnyxKey = process.env.TELNYX_API_KEY;
       if (!telnyxKey) return Response.json({ error: "TELNYX_API_KEY not configured" }, { status: 503 });
       const { from_number, to_number, message } = body;
@@ -125,6 +141,8 @@ export default async function(req) {
 
     // ── MAKE VOICE CALL (Telnyx Call Control) ──
     if (action === "make_call") {
+      const entCall = await checkEntitlement(base44, userId, "monthly_ai_voice_minutes", { functionName: "executeAutonomousAction", requestedAction: "make_call" });
+      if (!entCall.allowed) return Response.json({ error: entCall.reason, entitlement_denied: true }, { status: 403 });
       const telnyxKey = process.env.TELNYX_API_KEY;
       if (!telnyxKey) return Response.json({ error: "TELNYX_API_KEY not configured" }, { status: 503 });
       const { from_number, to_number, connection_id, webhook_url } = body;
@@ -195,6 +213,8 @@ export default async function(req) {
 
     // ── WEB INTERACT (AI-powered form analysis & action planning) ──
     if (action === "web_interact") {
+      const entInteract = await checkEntitlement(base44, userId, "has_api_access", { functionName: "executeAutonomousAction", requestedAction: "web_interact" });
+      if (!entInteract.allowed) return Response.json({ error: entInteract.reason, entitlement_denied: true }, { status: 403 });
       const { url, goal } = body;
       if (!url) return Response.json({ error: "url required" }, { status: 400 });
       const res = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0 (compatible; XTREME-AI/1.0)" } });
@@ -246,6 +266,8 @@ Provide a JSON analysis with:
 
     // ── CREATE LEAD ──
     if (action === "create_lead") {
+      const entCrm = await checkEntitlement(base44, userId, "has_crm", { functionName: "executeAutonomousAction", requestedAction: "create_lead" });
+      if (!entCrm.allowed) return Response.json({ error: entCrm.reason, entitlement_denied: true }, { status: 403 });
       const { name, full_name, phone, email, company, industry, notes } = body;
       const leadName = full_name || name;
       if (!leadName) return Response.json({ error: "name or full_name required" }, { status: 400 });
@@ -259,6 +281,8 @@ Provide a JSON analysis with:
 
     // ── AUTONOMOUS SEQUENCE: Trigger → Task → Action chain ──
     if (action === "autonomous_sequence") {
+      const entSeq = await checkEntitlement(base44, userId, "has_api_access", { functionName: "executeAutonomousAction", requestedAction: "autonomous_sequence" });
+      if (!entSeq.allowed) return Response.json({ error: entSeq.reason, entitlement_denied: true }, { status: 403 });
       const { trigger, steps } = body;
       const results: any[] = [];
       const executedSteps = steps || [
@@ -304,6 +328,8 @@ Provide a JSON analysis with:
     // ── BROWSER AGENT: Natural language task → Browserbase runs it ──
     // e.g. "Go to https://example.com/contact, fill name field with 'John Doe', email with 'john@test.com', and click submit"
     if (action === "browser_agent") {
+      const entApi = await checkEntitlement(base44, userId, "has_api_access", { functionName: "executeAutonomousAction", requestedAction: "browser_agent" });
+      if (!entApi.allowed) return Response.json({ error: entApi.reason, entitlement_denied: true }, { status: 403 });
       const { task, wait_for_completion } = body;
       if (!task) return Response.json({ error: "task required" }, { status: 400 });
       if (!bbConfigured()) return Response.json({ error: "BROWSERBASE_API_KEY not configured" }, { status: 503 });
@@ -372,6 +398,8 @@ Provide a JSON analysis with:
     // 1. AI determines what data to fill based on the goal
     // 2. Browserbase agent navigates and fills the form
     if (action === "browser_fill_form") {
+      const entForm = await checkEntitlement(base44, userId, "has_api_access", { functionName: "executeAutonomousAction", requestedAction: "browser_fill_form" });
+      if (!entForm.allowed) return Response.json({ error: entForm.reason, entitlement_denied: true }, { status: 403 });
       const { url, goal, form_data } = body;
       if (!url) return Response.json({ error: "url required" }, { status: 400 });
       if (!bbConfigured()) return Response.json({ error: "BROWSERBASE_API_KEY not configured" }, { status: 503 });

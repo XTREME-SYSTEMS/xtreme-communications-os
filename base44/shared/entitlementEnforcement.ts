@@ -102,8 +102,8 @@ export async function checkEntitlement(
     allowed = false;
     resultCode = "denied_no_subscription";
     reason = `Subscription status is ${subscription.status}`;
-  } else if (feature.entitlement_field.startsWith("max_") || feature.entitlement_field.startsWith("monthly_") || feature.entitlement_field === "workflow_limit") {
-    // Quantitative limit — check if the entitlement value is > 0
+  } else if (feature.entitlement_field.startsWith("max_") || feature.entitlement_field === "workflow_limit") {
+    // Hard quantitative limit (agents, phone numbers, workflows) — PAYG gets 0, correctly denied
     const limit = entValue || 0;
     if (limit > 0) {
       allowed = true;
@@ -113,6 +113,25 @@ export async function checkEntitlement(
       allowed = false;
       resultCode = "denied_plan_too_low";
       reason = `Plan ${actualPlan} does not include ${feature.description}`;
+    }
+  } else if (feature.entitlement_field.startsWith("monthly_")) {
+    // Usage allowance (SMS, AI voice, email) — PAYG users are ALLOWED (pay per use via meterUsage)
+    // Plan users are allowed if their included allowance > 0
+    if (actualPlan === "pay_as_you_go") {
+      allowed = true;
+      resultCode = "allowed";
+      reason = "PAYG: pay per use";
+    } else {
+      const limit = entValue || 0;
+      if (limit > 0) {
+        allowed = true;
+        resultCode = "allowed";
+        reason = "Within entitlement limit";
+      } else {
+        allowed = false;
+        resultCode = "denied_plan_too_low";
+        reason = `Plan ${actualPlan} does not include ${feature.description}`;
+      }
     }
   } else {
     // Boolean entitlement — check if true

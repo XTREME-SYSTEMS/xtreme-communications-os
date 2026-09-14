@@ -1,12 +1,22 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
+import { resolveAndCheck } from '../../shared/entitlementAuth.ts';
 
 // Scrapes business leads by industry, location, keyword, and radius using LLM web search.
 // Returns structured business listings.
+// REQUIRES: Professional plan or above (has_lead_scraper entitlement).
 export default async function(req) {
   try {
     const base44 = createClientFromRequest(req);
-    const body = await req.json();
+    let body: any = {};
+    try { body = await req.json(); } catch (_) {}
     const { industry, location, keyword, radius_miles } = body;
+
+    // ── ENTITLEMENT CHECK: has_lead_scraper (Professional+) ──
+    const auth = await resolveAndCheck(base44, req, body, "has_lead_scraper", {
+      functionName: "scrapeLeads",
+      requestedAction: "Scrape business leads",
+    });
+    if ("error" in auth) return Response.json({ error: auth.error, entitlement_denied: true }, { status: auth.status });
 
     if (!industry || !location) {
       return Response.json({ error: "Industry and location are required" }, { status: 400 });

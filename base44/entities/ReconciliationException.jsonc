@@ -1,0 +1,98 @@
+{
+  "name": "ReconciliationException",
+  "type": "object",
+  "properties": {
+    "exception_id": {
+      "type": "string",
+      "description": "Unique exception ID"
+    },
+    "exception_type": {
+      "type": "string",
+      "enum": [
+        "paid_order_without_subscription",
+        "subscription_without_paid_order",
+        "active_entitlement_without_subscription",
+        "cancelled_subscription_with_active_entitlement",
+        "usage_without_tenant",
+        "usage_without_rate",
+        "usage_without_invoice",
+        "provider_charge_without_internal_record",
+        "internal_charge_without_provider_evidence",
+        "duplicate_charge",
+        "orphan_purchase",
+        "negative_balance",
+        "unknown_rate_usage",
+        "margin_anomaly"
+      ]
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "p0",
+        "p1",
+        "p2",
+        "p3"
+      ],
+      "default": "p1"
+    },
+    "tenant_id": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "entity_type": {
+      "type": "string",
+      "description": "e.g. Base44Purchase, CustomerSubscription, UsageMeter, BillingAccount"
+    },
+    "entity_id": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "expected_state": {
+      "type": "string"
+    },
+    "actual_state": {
+      "type": "string"
+    },
+    "financial_impact_micros": {
+      "type": "integer",
+      "default": 0,
+      "description": "Estimated financial impact in microunits (positive = overbilled, negative = underbilled)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "investigating",
+        "resolved",
+        "wont_fix",
+        "escalated"
+      ],
+      "default": "open"
+    },
+    "resolution_action": {
+      "type": "string",
+      "description": "Action taken to resolve (if any). NEVER auto-modify balances."
+    },
+    "detected_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "resolved_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "reconciliation_run_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "exception_id",
+    "exception_type",
+    "severity",
+    "status"
+  ]
+}

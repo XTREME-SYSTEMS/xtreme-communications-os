@@ -1,0 +1,81 @@
+{
+  "name": "EntitlementCheck",
+  "type": "object",
+  "properties": {
+    "check_id": {
+      "type": "string",
+      "description": "Unique check ID"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "tenant_id": {
+      "type": "string"
+    },
+    "feature_id": {
+      "type": "string",
+      "description": "e.g. max_agents, has_lead_scraper, has_api_access"
+    },
+    "required_plan": {
+      "type": "string",
+      "description": "Minimum plan required for this feature"
+    },
+    "actual_plan": {
+      "type": "string",
+      "description": "User's actual plan"
+    },
+    "entitlement_field": {
+      "type": "string",
+      "description": "The CustomerSubscription field checked (e.g. has_lead_scraper)"
+    },
+    "entitlement_value": {
+      "type": "string",
+      "description": "The value of the entitlement field"
+    },
+    "requested_action": {
+      "type": "string",
+      "description": "What the user tried to do"
+    },
+    "result": {
+      "type": "string",
+      "enum": [
+        "allowed",
+        "denied",
+        "denied_no_subscription",
+        "denied_plan_too_low",
+        "denied_entitlement_false",
+        "denied_limit_exceeded"
+      ]
+    },
+    "enforcement_point": {
+      "type": "string",
+      "enum": [
+        "backend_function",
+        "api_gateway",
+        "workflow",
+        "agent",
+        "frontend"
+      ]
+    },
+    "function_name": {
+      "type": "string",
+      "description": "Backend function that enforced the check"
+    },
+    "is_hostile_test": {
+      "type": "boolean",
+      "default": false,
+      "description": "True if this was a deliberate hostile test"
+    },
+    "checked_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "check_id",
+    "user_id",
+    "feature_id",
+    "result",
+    "enforcement_point"
+  ]
+}

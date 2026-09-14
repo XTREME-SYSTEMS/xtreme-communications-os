@@ -1,0 +1,113 @@
+{
+  "name": "MarginLedger",
+  "type": "object",
+  "properties": {
+    "ledger_id": {
+      "type": "string",
+      "description": "Unique ledger entry ID"
+    },
+    "tenant_id": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "usage_meter_id": {
+      "type": "string",
+      "description": "UsageMeter record this margin entry is derived from"
+    },
+    "channel": {
+      "type": "string"
+    },
+    "direction": {
+      "type": "string"
+    },
+    "provider": {
+      "type": "string"
+    },
+    "region": {
+      "type": "string"
+    },
+    "plan_slug": {
+      "type": "string"
+    },
+    "units": {
+      "type": "integer",
+      "default": 0
+    },
+    "customer_revenue_micros": {
+      "type": "integer",
+      "default": 0,
+      "description": "Revenue from customer (microunits)"
+    },
+    "provider_cost_micros": {
+      "type": "integer",
+      "default": 0,
+      "description": "Cost paid to provider (microunits)"
+    },
+    "carrier_fee_micros": {
+      "type": "integer",
+      "default": 0
+    },
+    "regulatory_fee_micros": {
+      "type": "integer",
+      "default": 0
+    },
+    "ai_cost_micros": {
+      "type": "integer",
+      "default": 0
+    },
+    "infrastructure_allocation_micros": {
+      "type": "integer",
+      "default": 0
+    },
+    "contribution_margin_micros": {
+      "type": "integer",
+      "default": 0,
+      "description": "customer_revenue - provider_cost - carrier_fee - regulatory_fee - ai_cost - infra"
+    },
+    "margin_percentage": {
+      "type": "number",
+      "default": 0
+    },
+    "is_negative": {
+      "type": "boolean",
+      "default": false
+    },
+    "is_unknown_cost": {
+      "type": "boolean",
+      "default": false,
+      "description": "True if provider cost is unknown \u2014 margin cannot be calculated"
+    },
+    "alert_triggered": {
+      "type": "string",
+      "enum": [
+        "none",
+        "negative_margin",
+        "below_threshold",
+        "provider_price_drift",
+        "ai_price_drift",
+        "carrier_surcharge_increase",
+        "unexpected_cost_spike",
+        "revenue_leakage",
+        "unmetered_provider_usage",
+        "metered_no_provider_event",
+        "provider_event_no_customer_event"
+      ],
+      "default": "none"
+    },
+    "metered_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "ledger_id",
+    "tenant_id",
+    "channel"
+  ]
+}

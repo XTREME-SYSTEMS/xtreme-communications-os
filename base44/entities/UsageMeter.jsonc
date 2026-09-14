@@ -5,33 +5,119 @@
     "tenant_id": {
       "type": "string"
     },
+    "user_id": {
+      "type": "string",
+      "description": "User whose usage this is (for per-user isolation)"
+    },
     "channel": {
       "type": "string",
       "enum": [
         "sms",
         "mms",
         "voice",
+        "ai_voice",
         "whatsapp",
+        "rcs",
+        "email",
         "verify",
         "lookup",
         "number",
-        "payment"
+        "recording",
+        "fax",
+        "payment",
+        "other"
       ]
+    },
+    "direction": {
+      "type": "string",
+      "enum": [
+        "inbound",
+        "outbound"
+      ],
+      "default": "outbound"
     },
     "event_type": {
       "type": "string"
+    },
+    "metric_id": {
+      "type": "string",
+      "description": "Canonical metric ID from usageRateRegistry (e.g. sms.outbound.us.local)"
+    },
+    "rate_id": {
+      "type": "string",
+      "description": "Rate version ID from usageRateRegistry used to calculate this charge"
+    },
+    "rate_version": {
+      "type": "integer",
+      "default": 1,
+      "description": "Version of the rate used \u2014 historical records retain their original version"
     },
     "units": {
       "type": "integer",
       "default": 1
     },
+    "billable_units": {
+      "type": "integer",
+      "default": 0,
+      "description": "Units after billing increment + rounding applied"
+    },
     "unit_cost_cents": {
       "type": "integer",
-      "default": 0
+      "default": 0,
+      "description": "Legacy field \u2014 per-unit cost in cents. Retained for backward compat."
     },
     "amount_cents": {
       "type": "integer",
-      "default": 0
+      "default": 0,
+      "description": "Legacy field \u2014 total charge in cents. Retained for backward compat."
+    },
+    "customer_rate_micros": {
+      "type": "integer",
+      "default": 0,
+      "description": "Per-unit customer rate in microunits (1M micros = $1). -1 = UNKNOWN_RATE."
+    },
+    "customer_amount_micros": {
+      "type": "integer",
+      "default": 0,
+      "description": "Total customer charge in microunits"
+    },
+    "provider_cost_micros": {
+      "type": "integer",
+      "default": 0,
+      "description": "Per-unit provider cost in microunits. -1 = UNKNOWN."
+    },
+    "provider_amount_micros": {
+      "type": "integer",
+      "default": 0,
+      "description": "Total provider cost in microunits"
+    },
+    "margin_micros": {
+      "type": "integer",
+      "default": 0,
+      "description": "Contribution margin = customer_amount - provider_amount (microunits)"
+    },
+    "is_unknown_rate": {
+      "type": "boolean",
+      "default": false,
+      "description": "True if rate was not found in registry \u2014 charge refused, logged for review"
+    },
+    "within_allowance": {
+      "type": "boolean",
+      "default": false,
+      "description": "True if usage was within plan's included allowance (not charged)"
+    },
+    "overage_units": {
+      "type": "integer",
+      "default": 0,
+      "description": "Units exceeding the plan allowance (charged at overage rate)"
+    },
+    "subscription_id_ref": {
+      "type": "string",
+      "description": "CustomerSubscription ID this usage is attributed to"
+    },
+    "plan_slug": {
+      "type": "string",
+      "description": "Plan slug at time of metering"
     },
     "metered_at": {
       "type": "string",
@@ -49,6 +135,19 @@
     },
     "reference_id": {
       "type": "string"
+    },
+    "idempotency_key": {
+      "type": "string",
+      "description": "Deterministic key to prevent duplicate metering (e.g. provider_message_id)"
+    },
+    "is_test_record": {
+      "type": "boolean",
+      "default": false,
+      "description": "True for validation/test records \u2014 excluded from billing reconciliation"
+    },
+    "validation_run_id": {
+      "type": "string",
+      "description": "If this is a test record, the validation run that created it"
     }
   },
   "required": [

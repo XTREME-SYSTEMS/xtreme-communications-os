@@ -576,6 +576,103 @@ Return a JSON object with field names as keys and appropriate values to fill.`,
       });
     }
 
+    // ── SEND BATCH (SMS / MMS / WhatsApp) ──
+    if (action === "send_batch") {
+      const { channel, recipients, message, media_urls, from_number, throttle_per_sec } = body;
+      if (!channel || !["sms", "mms", "whatsapp"].includes(channel)) {
+        return Response.json({ error: "channel must be 'sms', 'mms', or 'whatsapp'" }, { status: 400 });
+      }
+      if (!recipients || !Array.isArray(recipients) || recipients.length === 0) {
+        return Response.json({ error: "recipients array required (phone numbers or {phone, name?} objects)" }, { status: 400 });
+      }
+      if (!message && !(media_urls && media_urls.length)) {
+        return Response.json({ error: "message or media_urls required" }, { status: 400 });
+      }
+
+      // Entitlement check based on channel
+      const entFeature = channel === "whatsapp" ? "has_whatsapp" : "monthly_sms_allowance";
+      const entBatch = await checkEntitlement(base44, userId, entFeature, { functionName: "executeAutonomousAction", requestedAction: `send_batch_${channel}` });
+      if (!entBatch.allowed) return Response.json({ error: entBatch.reason, entitlement_denied: true }, { status: 403 });
+
+      const telnyxKey = process.env.TELNYX_API_KEY;
+      if (!telnyxKey) return Response.json({ error: "TELNYX_API_KEY not configured" }, { status: 503 });
+
+      const senderFrom = from_number || "+18334843799";
+      const throttle = throttle_per_sec || 2;
+      const delayMs = throttle > 0 ? Math.round(1000 / throttle) : 0;
+      const telnyxChannel = channel === "whatsapp" ? "whatsapp" : "sms";
+
+      const results: any[] = [];
+      let sentCount = 0;
+      let failedCount = 0;
+
+      for (const recipient of recipients) {
+        const phone = typeof recipient === "string" ? recipient : recipient?.phone;
+        const contactName = typeof recipient === "object" ? (recipient.name || recipient.full_name || "") : "";
+        const contactCompany = typeof recipient === "object" ? (recipient.company || "") : "";
+
+        if (!phone) {
+          results.push({ phone: null, status: "skipped", error: "no phone number" });
+          continue;
+        }
+
+        // Personalize message with contact data
+        let personalizedMsg = message || "";
+        if (contactName) {
+          personalizedMsg = personalizedMsg.replace(/\{\{first_name\}\}/gi, contactName.split(" ")[0] || "there");
+          personalizedMsg = personalizedMsg.replace(/\{\{full_name\}\}/gi, contactName);
+        }
+        if (contactCompany) {
+          personalizedMsg = personalizedMsg.replace(/\{\{company\}\}/gi, contactCompany);
+        }
+
+        try {
+          const endpoint = getTelnyxEndpoint(telnyxChannel);
+          const payload = buildTelnyxPayload(telnyxChannel, {
+            from: senderFrom,
+            to: phone,
+            text: personalizedMsg,
+            media_urls: channel === "mms" ? media_urls : undefined,
+          });
+          const result = await sendTelnyx(telnyxKey, endpoint, payload);
+          const messageId = result.data?.data?.id || null;
+          const delivery = extractDeliveryStatus(result.data);
+          const ok = result.ok && !delivery.error_code;
+
+          await base44.asServiceRole.entities.CommsEvent.create({
+            channel, direction: "outbound",
+            from_addr: senderFrom, to_addr: phone, summary: personalizedMsg || "[MMS with media]",
+            status: ok ? "sent" : "failed",
+            classification: "PROVIDER-BACKED",
+            provider_id: "telnyx",
+            provider_message_id: messageId || undefined,
+            error_code: delivery.error_code || undefined,
+            error_detail: delivery.error_detail || undefined,
+            tenant_id: tenant?.id,
+          });
+
+          results.push({ phone, status: ok ? "sent" : "failed", message_id: messageId, error: delivery.error_detail || undefined });
+          if (ok) sentCount++; else failedCount++;
+        } catch (err: any) {
+          results.push({ phone, status: "failed", error: err.message });
+          failedCount++;
+        }
+
+        if (delayMs > 0) await new Promise(r => setTimeout(r, delayMs));
+      }
+
+      return Response.json({
+        action: "send_batch",
+        channel,
+        from_number: senderFrom,
+        total: recipients.length,
+        sent: sentCount,
+        failed: failedCount,
+        results: results.slice(0, 100),
+        status: "completed",
+      });
+    }
+
     return Response.json({ error: "unknown action", action }, { status: 400 });
   } catch (error: any) {
     return Response.json({ error: error.message }, { status: 500 });

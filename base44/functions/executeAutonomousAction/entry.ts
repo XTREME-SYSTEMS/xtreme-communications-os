@@ -463,6 +463,119 @@ Return a JSON object with field names as keys and appropriate values to fill.`,
       }
     }
 
+    // ── SEND MMS (Telnyx with media attachments) ──
+    if (action === "send_mms") {
+      const entMms = await checkEntitlement(base44, userId, "monthly_sms_allowance", { functionName: "executeAutonomousAction", requestedAction: "send_mms" });
+      if (!entMms.allowed) return Response.json({ error: entMms.reason, entitlement_denied: true }, { status: 403 });
+      const telnyxKey = process.env.TELNYX_API_KEY;
+      if (!telnyxKey) return Response.json({ error: "TELNYX_API_KEY not configured" }, { status: 503 });
+      const { from_number, to_number, message, media_urls } = body;
+      if (!to_number) return Response.json({ error: "to_number required" }, { status: 400 });
+      if (!message && !(media_urls && media_urls.length)) return Response.json({ error: "message or media_urls required" }, { status: 400 });
+      const endpoint = getTelnyxEndpoint("sms"); // MMS uses same /v2/messages endpoint
+      const payload = buildTelnyxPayload("sms", { from: from_number || "+18334843799", to: to_number, text: message || "", media_urls });
+      const result = await sendTelnyx(telnyxKey, endpoint, payload);
+      const messageId = result.data?.data?.id || null;
+      const delivery = extractDeliveryStatus(result.data);
+      await base44.asServiceRole.entities.CommsEvent.create({
+        channel: "mms", direction: "outbound",
+        from_addr: from_number || "+18334843799", to_addr: to_number, summary: message || "[MMS with media]",
+        status: delivery.delivered ? "delivered" : "failed",
+        classification: "PROVIDER-BACKED",
+        provider_id: "telnyx",
+        provider_message_id: messageId || undefined,
+        error_code: delivery.error_code || undefined,
+        error_detail: delivery.error_detail || undefined,
+        tenant_id: tenant?.id,
+      });
+      return Response.json({
+        action: "send_mms", ok: result.ok, to: to_number, message,
+        media_count: (media_urls || []).length,
+        delivered: delivery.delivered,
+        to_status: delivery.to_status,
+        error_code: delivery.error_code,
+        error_detail: delivery.error_detail,
+        message_id: messageId,
+        from_number: from_number || "+18334843799",
+        status: delivery.delivered ? "delivered" : (result.ok ? "accepted_but_delivery_failed" : "failed"),
+      });
+    }
+
+    // ── SEND EMAIL (Gmail connector) ──
+    if (action === "send_email") {
+      const entEmail = await checkEntitlement(base44, userId, "monthly_email_allowance", { functionName: "executeAutonomousAction", requestedAction: "send_email" });
+      if (!entEmail.allowed) return Response.json({ error: entEmail.reason, entitlement_denied: true }, { status: 403 });
+      const { to, subject, body: emailBody, html, from_name, cc, bcc } = body;
+      if (!to || !subject) return Response.json({ error: "to and subject required" }, { status: 400 });
+      // Get Gmail OAuth token from connected connector
+      let gmailToken: string | null = null;
+      try {
+        const conn = await base44.asServiceRole.connectors.getConnection("gmail");
+        gmailToken = conn?.accessToken || null;
+      } catch (_) {}
+      if (!gmailToken) return Response.json({
+        error: "Gmail connector not connected",
+        credentials_required: true,
+        action_required: "authorize the Gmail connector in the builder",
+      }, { status: 503 });
+      // Build RFC 2822 message
+      const lines: string[] = [];
+      lines.push(`From: ${from_name || "XTREME Communications"}`);
+      lines.push(`To: ${to}`);
+      if (cc) lines.push(`Cc: ${cc}`);
+      if (bcc) lines.push(`Bcc: ${bcc}`);
+      const encodeBase64Url = (str: string) => {
+        const bytes = new TextEncoder().encode(str);
+        let bin = "";
+        for (const b of bytes) bin += String.fromCharCode(b);
+        return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+      };
+      lines.push(`Subject: =?UTF-8?B?${encodeBase64Url(subject)}?=`);
+      lines.push("MIME-Version: 1.0");
+      if (html) {
+        const boundary = "xtr_" + Math.random().toString(36).slice(2);
+        lines.push(`Content-Type: multipart/alternative; boundary="${boundary}"`);
+        lines.push("");
+        lines.push(`--${boundary}`);
+        lines.push("Content-Type: text/plain; charset=UTF-8");
+        lines.push("Content-Transfer-Encoding: 7bit");
+        lines.push("");
+        lines.push(emailBody || "");
+        lines.push("");
+        lines.push(`--${boundary}`);
+        lines.push("Content-Type: text/html; charset=UTF-8");
+        lines.push("Content-Transfer-Encoding: 7bit");
+        lines.push("");
+        lines.push(html);
+        lines.push("");
+        lines.push(`--${boundary}--`);
+      } else {
+        lines.push("Content-Type: text/plain; charset=UTF-8");
+        lines.push("Content-Transfer-Encoding: 7bit");
+        lines.push("");
+        lines.push(emailBody || "");
+      }
+      const raw = encodeBase64Url(lines.join("\r\n"));
+      const res = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/messages/send", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${gmailToken}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ raw }),
+      });
+      const data: any = await res.json().catch(() => ({}));
+      if (!res.ok) return Response.json({ error: data?.error?.message || "gmail send failed", status: "failed" }, { status: res.status });
+      await base44.asServiceRole.entities.CommsEvent.create({
+        channel: "email", direction: "outbound",
+        from_addr: from_name || "XTREME Communications", to_addr: to,
+        status: "completed", classification: "LIVE",
+        summary: `email sent via Gmail: ${subject}`,
+        tenant_id: tenant?.id,
+      });
+      return Response.json({
+        action: "send_email", ok: true, to, subject,
+        message_id: data.id, status: "sent", routed_via: "gmail",
+      });
+    }
+
     return Response.json({ error: "unknown action", action }, { status: 400 });
   } catch (error: any) {
     return Response.json({ error: error.message }, { status: 500 });

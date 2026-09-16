@@ -1,3 +1,132 @@
 {
-  "auth": "oauth"
+  "auth": "oauth",
+  "tools": {
+    "functions": [
+      {
+        "name": "send_sms",
+        "title": "Send SMS Message",
+        "description": "Send an SMS text message to a phone number via Telnyx. Use when the user asks to text, message, or notify someone via SMS. Requires the recipient's phone number in E.164 format (e.g. +1234567890).",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "action": { "type": "string", "default": "send_sms", "description": "Must be 'send_sms'" },
+            "to_number": { "type": "string", "description": "Recipient phone number in E.164 format (e.g. +1234567890)" },
+            "message": { "type": "string", "description": "The SMS text message content" },
+            "from_number": { "type": "string", "description": "Sender phone number in E.164 format. Optional — defaults to the system number." }
+          },
+          "required": ["action", "to_number", "message"]
+        },
+        "handler": "executeAutonomousAction",
+        "annotations": { "read_only_hint": false, "destructive_hint": false, "idempotent_hint": false }
+      },
+      {
+        "name": "send_mms",
+        "title": "Send MMS Message",
+        "description": "Send an MMS message with media attachments (images, video URLs) to a phone number via Telnyx. Use when the user wants to send a multimedia message with images or files. Provide media_urls as an array of publicly accessible URLs.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "action": { "type": "string", "default": "send_mms", "description": "Must be 'send_mms'" },
+            "to_number": { "type": "string", "description": "Recipient phone number in E.164 format (e.g. +1234567890)" },
+            "message": { "type": "string", "description": "Optional text body accompanying the media" },
+            "media_urls": { "type": "array", "items": { "type": "string" }, "description": "Array of publicly accessible media URLs (images, video, audio) to attach" },
+            "from_number": { "type": "string", "description": "Sender phone number in E.164 format. Optional — defaults to the system number." }
+          },
+          "required": ["action", "to_number"]
+        },
+        "handler": "executeAutonomousAction",
+        "annotations": { "read_only_hint": false, "destructive_hint": false, "idempotent_hint": false }
+      },
+      {
+        "name": "make_voice_call",
+        "title": "Make AI Voice Call",
+        "description": "Initiate an AI-powered voice call to a phone number via Telnyx Call Control. Use when the user asks to call someone, make a phone call, or start a voice conversation. The call connects to an AI voice agent.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "action": { "type": "string", "default": "make_call", "description": "Must be 'make_call'" },
+            "to_number": { "type": "string", "description": "Recipient phone number in E.164 format (e.g. +1234567890)" },
+            "from_number": { "type": "string", "description": "Caller phone number in E.164 format. Optional — defaults to the system number." },
+            "connection_id": { "type": "string", "description": "Telnyx connection ID for the call. Optional — uses default if omitted." }
+          },
+          "required": ["action", "to_number"]
+        },
+        "handler": "executeAutonomousAction",
+        "annotations": { "read_only_hint": false, "destructive_hint": false, "idempotent_hint": false }
+      },
+      {
+        "name": "send_email",
+        "title": "Send Email",
+        "description": "Send an email to one or more recipients via the connected Gmail connector. Use when the user asks to email someone, send a message via email, or distribute content. Supports plain text and HTML bodies, plus CC and BCC.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "action": { "type": "string", "default": "send_email", "description": "Must be 'send_email'" },
+            "to": { "type": "string", "description": "Recipient email address (or comma-separated addresses)" },
+            "subject": { "type": "string", "description": "Email subject line" },
+            "body": { "type": "string", "description": "Plain text email body" },
+            "html": { "type": "string", "description": "Optional HTML email body. If provided, the email is sent as multipart with both plain text and HTML." },
+            "from_name": { "type": "string", "description": "Sender display name. Optional — defaults to 'XTREME Communications'." },
+            "cc": { "type": "string", "description": "Optional CC email address(es), comma-separated" },
+            "bcc": { "type": "string", "description": "Optional BCC email address(es), comma-separated" }
+          },
+          "required": ["action", "to", "subject"]
+        },
+        "handler": "executeAutonomousAction",
+        "annotations": { "read_only_hint": false, "destructive_hint": false, "idempotent_hint": false }
+      },
+      {
+        "name": "send_whatsapp",
+        "title": "Send WhatsApp Message",
+        "description": "Send a WhatsApp message to a phone number via Telnyx WhatsApp API. Use when the user asks to message someone on WhatsApp.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "action": { "type": "string", "default": "send_whatsapp", "description": "Must be 'send_whatsapp'" },
+            "to_number": { "type": "string", "description": "Recipient phone number in E.164 format (e.g. +1234567890)" },
+            "message": { "type": "string", "description": "The WhatsApp text message" },
+            "from_number": { "type": "string", "description": "Sender WhatsApp number in E.164 format. Optional — defaults to the system number." }
+          },
+          "required": ["action", "to_number", "message"]
+        },
+        "handler": "executeAutonomousAction",
+        "annotations": { "read_only_hint": false, "destructive_hint": false, "idempotent_hint": false }
+      },
+      {
+        "name": "run_ai_task",
+        "title": "Run AI Task",
+        "description": "Run an AI task with a natural language prompt and optionally deliver the result via SMS. Use when the user asks to generate content, analyze text, answer questions, or perform AI-powered tasks. Optionally set deliver_via='sms' and deliver_to to send the result to a phone number.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "action": { "type": "string", "default": "ai_task", "description": "Must be 'ai_task'" },
+            "prompt": { "type": "string", "description": "The AI task prompt or question" },
+            "model": { "type": "string", "description": "Optional model override. Defaults to fast model." },
+            "deliver_via": { "type": "string", "description": "Optional delivery method. Set to 'sms' to deliver the AI result via text message." },
+            "deliver_to": { "type": "string", "description": "Phone number to deliver the result to (E.164). Required if deliver_via is 'sms'." },
+            "from_number": { "type": "string", "description": "Sender number for SMS delivery. Optional." }
+          },
+          "required": ["action", "prompt"]
+        },
+        "handler": "executeAutonomousAction",
+        "annotations": { "read_only_hint": false, "destructive_hint": false, "idempotent_hint": false }
+      },
+      {
+        "name": "preview_voice",
+        "title": "Generate AI Voice Audio",
+        "description": "Generate speech audio (text-to-speech) from text and return a playable MP3 URL. Use when the user asks to generate audio, create a voice message, or hear how text sounds spoken aloud.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "text": { "type": "string", "description": "The text to convert to speech (max 5000 characters)" },
+            "voice": { "type": "string", "description": "Voice persona: 'river' (calm), 'honey' (warm), 'sunny' (bright), 'storm' (authoritative), or 'spark' (energetic). Defaults to 'river'." },
+            "language_code": { "type": "string", "description": "Optional ISO-639-1 language code (e.g. 'en', 'es'). Auto-detected if omitted." }
+          },
+          "required": ["text"]
+        },
+        "handler": "previewVoice",
+        "annotations": { "read_only_hint": false, "destructive_hint": false, "idempotent_hint": false }
+      }
+    ]
+  }
 }

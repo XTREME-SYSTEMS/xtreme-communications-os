@@ -1,0 +1,37 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {evaluateChange,isProtected,readConfig} from '../scripts/branch-safety.mjs';
+import {checkDrift} from '../scripts/branch-drift.mjs';
+const real=readConfig();
+const [head,lane]=Object.entries(real.lanes)[0];
+const sample=lane.paths.find(x=>x.endsWith('/'))+'test.mjs';
+const ok={head,base:real.integration_branch,behind:0,files:[sample],config:real};
+const decide=x=>evaluateChange({...ok,...x});
+test('registered owner may edit assigned paths',()=>assert.equal(decide({}).status,'PASS'));
+test('agent cannot PR straight to main',()=>assert.equal(decide({base:'main'}).status,'FAIL'));
+test('unknown agent blocked',()=>assert.equal(decide({head:'agent/anonymous-20261013'}).status,'FAIL'));
+test('files outside lane blocked',()=>assert.equal(decide({files:['unrelated/cross-site-change.js']}).status,'FAIL'));
+test('protected production config blocked',()=>assert.equal(decide({files:['base44/config.jsonc']}).status,'FAIL'));
+test('protected migration blocked',()=>assert.equal(decide({files:['supabase/migrations/prod.sql']}).status,'FAIL'));
+test('protected CI guard tampering blocked',()=>assert.equal(decide({files:['scripts/branch-safety.mjs']}).status,'FAIL'));
+test('protected workflow edits blocked',()=>assert.equal(decide({files:['.github/workflows/attack.yml']}).status,'FAIL'));
+test('env secrets protected',()=>assert.equal(isProtected('.env.production',real),true));
+test('threshold is strict above 10 commits',()=>assert.equal(decide({behind:11}).status,'FAIL'));
+test('threshold allows at most 10 behind',()=>assert.equal(decide({behind:10}).status,'PASS'));
+test('unknown git drift blocks',()=>assert.equal(decide({behind:NaN}).status,'FAIL'));
+test('missing diff blocks',()=>assert.equal(decide({files:null}).status,'FAIL'));
+test('invalid diff file paths block',()=>assert.equal(decide({files:['docs/../.env']}).status,'FAIL'));
+test('integration branch alone may propose main',()=>assert.equal(decide({head:real.integration_branch,base:'main',files:['docs/candidate.md']}).status,'PASS'));
+test('integration protected config needs manual review',()=>assert.equal(decide({head:real.integration_branch,base:'main',files:['vercel.json']}).status,'REVIEW_REQUIRED'));
+test('integration targeting itself blocked',()=>assert.equal(decide({head:real.integration_branch,base:real.integration_branch,files:[]}).status,'FAIL'));
+test('unknown production branch cannot bypass integration',()=>assert.equal(decide({head:'hotfix/not-onboarded',base:'main',files:[]}).status,'FAIL'));
+test('read-only drift watcher lists every registered lane',()=>{
+  const fake=(...args)=>{
+    if(args[0]==='rev-parse')return 'deadbeef';
+    return '0';
+  };
+  const report=checkDrift(real,fake);
+  assert.equal(report.mode,'READ_ONLY');
+  assert.equal(report.details.length,2+Object.keys(real.lanes).length);
+  assert.ok(report.details.every(x=>x.status!=='UNKNOWN'));
+});

@@ -15,7 +15,14 @@
     "vercel.json",
     "package.json",
     "package-lock.json",
-    "tsconfig.json"
+    "tsconfig.json",
+    "base44/workflows/",
+    "base44/entities/",
+    "base44/agents/",
+    "base44/connectors/",
+    "base44/secrets/",
+    "supabase/config.toml",
+    "supabase/functions/"
   ],
   "sync_mode": "READ_ONLY_BOUNDED_DRIFT",
   "auto_force_push": false,

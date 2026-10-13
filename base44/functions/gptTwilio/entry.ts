@@ -4,6 +4,8 @@ export default createTwilioReader({
   env: name => process.env[name],
   authenticate: async req => {
     const client = createClientFromRequest(req);
+    const user = await client.auth.me().catch(() => null);
+    if (user?.role === 'admin') return {admin:true};
     const bearer = (req.headers.get('authorization') || '').match(/^Bearer\s+(.+)$/i)?.[1];
     if (bearer) {
       const keys = await client.asServiceRole.entities.ApiKey.filter({key_value:bearer,status:'active'});
@@ -13,7 +15,6 @@ export default createTwilioReader({
       if (!tenant || tenant.status !== 'active') return null;
       return {admin:false,tenantId:key.tenant_id,scopes:key.scopes || []};
     }
-    const user = await client.auth.me().catch(() => null);
-    return user?.role === 'admin' ? {admin:true} : null;
+    return null;
   }
 });

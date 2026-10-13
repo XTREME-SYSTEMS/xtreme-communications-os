@@ -1,0 +1,68 @@
+name: Agent branch isolation and drift watch
+on:
+  pull_request:
+    branches:
+      - main
+      - integration/agent-sync-20261013
+  push:
+    branches:
+      - integration/agent-sync-20261013
+      - 'agent/**'
+  workflow_dispatch:
+  schedule:
+    - cron: '17 */6 * * *'
+permissions:
+  contents: read
+concurrency:
+  group: agent-sync-${{ github.repository }}-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  protect:
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Checkout trusted destination policy for PRs
+        if: github.event_name == 'pull_request'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: .trusted-agent-sync
+          fetch-depth: 1
+      - name: Fetch read-only remote refs
+        run: git fetch --no-tags origin '+refs/heads/*:refs/remotes/origin/*'
+      - name: Guard owned paths and branch freshness
+        env:
+          TRUSTED_AGENT_CONFIG: ${{ github.event_name == 'pull_request' && '.trusted-agent-sync/config/agent-sync.json' || 'config/agent-sync.json' }}
+        run: |
+          if [ "${{ github.event_name }}" = 'pull_request' ]; then
+            node .trusted-agent-sync/scripts/branch-safety.mjs
+          else
+            node scripts/branch-safety.mjs
+          fi
+      - name: Independent agent ownership tests
+        run: |
+          if [ "${{ github.event_name }}" = 'pull_request' ]; then
+            node --test .trusted-agent-sync/tests/branch-safety.test.mjs
+          else
+            node --test tests/branch-safety.test.mjs
+          fi
+  drift_watch:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Refresh read-only refs
+        run: git fetch --no-tags origin '+refs/heads/*:refs/remotes/origin/*'
+      - name: Classify lag and possible safe fast-forwards (never update refs)
+        run: node scripts/branch-drift.mjs

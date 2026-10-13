@@ -2,6 +2,33 @@
   "auth": "oauth",
   "tools": {
     "functions": [
+{
+  "name": "inspect_twilio_connection",
+  "title": "Inspect Twilio Voice Connection",
+  "description": "Read-only check of the approved Twilio account or Eden Skye number ending 1174. Does not call, text, purchase, record, or change routing. Live voice remains UNKNOWN until tested.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "action": {
+        "type": "string",
+        "enum": [
+          "status",
+          "inspect_number"
+        ]
+      }
+    },
+    "required": [
+      "action"
+    ],
+    "additionalProperties": false
+  },
+  "handler": "gptTwilio",
+  "annotations": {
+    "read_only_hint": true,
+    "destructive_hint": false,
+    "idempotent_hint": true
+  }
+},
       {
         "name": "send_sms",
         "title": "Send SMS Message",

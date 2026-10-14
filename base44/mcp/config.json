@@ -226,6 +226,185 @@
         "annotations": { "read_only_hint": false, "destructive_hint": false, "idempotent_hint": false }
       },
       {
+        "name": "sync_inbox",
+        "title": "Sync Inbox (Cursor-Based)",
+        "description": "Incrementally synchronize communication events using a cursor. Returns new events since the last cursor position, plus a next_cursor for pagination. Use when the user asks to 'sync messages', 'catch up on inbox', 'what's new since last check', or needs incremental event synchronization. Events include message.received, message.sent, agent.task.created, etc.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "action": { "type": "string", "default": "sync", "description": "Must be 'sync'" },
+            "cursor": { "type": "string", "description": "ISO timestamp cursor from previous sync response. Omit for initial sync (returns all events)." },
+            "limit": { "type": "integer", "description": "Max events per page (default 50, max 100)" }
+          },
+          "required": ["action"]
+        },
+        "handler": "gptBridge",
+        "annotations": { "read_only_hint": true, "destructive_hint": false, "idempotent_hint": true }
+      },
+      {
+        "name": "request_reply",
+        "title": "Request Reply (Pending Approval)",
+        "description": "Request an outbound SMS reply to a conversation. Creates a durable outbox entry pending operator approval. Does NOT send automatically — use approve_reply to authorize the send. Use when the user says 'reply to them', 'send a response', 'text them back'. For automatic send (admin only), set auto_approve=true.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "action": { "type": "string", "default": "request_reply", "description": "Must be 'request_reply'" },
+            "conversation_id": { "type": "string", "description": "Conversation ID to reply to" },
+            "to_number": { "type": "string", "description": "Recipient phone number in E.164 format" },
+            "body": { "type": "string", "description": "Reply message content" },
+            "from_number": { "type": "string", "description": "Sender number. Optional — defaults to +18665711174." },
+            "idempotency_key": { "type": "string", "description": "Optional dedup key" },
+            "auto_approve": { "type": "boolean", "description": "Admin only: auto-approve and send immediately. Default false." }
+          },
+          "required": ["action", "to_number", "body"]
+        },
+        "handler": "gptBridge",
+        "annotations": { "read_only_hint": false, "destructive_hint": false, "idempotent_hint": true }
+      },
+      {
+        "name": "approve_reply",
+        "title": "Approve and Send Reply",
+        "description": "Approve a pending outbox message and send it via Twilio. Use when the user confirms 'send it', 'approve that reply', 'go ahead and send'. Requires the outbox_id from a previous request_reply or create_draft call.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "action": { "type": "string", "default": "approve_reply", "description": "Must be 'approve_reply'" },
+            "outbox_id": { "type": "string", "description": "Outbox message ID to approve and send" }
+          },
+          "required": ["action", "outbox_id"]
+        },
+        "handler": "gptBridge",
+        "annotations": { "read_only_hint": false, "destructive_hint": false, "idempotent_hint": false }
+      },
+      {
+        "name": "get_receipt",
+        "title": "Get Delivery Receipt",
+        "description": "Retrieve a durable operation receipt by ID. Receipts track the status of message sends, agent tasks, and approvals. Use when the user asks 'did it go through?', 'check the receipt', 'what happened to that send?'.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "action": { "type": "string", "default": "get_receipt", "description": "Must be 'get_receipt'" },
+            "receipt_id": { "type": "string", "description": "Receipt ID to retrieve" }
+          },
+          "required": ["action", "receipt_id"]
+        },
+        "handler": "gptBridge",
+        "annotations": { "read_only_hint": true, "destructive_hint": false, "idempotent_hint": true }
+      },
+      {
+        "name": "dispatch_agent",
+        "title": "Dispatch Agent Task",
+        "description": "Dispatch a task to a specialized agent: inbox-triage (classify/summarize), reply-drafter (draft a reply), send-executor (verify approval before send), or delivery-auditor (check delivery and escalate). Use when the user asks to 'triage this message', 'draft a reply', 'check delivery', 'audit that send'.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "action": { "type": "string", "default": "dispatch_agent_task", "description": "Must be 'dispatch_agent_task'" },
+            "agent_id": { "type": "string", "enum": ["inbox-triage", "reply-drafter", "send-executor", "delivery-auditor"], "description": "Which agent to dispatch to" },
+            "task_type": { "type": "string", "description": "Specific task within the agent's scope (e.g. classify_message, draft_reply, check_delivery)" },
+            "conversation_id": { "type": "string", "description": "Optional conversation context" },
+            "input": { "type": "object", "description": "Task-specific input data (e.g. {message_body, from} for triage, {original_message, to_number} for drafting)" },
+            "idempotency_key": { "type": "string", "description": "Optional dedup key" }
+          },
+          "required": ["action", "agent_id", "task_type"]
+        },
+        "handler": "gptBridge",
+        "annotations": { "read_only_hint": false, "destructive_hint": false, "idempotent_hint": true }
+      },
+      {
+        "name": "get_conversation",
+        "title": "Get Conversation History",
+        "description": "Retrieve full conversation history and message threading for a participant. Use when the user asks 'show me the conversation', 'what did they say?', 'conversation history with this number'. Returns all messages (inbound and outbound) in chronological order.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "action": { "type": "string", "default": "get_conversation", "description": "Must be 'get_conversation'" },
+            "conversation_id": { "type": "string", "description": "Conversation ID" },
+            "participant_identity": { "type": "string", "description": "Phone number or identity of the participant" }
+          },
+          "required": ["action"]
+        },
+        "handler": "gptBridge",
+        "annotations": { "read_only_hint": true, "destructive_hint": false, "idempotent_hint": true }
+      },
+      {
+        "name": "create_draft",
+        "title": "Create Draft Reply",
+        "description": "Create a draft reply message without sending or requesting approval. The draft is stored in the outbox with is_draft=true and pending_approval status. Use approve_reply to send it later. Use when the user says 'draft a reply', 'save a response for later', 'prepare a message'.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "action": { "type": "string", "default": "create_draft", "description": "Must be 'create_draft'" },
+            "conversation_id": { "type": "string", "description": "Optional conversation ID" },
+            "to_number": { "type": "string", "description": "Recipient phone number in E.164 format" },
+            "body": { "type": "string", "description": "Draft message content" },
+            "from_number": { "type": "string", "description": "Sender number. Optional — defaults to +18665711174." }
+          },
+          "required": ["action", "to_number", "body"]
+        },
+        "handler": "gptBridge",
+        "annotations": { "read_only_hint": false, "destructive_hint": false, "idempotent_hint": false }
+      },
+      {
+        "name": "get_agent_activity",
+        "title": "Get Agent Activity",
+        "description": "Review recent agent task history and status. Use when the user asks 'what are my agents doing?', 'show agent activity', 'what tasks have been dispatched?'. Returns task list with agent_id, status, output, and escalation info.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "action": { "type": "string", "default": "get_agent_activity", "description": "Must be 'get_agent_activity'" },
+            "agent_id": { "type": "string", "description": "Optional filter by agent (inbox-triage, reply-drafter, send-executor, delivery-auditor)" },
+            "limit": { "type": "integer", "description": "Max tasks to return (default 50, max 100)" }
+          },
+          "required": ["action"]
+        },
+        "handler": "gptBridge",
+        "annotations": { "read_only_hint": true, "destructive_hint": false, "idempotent_hint": true }
+      },
+      {
+        "name": "get_bridge_health",
+        "title": "Get Bridge Health",
+        "description": "Check the health and synchronization status of the bidirectional bridge. Returns event counts, outbox status breakdown, agent task stats, and capability flags. Use when the user asks 'is the system healthy?', 'bridge status', 'what's the sync state?'.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "action": { "type": "string", "default": "get_health", "description": "Must be 'get_health'" }
+          },
+          "required": ["action"]
+        },
+        "handler": "gptBridge",
+        "annotations": { "read_only_hint": true, "destructive_hint": false, "idempotent_hint": true }
+      },
+      {
+        "name": "list_outbox",
+        "title": "List Outbox Messages",
+        "description": "List outbox messages with optional status filter. Shows pending, approved, sent, failed, and dead-letter messages. Use when the user asks 'what's in the outbox?', 'show pending messages', 'what failed to send?'.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "action": { "type": "string", "default": "list_outbox", "description": "Must be 'list_outbox'" },
+            "status": { "type": "string", "description": "Optional filter: pending_approval, approved, sending, sent, delivered, failed, dead_letter" },
+            "limit": { "type": "integer", "description": "Max messages (default 50, max 100)" }
+          },
+          "required": ["action"]
+        },
+        "handler": "gptBridge",
+        "annotations": { "read_only_hint": true, "destructive_hint": false, "idempotent_hint": true }
+      },
+      {
+        "name": "recover_failed",
+        "title": "Recover Failed Messages",
+        "description": "Retry failed outbox messages that haven't exceeded max retries. Messages that exceed max retries are moved to dead_letter status. Use when the user says 'retry failed messages', 'recover the queue', 'try sending again'.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "action": { "type": "string", "default": "recover_failed", "description": "Must be 'recover_failed'" }
+          },
+          "required": ["action"]
+        },
+        "handler": "gptBridge",
+        "annotations": { "read_only_hint": false, "destructive_hint": false, "idempotent_hint": true }
+      },
+      {
         "name": "preview_voice",
         "title": "Generate AI Voice Audio",
         "description": "Generate speech audio (text-to-speech) from text and return a playable MP3 URL. Use when the user asks to generate audio, create a voice message, or hear how text sounds spoken aloud.",

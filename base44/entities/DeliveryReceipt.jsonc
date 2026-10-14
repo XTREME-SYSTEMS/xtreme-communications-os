@@ -1,0 +1,81 @@
+{
+  "name": "DeliveryReceipt",
+  "type": "object",
+  "properties": {
+    "receipt_id": {
+      "type": "string",
+      "description": "Unique receipt ID (UUID)"
+    },
+    "tenant_id": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "Owner user ID for per-user isolation"
+    },
+    "operation_type": {
+      "type": "string",
+      "enum": [
+        "message.send",
+        "agent.task",
+        "approval",
+        "sync"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "accepted",
+        "processing",
+        "completed",
+        "failed",
+        "dead_letter"
+      ],
+      "default": "accepted"
+    },
+    "evidence": {
+      "type": "string",
+      "description": "Proof evidence (logs, provider IDs, etc.)"
+    },
+    "correlation_id": {
+      "type": "string"
+    },
+    "outbox_id": {
+      "type": "string"
+    },
+    "task_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "receipt_id",
+    "tenant_id",
+    "operation_type",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

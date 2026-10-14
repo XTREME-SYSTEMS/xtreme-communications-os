@@ -1,0 +1,139 @@
+{
+  "name": "AgentTask",
+  "type": "object",
+  "properties": {
+    "task_id": {
+      "type": "string",
+      "description": "Unique task ID (UUID)"
+    },
+    "agent_id": {
+      "type": "string",
+      "enum": [
+        "inbox-triage",
+        "reply-drafter",
+        "send-executor",
+        "delivery-auditor"
+      ],
+      "description": "Which specialized agent handles this task"
+    },
+    "tenant_id": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "Owner user ID for per-user isolation"
+    },
+    "task_type": {
+      "type": "string",
+      "description": "Specific task within the agent's scope"
+    },
+    "conversation_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "queued",
+        "in_progress",
+        "completed",
+        "failed",
+        "escalated"
+      ],
+      "default": "queued"
+    },
+    "idempotency_key": {
+      "type": "string"
+    },
+    "receipt_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "input": {
+      "type": "object",
+      "description": "Task input data"
+    },
+    "output": {
+      "type": "object",
+      "description": "Task result data"
+    },
+    "correlation_id": {
+      "type": "string"
+    },
+    "causation_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "assigned_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "completed_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "escalated_to": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "escalation_reason": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "error": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "task_id",
+    "agent_id",
+    "tenant_id",
+    "task_type",
+    "status",
+    "idempotency_key"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

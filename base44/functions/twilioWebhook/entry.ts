@@ -150,6 +150,22 @@ export default async function(req) {
       tenant_id: tenantId,
     });
 
+    // ── Emit SyncEvent for bidirectional bridge ──
+    await base44.asServiceRole.entities.SyncEvent.create({
+      event_id: crypto.randomUUID(),
+      event_type: 'message.received',
+      occurred_at: new Date().toISOString(),
+      tenant_id: tenantId,
+      user_id: phones.length ? phones[0].user_id : null,
+      correlation_id: `inbound:${messageSid || from}`,
+      idempotency_key: messageSid || `inbound:${from}:${body.slice(0, 50)}`,
+      actor_kind: 'provider',
+      actor_id: 'twilio',
+      payload: { from, to, body: body.slice(0, 500), channel, media_count: mediaUrls.length, comms_event_id: commsEvent.id },
+      schema_version: '1.0.0',
+      comms_event_id: commsEvent.id,
+    }).catch(() => {});
+
     // Store raw webhook event for audit (signature verified = true)
     await base44.asServiceRole.entities.WebhookEvent.create({
       tenant_id: tenantId,

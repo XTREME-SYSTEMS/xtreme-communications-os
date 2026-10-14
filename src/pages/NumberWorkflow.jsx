@@ -91,13 +91,16 @@ export default function NumberWorkflow() {
 
   const load = async () => {
     try {
-      const [nums, provs, keys] = await Promise.all([
+      const [numsRes, provsRes, keysRes] = await Promise.all([
         base44.entities.PhoneNumber.list("-created_date", 50).catch(() => []),
         base44.entities.Provider.filter({}).catch(() => []),
         base44.entities.ApiKey.filter({ status: "active" }).catch(() => []),
       ]);
-      setNumbers(nums || []);
-      setProviders(provs || []);
+      const nums = Array.isArray(numsRes) ? numsRes : (numsRes?.items || []);
+      const provs = Array.isArray(provsRes) ? provsRes : (provsRes?.items || []);
+      const keys = Array.isArray(keysRes) ? keysRes : (keysRes?.items || []);
+      setNumbers(nums);
+      setProviders(provs);
       setApiKey(keys?.[0]?.key_value || "");
       if (nums?.length) setSelectedId(nums[0].id);
     } catch (e) {

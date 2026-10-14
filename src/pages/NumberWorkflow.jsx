@@ -75,6 +75,7 @@ function StageCard({ stage, status, index }) {
 
 export default function NumberWorkflow() {
   const [numbers, setNumbers] = useState([]);
+  const [providers, setProviders] = useState([]);
   const [selectedId, setSelectedId] = useState("");
   const [loading, setLoading] = useState(true);
   const [apiKey, setApiKey] = useState("");
@@ -90,11 +91,13 @@ export default function NumberWorkflow() {
 
   const load = async () => {
     try {
-      const [nums, keys] = await Promise.all([
+      const [nums, provs, keys] = await Promise.all([
         base44.entities.PhoneNumber.list("-created_date", 50).catch(() => []),
+        base44.entities.Provider.filter({}).catch(() => []),
         base44.entities.ApiKey.filter({ status: "active" }).catch(() => []),
       ]);
       setNumbers(nums || []);
+      setProviders(provs || []);
       setApiKey(keys?.[0]?.key_value || "");
       if (nums?.length) setSelectedId(nums[0].id);
     } catch (e) {
@@ -105,6 +108,7 @@ export default function NumberWorkflow() {
   };
 
   const selected = numbers.find((n) => n.id === selectedId);
+  const providerName = providers.find((p) => p.id === selected?.provider_id)?.name || "Unassigned";
   const completedCount = STAGES.filter((s) => getStageStatus(s.id, selected, tested) === "completed").length;
   const progress = selected ? Math.round((completedCount / STAGES.length) * 100) : 0;
 
@@ -232,7 +236,7 @@ export default function NumberWorkflow() {
             </div>
             <div>
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Provider</p>
-              <p className="text-sm font-medium text-foreground">{selected.provider_id || "Telnyx"}</p>
+              <p className="text-sm font-medium text-foreground">{providerName}</p>
             </div>
             <div>
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Monthly Cost</p>

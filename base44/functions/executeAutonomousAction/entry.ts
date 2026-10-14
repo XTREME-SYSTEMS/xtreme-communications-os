@@ -61,7 +61,7 @@ export default async function(req) {
       const { from_number, to_number, message } = body;
       if (!to_number || !message) return Response.json({ error: "to_number and message required" }, { status: 400 });
       const endpoint = getTelnyxEndpoint("sms");
-      const payload = buildTelnyxPayload("sms", { from: from_number || "+18334843799", to: to_number, text: message });
+      const payload = buildTelnyxPayload("sms", { from: from_number || "+17722090266", to: to_number, text: message });
       const result = await sendTelnyx(telnyxKey, endpoint, payload);
       const messageId = result.data?.data?.id || null;
       let delivery = extractDeliveryStatus(result.data);
@@ -80,7 +80,7 @@ export default async function(req) {
 
       await base44.asServiceRole.entities.CommsEvent.create({
         channel: "sms", direction: "outbound",
-        from_addr: from_number || "+18334843799", to_addr: to_number, summary: message,
+        from_addr: from_number || "+17722090266", to_addr: to_number, summary: message,
         status: delivery.delivered && delivery.to_status !== "delivery_failed" ? "delivered" : "failed",
         classification: "PROVIDER-BACKED",
         provider_id: "telnyx",
@@ -98,7 +98,7 @@ export default async function(req) {
         error_code: delivery.error_code,
         error_detail: delivery.error_detail,
         message_id: messageId,
-        from_number: from_number || "+18334843799",
+        from_number: from_number || "+17722090266",
         status: actuallyDelivered ? "delivered" : (result.ok ? "accepted_but_delivery_failed" : "failed"),
       });
     }
@@ -112,13 +112,13 @@ export default async function(req) {
       const { from_number, to_number, message } = body;
       if (!to_number || !message) return Response.json({ error: "to_number and message required" }, { status: 400 });
       const endpoint = getTelnyxEndpoint("whatsapp");
-      const payload = buildTelnyxPayload("whatsapp", { from: from_number || "+18334843799", to: to_number, text: message });
+      const payload = buildTelnyxPayload("whatsapp", { from: from_number || "+17722090266", to: to_number, text: message });
       const result = await sendTelnyx(telnyxKey, endpoint, payload);
       const delivery = extractDeliveryStatus(result.data);
       const waMessageId = result.data?.data?.id || null;
       await base44.asServiceRole.entities.CommsEvent.create({
         channel: "whatsapp", direction: "outbound",
-        from_addr: from_number || "+18334843799", to_addr: to_number, summary: message,
+        from_addr: from_number || "+17722090266", to_addr: to_number, summary: message,
         status: delivery.delivered ? "delivered" : "failed",
         classification: "PROVIDER-BACKED",
         provider_id: "telnyx",
@@ -134,7 +134,7 @@ export default async function(req) {
         to_status: delivery.to_status,
         error_code: delivery.error_code,
         error_detail: delivery.error_detail,
-        from_number: from_number || "+18334843799",
+        from_number: from_number || "+17722090266",
         status: delivery.delivered ? "delivered" : (result.ok ? "accepted_but_delivery_failed" : "failed"),
       });
     }
@@ -188,7 +188,7 @@ export default async function(req) {
         const telnyxKey = process.env.TELNYX_API_KEY;
         if (telnyxKey) {
           const smsText = typeof result === "string" ? result.slice(0, 1600) : JSON.stringify(result).slice(0, 1600);
-          const smsPayload = buildTelnyxPayload("sms", { from: from_number || "+18334843799", to: deliver_to, text: smsText });
+          const smsPayload = buildTelnyxPayload("sms", { from: from_number || "+17722090266", to: deliver_to, text: smsText });
           const smsResult = await sendTelnyx(telnyxKey, getTelnyxEndpoint("sms"), smsPayload);
           const delivery = extractDeliveryStatus(smsResult.data);
           return Response.json({ action: "ai_task", status: "completed", result, model: model || MODELS.fast, delivered_via: "sms", delivery_status: delivery.delivered ? "delivered" : "failed", to_status: delivery.to_status, error_detail: delivery.error_detail, api_accepted: smsResult.ok });
@@ -309,7 +309,7 @@ Provide a JSON analysis with:
           } else if (step.type === "send_sms") {
             const telnyxKey = process.env.TELNYX_API_KEY;
             if (telnyxKey && step.to_number) {
-              const r = await sendTelnyx(telnyxKey, getTelnyxEndpoint("sms"), { from: step.from_number || "+18334843799", to: step.to_number, text: step.message });
+              const r = await sendTelnyx(telnyxKey, getTelnyxEndpoint("sms"), { from: step.from_number || "+17722090266", to: step.to_number, text: step.message });
               stepResult = { sent: r.ok };
             } else {
               stepResult = { skipped: "no telnyx key or number" };
@@ -345,7 +345,7 @@ Provide a JSON analysis with:
             if (telnyxKey) {
               const summary = typeof completed === "string" ? completed : (completed?.output || completed?.result || JSON.stringify(completed));
               const smsText = `🌐 Browser Agent Report:\n${String(summary).slice(0, 1500)}`;
-              const smsPayload = buildTelnyxPayload("sms", { from: from_number || "+18334843799", to: deliver_to, text: smsText });
+              const smsPayload = buildTelnyxPayload("sms", { from: from_number || "+17722090266", to: deliver_to, text: smsText });
               const smsResult = await sendTelnyx(telnyxKey, getTelnyxEndpoint("sms"), smsPayload);
               const delivery = extractDeliveryStatus(smsResult.data);
               return Response.json({ action: "browser_agent", status: "completed", run_id: run.id, task, result: completed, delivered_via: "sms", delivery_status: delivery.delivered ? "delivered" : "failed", to_status: delivery.to_status, error_detail: delivery.error_detail, api_accepted: smsResult.ok });
@@ -452,7 +452,7 @@ Return a JSON object with field names as keys and appropriate values to fill.`,
             const summary = typeof completed === "string" ? completed : (completed?.output || completed?.result || JSON.stringify(completed));
             const smsText = String(summary).slice(0, 1600);
             const smsResult = await sendTelnyx(telnyxKey, getTelnyxEndpoint("sms"), {
-              from: from_number || "+18334843799", to: deliver_to, text: smsText,
+              from: from_number || "+17722090266", to: deliver_to, text: smsText,
             });
             return Response.json({ action: "browser_fill_form", status: "completed", url, goal, form_data: dataToFill, task, run_id: run.id, result: completed, delivered_via: "sms", delivery_status: smsResult.ok ? "sent" : "failed" });
           }
@@ -473,13 +473,13 @@ Return a JSON object with field names as keys and appropriate values to fill.`,
       if (!to_number) return Response.json({ error: "to_number required" }, { status: 400 });
       if (!message && !(media_urls && media_urls.length)) return Response.json({ error: "message or media_urls required" }, { status: 400 });
       const endpoint = getTelnyxEndpoint("sms"); // MMS uses same /v2/messages endpoint
-      const payload = buildTelnyxPayload("sms", { from: from_number || "+18334843799", to: to_number, text: message || "", media_urls });
+      const payload = buildTelnyxPayload("sms", { from: from_number || "+17722090266", to: to_number, text: message || "", media_urls });
       const result = await sendTelnyx(telnyxKey, endpoint, payload);
       const messageId = result.data?.data?.id || null;
       const delivery = extractDeliveryStatus(result.data);
       await base44.asServiceRole.entities.CommsEvent.create({
         channel: "mms", direction: "outbound",
-        from_addr: from_number || "+18334843799", to_addr: to_number, summary: message || "[MMS with media]",
+        from_addr: from_number || "+17722090266", to_addr: to_number, summary: message || "[MMS with media]",
         status: delivery.delivered ? "delivered" : "failed",
         classification: "PROVIDER-BACKED",
         provider_id: "telnyx",
@@ -496,7 +496,7 @@ Return a JSON object with field names as keys and appropriate values to fill.`,
         error_code: delivery.error_code,
         error_detail: delivery.error_detail,
         message_id: messageId,
-        from_number: from_number || "+18334843799",
+        from_number: from_number || "+17722090266",
         status: delivery.delivered ? "delivered" : (result.ok ? "accepted_but_delivery_failed" : "failed"),
       });
     }
@@ -597,7 +597,7 @@ Return a JSON object with field names as keys and appropriate values to fill.`,
       const telnyxKey = process.env.TELNYX_API_KEY;
       if (!telnyxKey) return Response.json({ error: "TELNYX_API_KEY not configured" }, { status: 503 });
 
-      const senderFrom = from_number || "+18334843799";
+      const senderFrom = from_number || "+17722090266";
       const throttle = throttle_per_sec || 2;
       const delayMs = throttle > 0 ? Math.round(1000 / throttle) : 0;
       const telnyxChannel = channel === "whatsapp" ? "whatsapp" : "sms";

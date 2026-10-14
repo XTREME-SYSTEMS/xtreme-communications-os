@@ -405,6 +405,90 @@
         "annotations": { "read_only_hint": false, "destructive_hint": false, "idempotent_hint": true }
       },
       {
+        "name": "generate_image",
+        "title": "Generate AI Image",
+        "description": "Generate an image using AI from a text prompt. Use when the user asks to create, generate, or draw an image, picture, logo, illustration, or visual. Returns a permanent image URL.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "action": { "type": "string", "default": "generate_image", "description": "Must be 'generate_image'" },
+            "prompt": { "type": "string", "description": "Detailed text prompt describing the image to generate. Be specific about subject, style, colors, and composition." },
+            "existing_image_urls": { "type": "array", "items": { "type": "string" }, "description": "Optional reference image URLs for editing or style inspiration (max 4)." }
+          },
+          "required": ["action", "prompt"]
+        },
+        "handler": "coreTools",
+        "annotations": { "read_only_hint": false, "destructive_hint": false, "idempotent_hint": false }
+      },
+      {
+        "name": "generate_video",
+        "title": "Generate AI Video",
+        "description": "Generate a short video using AI from a text prompt. Use when the user asks to create, generate, or make a video, clip, or animation. Returns a permanent video URL. Videos are 4-8 seconds long.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "action": { "type": "string", "default": "generate_video", "description": "Must be 'generate_video'" },
+            "prompt": { "type": "string", "description": "Detailed text prompt describing the video to generate. Include subject, action, style, mood, and setting." },
+            "duration": { "type": "integer", "enum": [4, 6, 8], "description": "Video duration in seconds. Default 6." },
+            "aspect_ratio": { "type": "string", "enum": ["16:9", "9:16"], "description": "Aspect ratio: 16:9 (landscape) or 9:16 (portrait). Default 16:9." },
+            "generate_audio": { "type": "boolean", "description": "Whether to generate audio. Default false (costs more credits)." }
+          },
+          "required": ["action", "prompt"]
+        },
+        "handler": "coreTools",
+        "annotations": { "read_only_hint": false, "destructive_hint": false, "idempotent_hint": false }
+      },
+      {
+        "name": "transcribe_audio",
+        "title": "Transcribe Audio to Text",
+        "description": "Transcribe an audio file to text using speech recognition (Whisper). Use when the user asks to transcribe, convert audio to text, or get a transcript of an audio recording. Supports ogg, mp3, wav, webm, m4a, flac. Max 25MB.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "action": { "type": "string", "default": "transcribe_audio", "description": "Must be 'transcribe_audio'" },
+            "audio_url": { "type": "string", "description": "Public URL of the audio file to transcribe (must be accessible via HTTP(S))." }
+          },
+          "required": ["action", "audio_url"]
+        },
+        "handler": "coreTools",
+        "annotations": { "read_only_hint": true, "destructive_hint": false, "idempotent_hint": true }
+      },
+      {
+        "name": "extract_data",
+        "title": "Extract Data from File",
+        "description": "Extract structured data from an uploaded file (CSV, XLSX, JSON, HTML, PDF, PNG, JPG). Use when the user asks to extract, parse, or get data from a file. You must provide the target JSON schema describing what data to extract.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "action": { "type": "string", "default": "extract_data", "description": "Must be 'extract_data'" },
+            "file_url": { "type": "string", "description": "Public URL of the file to extract data from." },
+            "json_schema": { "type": "object", "description": "JSON schema describing the structure of data to extract from the file." }
+          },
+          "required": ["action", "file_url", "json_schema"]
+        },
+        "handler": "coreTools",
+        "annotations": { "read_only_hint": true, "destructive_hint": false, "idempotent_hint": true }
+      },
+      {
+        "name": "invoke_llm",
+        "title": "Run LLM Task",
+        "description": "Run an AI/LLM task with a natural language prompt and optional structured output schema. Use when the user asks to analyze text, generate content, answer questions, summarize, classify, or perform any AI-powered text task. Supports web search context and file attachments.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "action": { "type": "string", "default": "invoke_llm", "description": "Must be 'invoke_llm'" },
+            "prompt": { "type": "string", "description": "The AI task prompt or question." },
+            "model": { "type": "string", "description": "Optional model: 'automatic', 'gemini_3_8_flash', 'gpt_6_luna', 'claude-sonnet-5', 'claude_opus_5_5', 'gpt_6_sol', 'gpt_6_astra'. Defaults to automatic." },
+            "response_json_schema": { "type": "object", "description": "Optional JSON schema for structured output. If provided, returns a parsed JSON object." },
+            "add_context_from_internet": { "type": "boolean", "description": "Set true to give the LLM web search context (only works with gemini_3_8_flash or automatic model). Default false." },
+            "file_urls": { "type": "array", "items": { "type": "string" }, "description": "Optional file URLs (images, documents) for the LLM to analyze." }
+          },
+          "required": ["action", "prompt"]
+        },
+        "handler": "coreTools",
+        "annotations": { "read_only_hint": false, "destructive_hint": false, "idempotent_hint": false }
+      },
+      {
         "name": "preview_voice",
         "title": "Generate AI Voice Audio",
         "description": "Generate speech audio (text-to-speech) from text and return a playable MP3 URL. Use when the user asks to generate audio, create a voice message, or hear how text sounds spoken aloud.",

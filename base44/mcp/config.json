@@ -144,6 +144,36 @@
         "annotations": { "read_only_hint": false, "destructive_hint": false, "idempotent_hint": false }
       },
       {
+        "name": "check_messages",
+        "title": "Check Recent Messages",
+        "description": "Check recent SMS, MMS, WhatsApp, and email messages that were sent. Use when the user asks 'what did I send?', 'show recent messages', 'did my message go through?', or wants to see results of their communications. Returns a voice-friendly summary of recent outbound messages.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "action": { "type": "string", "default": "check_messages", "description": "Must be 'check_messages'" },
+            "limit": { "type": "number", "description": "Number of recent messages to return (default 10, max 50)" },
+            "channel": { "type": "string", "description": "Optional filter: 'sms', 'mms', 'whatsapp', or 'email'" }
+          },
+          "required": ["action"]
+        },
+        "handler": "executeAutonomousAction",
+        "annotations": { "read_only_hint": true, "destructive_hint": false, "idempotent_hint": true }
+      },
+      {
+        "name": "capability_status",
+        "title": "Check Capabilities",
+        "description": "Check what communication capabilities are currently live and available (SMS, MMS, WhatsApp, voice, email, AI). Use when the user asks 'what can you do?', 'what's available?', or 'can you send a message?'",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "action": { "type": "string", "default": "capability_status", "description": "Must be 'capability_status'" }
+          },
+          "required": ["action"]
+        },
+        "handler": "executeAutonomousAction",
+        "annotations": { "read_only_hint": true, "destructive_hint": false, "idempotent_hint": true }
+      },
+      {
         "name": "run_ai_task",
         "title": "Run AI Task",
         "description": "Run an AI task with a natural language prompt and optionally deliver the result via SMS. Use when the user asks to generate content, analyze text, answer questions, or perform AI-powered tasks. Optionally set deliver_via='sms' and deliver_to to send the result to a phone number.",

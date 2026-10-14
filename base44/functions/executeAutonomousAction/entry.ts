@@ -661,6 +661,7 @@ Return a JSON object with field names as keys and appropriate values to fill.`,
         if (delayMs > 0) await new Promise(r => setTimeout(r, delayMs));
       }
 
+      const batchSummary = `Batch ${channel.toUpperCase()} complete: ${sentCount} sent, ${failedCount} failed, out of ${recipients.length} total recipients.`;
       return Response.json({
         action: "send_batch",
         channel,
@@ -669,6 +670,38 @@ Return a JSON object with field names as keys and appropriate values to fill.`,
         sent: sentCount,
         failed: failedCount,
         results: results.slice(0, 100),
+        voice_summary: batchSummary,
+        status: "completed",
+      });
+    }
+
+    // ── CHECK RECENT MESSAGES (voice-friendly result query) ──
+    if (action === "check_messages") {
+      const limit = Math.min(body.limit || 10, 50);
+      const channelFilter = body.channel;
+      const query: any = { direction: "outbound" };
+      if (channelFilter) query.channel = channelFilter;
+      const events = await base44.asServiceRole.entities.CommsEvent.filter(query, "-created_date", limit);
+      const recent = events.map(e => ({
+        channel: e.channel,
+        to: e.to_addr,
+        status: e.status,
+        snippet: (e.summary || "").slice(0, 80),
+        sent_at: e.created_date,
+        error: e.error_detail || undefined,
+      }));
+      const sentCount = recent.filter(r => ["sent", "delivered", "completed"].includes(r.status)).length;
+      const failedCount = recent.filter(r => r.status === "failed").length;
+      const voiceSummary = recent.length === 0
+        ? "No recent messages found."
+        : `Found ${recent.length} recent messages. ${sentCount} delivered, ${failedCount} failed. Most recent: ${recent[0]?.channel || ""} to ${recent[0]?.to || ""}, status ${recent[0]?.status || "unknown"}.`;
+      return Response.json({
+        action: "check_messages",
+        total: recent.length,
+        sent: sentCount,
+        failed: failedCount,
+        messages: recent,
+        voice_summary: voiceSummary,
         status: "completed",
       });
     }

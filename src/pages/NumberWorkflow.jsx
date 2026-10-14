@@ -75,7 +75,6 @@ function StageCard({ stage, status, index }) {
 
 export default function NumberWorkflow() {
   const [numbers, setNumbers] = useState([]);
-  const [providers, setProviders] = useState([]);
   const [selectedId, setSelectedId] = useState("");
   const [loading, setLoading] = useState(true);
   const [apiKey, setApiKey] = useState("");
@@ -84,6 +83,7 @@ export default function NumberWorkflow() {
   const [callResult, setCallResult] = useState(null);
   const [callError, setCallError] = useState(null);
   const [tested, setTested] = useState(false);
+  const [providerName, setProviderName] = useState("Unassigned");
 
   useEffect(() => {
     load();
@@ -91,16 +91,13 @@ export default function NumberWorkflow() {
 
   const load = async () => {
     try {
-      const [numsRes, provsRes, keysRes] = await Promise.all([
+      const [numsRes, keysRes] = await Promise.all([
         base44.entities.PhoneNumber.list("-created_date", 50).catch(() => []),
-        base44.entities.Provider.filter({}).catch(() => []),
         base44.entities.ApiKey.filter({ status: "active" }).catch(() => []),
       ]);
       const nums = Array.isArray(numsRes) ? numsRes : (numsRes?.items || []);
-      const provs = Array.isArray(provsRes) ? provsRes : (provsRes?.items || []);
       const keys = Array.isArray(keysRes) ? keysRes : (keysRes?.items || []);
       setNumbers(nums);
-      setProviders(provs);
       setApiKey(keys?.[0]?.key_value || "");
       if (nums?.length) setSelectedId(nums[0].id);
     } catch (e) {
@@ -111,7 +108,17 @@ export default function NumberWorkflow() {
   };
 
   const selected = numbers.find((n) => n.id === selectedId);
-  const providerName = providers.find((p) => p.id === selected?.provider_id)?.name || "Unassigned";
+
+  // Fetch provider name by ID when selected number changes
+  useEffect(() => {
+    if (!selected?.provider_id) {
+      setProviderName("Unassigned");
+      return;
+    }
+    base44.entities.Provider.get(selected.provider_id)
+      .then((p) => setProviderName(p?.name || "Unassigned"))
+      .catch(() => setProviderName("Unassigned"));
+  }, [selected?.provider_id]);
   const completedCount = STAGES.filter((s) => getStageStatus(s.id, selected, tested) === "completed").length;
   const progress = selected ? Math.round((completedCount / STAGES.length) * 100) : 0;
 
@@ -135,7 +142,8 @@ export default function NumberWorkflow() {
         setTested(true);
       }
     } catch (e) {
-      setCallError(e.message || "Call failed");
+      const errData = e?.response?.data;
+      setCallError(errData?.error || e.message || "Call failed");
     }
     setCalling(false);
   };

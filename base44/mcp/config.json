@@ -160,6 +160,39 @@
         "annotations": { "read_only_hint": true, "destructive_hint": false, "idempotent_hint": true }
       },
       {
+        "name": "check_inbox",
+        "title": "Check Inbox",
+        "description": "Check for incoming SMS and MMS messages received on your Twilio number. Use when the user asks 'do I have any new messages?', 'check my inbox', 'did anyone text me?', or 'what did I receive?'. Returns a voice-friendly summary of inbound messages with sender and content.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "action": { "type": "string", "default": "check_inbox", "description": "Must be 'check_inbox'" },
+            "limit": { "type": "number", "description": "Number of recent inbox messages to return (default 10, max 50)" },
+            "channel": { "type": "string", "description": "Optional filter: 'sms' or 'mms'" }
+          },
+          "required": ["action"]
+        },
+        "handler": "executeAutonomousAction",
+        "annotations": { "read_only_hint": true, "destructive_hint": false, "idempotent_hint": true }
+      },
+      {
+        "name": "reply_to_message",
+        "title": "Reply to Message",
+        "description": "Reply to an incoming message via Twilio from your toll-free number (+18665711174). Use when the user says 'reply to them', 'text them back', 'respond to that message', or 'tell them okay'. Sends an SMS reply from your Twilio number to the specified recipient.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "action": { "type": "string", "default": "reply_to_message", "description": "Must be 'reply_to_message'" },
+            "to_number": { "type": "string", "description": "Recipient phone number in E.164 format (e.g. +1234567890)" },
+            "message": { "type": "string", "description": "The reply message content" },
+            "from_number": { "type": "string", "description": "Sender number. Optional — defaults to your Twilio number +18665711174." }
+          },
+          "required": ["action", "to_number", "message"]
+        },
+        "handler": "executeAutonomousAction",
+        "annotations": { "read_only_hint": false, "destructive_hint": false, "idempotent_hint": false }
+      },
+      {
         "name": "capability_status",
         "title": "Check Capabilities",
         "description": "Check what communication capabilities are currently live and available (SMS, MMS, WhatsApp, voice, email, AI). Use when the user asks 'what can you do?', 'what's available?', or 'can you send a message?'",

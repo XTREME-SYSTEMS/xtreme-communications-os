@@ -675,34 +675,100 @@ Return a JSON object with field names as keys and appropriate values to fill.`,
       });
     }
 
-    // ── CHECK RECENT MESSAGES (voice-friendly result query) ──
+    // ── CHECK RECENT MESSAGES (bidirectional: both inbound and outbound) ──
     if (action === "check_messages") {
       const limit = Math.min(body.limit || 10, 50);
       const channelFilter = body.channel;
-      const query: any = { direction: "outbound" };
+      const directionFilter = body.direction; // 'inbound', 'outbound', or omit for both
+      const query: any = {};
       if (channelFilter) query.channel = channelFilter;
+      if (directionFilter) query.direction = directionFilter;
       const events = await base44.asServiceRole.entities.CommsEvent.filter(query, "-created_date", limit);
       const recent = events.map(e => ({
+        id: e.id,
         channel: e.channel,
+        direction: e.direction,
+        from: e.from_addr,
         to: e.to_addr,
         status: e.status,
-        snippet: (e.summary || "").slice(0, 80),
-        sent_at: e.created_date,
+        snippet: (e.summary || "").slice(0, 120),
+        timestamp: e.created_date,
         error: e.error_detail || undefined,
       }));
-      const sentCount = recent.filter(r => ["sent", "delivered", "completed"].includes(r.status)).length;
+      const sentCount = recent.filter(r => r.direction === "outbound" && ["sent", "delivered", "completed"].includes(r.status)).length;
+      const receivedCount = recent.filter(r => r.direction === "inbound").length;
       const failedCount = recent.filter(r => r.status === "failed").length;
       const voiceSummary = recent.length === 0
         ? "No recent messages found."
-        : `Found ${recent.length} recent messages. ${sentCount} delivered, ${failedCount} failed. Most recent: ${recent[0]?.channel || ""} to ${recent[0]?.to || ""}, status ${recent[0]?.status || "unknown"}.`;
+        : `Found ${recent.length} recent messages. ${receivedCount} received, ${sentCount} sent, ${failedCount} failed. Most recent: ${recent[0]?.direction || ""} ${recent[0]?.channel || ""} ${recent[0]?.direction === "inbound" ? "from" : "to"} ${recent[0]?.direction === "inbound" ? (recent[0]?.from || "") : (recent[0]?.to || "")}, saying "${(recent[0]?.snippet || "").slice(0, 60)}".`;
       return Response.json({
         action: "check_messages",
         total: recent.length,
+        received: receivedCount,
         sent: sentCount,
         failed: failedCount,
         messages: recent,
         voice_summary: voiceSummary,
         status: "completed",
+      });
+    }
+
+    // ── CHECK INBOX (inbound messages only — App→GPT sync direction) ──
+    if (action === "check_inbox") {
+      const limit = Math.min(body.limit || 10, 50);
+      const channelFilter = body.channel;
+      const query: any = { direction: "inbound" };
+      if (channelFilter) query.channel = channelFilter;
+      const events = await base44.asServiceRole.entities.CommsEvent.filter(query, "-created_date", limit);
+      const inbox = events.map(e => ({
+        id: e.id,
+        channel: e.channel,
+        from: e.from_addr,
+        to: e.to_addr,
+        snippet: (e.summary || "").slice(0, 200),
+        received_at: e.created_date,
+        provider_message_id: e.provider_message_id,
+      }));
+      const voiceSummary = inbox.length === 0
+        ? "Your inbox is empty. No new messages."
+        : `You have ${inbox.length} message${inbox.length === 1 ? "" : "s"} in your inbox. Most recent: from ${inbox[0]?.from || "unknown"}, saying "${(inbox[0]?.snippet || "").slice(0, 100)}".`;
+      return Response.json({
+        action: "check_inbox",
+        total: inbox.length,
+        messages: inbox,
+        voice_summary: voiceSummary,
+        status: "completed",
+      });
+    }
+
+    // ── REPLY TO MESSAGE (bidirectional: GPT responds to inbound via Twilio) ──
+    if (action === "reply_to_message") {
+      const { to_number, message, from_number } = body;
+      if (!to_number || !message) return Response.json({ error: "to_number and message required" }, { status: 400 });
+      const twilioSid = process.env.TWILIO_ACCOUNT_SID;
+      const twilioToken = process.env.TWILIO_AUTH_TOKEN;
+      if (!twilioSid || !twilioToken) return Response.json({ error: "TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN not configured", credentials_required: true }, { status: 503 });
+      const fromNum = from_number || "+18665711174";
+      const auth = btoa(`${twilioSid}:${twilioToken}`);
+      const res = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${twilioSid}/Messages.json`, {
+        method: "POST",
+        headers: { Authorization: `Basic ${auth}`, "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({ From: fromNum, To: to_number, Body: message }).toString(),
+      });
+      const data: any = await res.json().catch(() => ({}));
+      if (!res.ok) return Response.json({ error: data?.message || "twilio send failed", status: "failed", twilio_error: data }, { status: res.status });
+      await base44.asServiceRole.entities.CommsEvent.create({
+        channel: "sms", direction: "outbound",
+        from_addr: fromNum, to_addr: to_number, summary: message,
+        status: "sent", classification: "LIVE",
+        provider_id: "twilio", provider_message_id: data.sid,
+        tenant_id: tenant?.id,
+      });
+      return Response.json({
+        action: "reply_to_message", ok: true, to: to_number, message,
+        message_sid: data.sid, from_number: fromNum,
+        status: "sent",
+        voice_summary: `Reply sent to ${to_number}: "${message.slice(0, 80)}".`,
       });
     }
 

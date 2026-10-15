@@ -84,6 +84,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import GoogleContactsManager from './pages/GoogleContactsManager';
 import XtremeFabric from './pages/XtremeFabric';
 import TwilioParityMatrix from './pages/TwilioParityMatrix';
+import VoiceLibrary from './pages/VoiceLibrary';
 
 function App() {
   return (
@@ -146,6 +147,7 @@ function App() {
                 <Route path="/portal/contacts-manager" element={<GoogleContactsManager />} />
                 <Route path="/portal/fabric" element={<XtremeFabric />} />
                 <Route path="/portal/parity-matrix" element={<TwilioParityMatrix />} />
+                <Route path="/portal/voice-library" element={<VoiceLibrary />} />
               </Route>
               {/* Admin */}
               <Route path="/promo-admin" element={<PromoAdmin />} />

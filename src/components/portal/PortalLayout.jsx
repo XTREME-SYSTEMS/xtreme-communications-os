@@ -15,6 +15,7 @@ const CORE_NAV = [
   { path: "/portal/contacts-manager", label: "Contacts", icon: UserCircle },
   { path: "/portal/agent-factory", label: "Agent Factory", icon: Rocket },
   { path: "/portal/sms-inbox", label: "SMS Inbox", icon: MessageSquare },
+  { path: "/portal/voice-library", label: "Voice Library", icon: PhoneCall },
 ];
 
 // ── MORE TOOLS: secondary tools, collapsible ──

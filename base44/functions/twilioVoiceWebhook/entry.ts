@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.54';
 import { aiComplete, MODELS } from '../../shared/aiGateway.ts';
+import { getPollyVoice } from '../../shared/voiceProviders.ts';
 
 // Twilio Voice Webhook — Eden Skye AI receptionist
 // Handles incoming voice calls to +18665711174.
@@ -42,7 +43,8 @@ function twimlResponse(innerXml) {
   });
 }
 
-const VOICE = 'Polly.Matthew';
+// Voice is resolved per-call from VoiceProfile entity, with fallback to professional female
+let VOICE = getPollyVoice('female', 'professional');
 
 export default async function(req) {
   try {
@@ -83,6 +85,22 @@ export default async function(req) {
       if (phones.length && phones[0].tenant_id) tenantId = phones[0].tenant_id;
     }
 
+    // ── Resolve voice profile for this number ──
+    let resolvedVoice = VOICE;
+    let resolvedGreeting = null;
+    let resolvedPersona = 'Eden Skye';
+    let resolvedSystem = EDEN_SKYE_SYSTEM;
+    try {
+      const profiles = await base44.asServiceRole.entities.VoiceProfile.filter({ assigned_number: to, active: true });
+      const profile = profiles[0];
+      if (profile) {
+        if (profile.provider === 'polly') resolvedVoice = `Polly.${profile.voice_id}`;
+        resolvedGreeting = profile.greeting || null;
+        resolvedPersona = profile.persona_name || resolvedPersona;
+        resolvedSystem = profile.system_prompt || resolvedSystem;
+      }
+    } catch (_) {}
+
     // ── Record the call event ──
     await base44.asServiceRole.entities.CommsEvent.create({
       channel: 'voice',
@@ -100,12 +118,12 @@ export default async function(req) {
 
     // ── INITIAL CALL: Greet + gather speech ──
     if (!speechResult) {
-      const greeting = "Hi, you've reached Eden Skye with Strategic Minds AI. How can I help you today?";
+      const greeting = resolvedGreeting || `Hi, you've reached ${resolvedPersona} with Strategic Minds AI. How can I help you today?`;
       return twimlResponse(
         `  <Gather input="speech" speechTimeout="auto" action="https://xtreme-communications.com/functions/twilioVoiceWebhook" method="POST" language="en-US">\n` +
-        `    <Say voice="${VOICE}">${greeting}</Say>\n` +
+        `    <Say voice="${resolvedVoice}">${greeting}</Say>\n` +
         `  </Gather>\n` +
-        `  <Say voice="${VOICE}">I didn't catch that. Feel free to call back anytime. Goodbye!</Say>\n` +
+        `  <Say voice="${resolvedVoice}">I didn't catch that. Feel free to call back anytime. Goodbye!</Say>\n` +
         `  <Hangup/>`
       );
     }
@@ -116,7 +134,7 @@ export default async function(req) {
       aiReply = await aiComplete({
         model: MODELS.fast,
         messages: [
-          { role: 'system', content: EDEN_SKYE_SYSTEM },
+          { role: 'system', content: resolvedSystem },
           { role: 'user', content: speechResult },
         ],
         temperature: 0.4,
@@ -131,9 +149,9 @@ export default async function(req) {
 
     return twimlResponse(
       `  <Gather input="speech" speechTimeout="auto" action="https://xtreme-communications.com/functions/twilioVoiceWebhook" method="POST" language="en-US">\n` +
-      `    <Say voice="${VOICE}">${aiReply}</Say>\n` +
+      `    <Say voice="${resolvedVoice}">${aiReply}</Say>\n` +
       `  </Gather>\n` +
-      `  <Say voice="${VOICE}">Thanks for calling Strategic Minds AI. Have a great day!</Say>\n` +
+      `  <Say voice="${resolvedVoice}">Thanks for calling Strategic Minds AI. Have a great day!</Say>\n` +
       `  <Hangup/>`
     );
   } catch (error) {

@@ -1,0 +1,121 @@
+{
+  "name": "VoiceProfile",
+  "type": "object",
+  "properties": {
+    "profile_name": {
+      "type": "string",
+      "description": "Display name for this voice profile"
+    },
+    "provider": {
+      "type": "string",
+      "enum": [
+        "polly",
+        "elevenlabs",
+        "openai",
+        "cartesia",
+        "deepgram"
+      ],
+      "default": "polly",
+      "description": "TTS provider"
+    },
+    "voice_id": {
+      "type": "string",
+      "description": "Provider-specific voice ID (e.g. Polly.Kendra, Rachel, nova)"
+    },
+    "gender": {
+      "type": "string",
+      "enum": [
+        "female",
+        "male",
+        "neutral"
+      ],
+      "default": "female"
+    },
+    "tone": {
+      "type": "string",
+      "enum": [
+        "professional",
+        "warm",
+        "energetic",
+        "authoritative",
+        "calm"
+      ],
+      "default": "professional"
+    },
+    "language_code": {
+      "type": "string",
+      "default": "en-US",
+      "description": "ISO language code"
+    },
+    "speed": {
+      "type": "number",
+      "default": 1.0,
+      "description": "Speech rate 0.5-2.0"
+    },
+    "stability": {
+      "type": "number",
+      "default": 0.5,
+      "description": "Voice stability 0-1 (ElevenLabs/Hume)"
+    },
+    "is_default": {
+      "type": "boolean",
+      "default": false,
+      "description": "True if this is the default voice for inbound calls"
+    },
+    "assigned_number": {
+      "type": "string",
+      "description": "E.164 phone number this voice is assigned to"
+    },
+    "persona_name": {
+      "type": "string",
+      "description": "AI persona name (e.g. Eden Skye)"
+    },
+    "system_prompt": {
+      "type": "string",
+      "description": "System prompt for the AI conversation agent"
+    },
+    "greeting": {
+      "type": "string",
+      "description": "Opening greeting when call connects"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "profile_name",
+    "provider",
+    "voice_id",
+    "gender"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

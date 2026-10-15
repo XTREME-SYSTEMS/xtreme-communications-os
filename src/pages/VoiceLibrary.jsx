@@ -231,23 +231,29 @@ export default function VoiceLibrary() {
     localStorage.setItem('voice_favorites', JSON.stringify([...next]));
   }
 
-  async function previewVoice(voice) {
+  function previewVoice(voice) {
     setGenerating(true);
     setPreviewUrl(null);
-    try {
-      const res = await base44.functions.invoke('previewVoice', {
-        text: testText,
-        voice: 'sunny',
-      });
-      const data = res?.data || res;
-      if (data?.url) setPreviewUrl(data.url);
-    } catch (err) {
-      if ('speechSynthesis' in window) {
-        const utter = new SpeechSynthesisUtterance(testText);
-        speechSynthesis.speak(utter);
-      }
+    // Cancel any ongoing speech
+    if ('speechSynthesis' in window) {
+      speechSynthesis.cancel();
+      const utter = new SpeechSynthesisUtterance(testText);
+      // Try to find a matching browser voice by name or language
+      const voices = window.speechSynthesis.getVoices();
+      const langPrefix = voice?.language?.split('-')[0] || 'en';
+      const match = voices.find(v =>
+        v.name.toLowerCase().includes(voice?.name?.toLowerCase() || '___') ||
+        v.lang.startsWith(langPrefix)
+      );
+      if (match) utter.voice = match;
+      utter.lang = voice?.language || 'en-US';
+      utter.rate = 1.0;
+      utter.onend = () => setGenerating(false);
+      utter.onerror = () => setGenerating(false);
+      window.speechSynthesis.speak(utter);
+    } else {
+      setGenerating(false);
     }
-    setGenerating(false);
   }
 
   async function saveProfile(voice) {

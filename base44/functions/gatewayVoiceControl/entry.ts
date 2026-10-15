@@ -20,6 +20,33 @@ function errMsg(d) {
   return d?.errors?.[0]?.detail || d?.errors?.[0]?.title || d?.message || "unknown";
 }
 
+// ── Twilio Call gateway — for numbers owned by Twilio account ──
+async function twilioDial(accountSid, authToken, from, to, webhookUrl) {
+  const res = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Calls.json`, {
+    method: "POST",
+    headers: {
+      "Authorization": "Basic " + btoa(`${accountSid}:${authToken}`),
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: new URLSearchParams({
+      To: to,
+      From: from,
+      Url: webhookUrl,
+      Timeout: "30",
+    }).toString(),
+  });
+  let data = {};
+  try { data = await res.json(); } catch (_) {}
+  return { ok: res.ok, status: res.status, data };
+}
+
+// ── Check if a number belongs to the Twilio account ──
+function isTwilioNumber(from, twilioNumbers) {
+  if (!twilioNumbers) return false;
+  const normalized = from.replace(/[^+0-9]/g, "");
+  return twilioNumbers.some(n => n.replace(/[^+0-9]/g, "") === normalized);
+}
+
 export default async function(req) {
   try {
     const base44 = createClientFromRequest(req);
@@ -48,6 +75,34 @@ export default async function(req) {
       const from = body.from || "+18334843799";
       const to = body.to;
       if (!to) return Response.json({ error: "to required" }, { status: 400 });
+
+      // ── Check if the from number belongs to Twilio ──
+      const twilioSid = process.env.TWILIO_ACCOUNT_SID;
+      const twilioToken = process.env.TWILIO_AUTH_TOKEN;
+      const twilioNumbers = [process.env.TWILIO_PHONE_NUMBER, process.env.TWILLO_PHONE_NUMBER].filter(Boolean);
+
+      if (twilioSid && twilioToken && isTwilioNumber(from, twilioNumbers)) {
+        // ── Route through Twilio ──
+        const voiceWebhookUrl = body.webhook_url || `https://xtreme-comms.base44.app/functions/twilioVoiceWebhook`;
+        const res = await twilioDial(twilioSid, twilioToken, from, to, voiceWebhookUrl);
+        if (!res.ok) {
+          return Response.json({ status: "failed", error: res.data?.message || errMsg(res.data), code: res.data?.code }, { status: res.status });
+        }
+        const callSid = res.data.sid;
+        await base44.asServiceRole.entities.CommsEvent.create({
+          channel: "voice", direction: "outbound", from_addr: from, to_addr: to,
+          status: "ringing", classification: "LIVE",
+          provider_id: "twilio",
+          provider_message_id: callSid,
+          summary: `programmable call via Twilio ${callSid}`,
+        });
+        return Response.json({
+          call_control_id: callSid, call_sid: callSid, status: "ringing",
+          routed_via: "twilio", tenant: tenant.name, classification: "LIVE",
+        });
+      }
+
+      // ── Route through Telnyx (default) ──
       // Auto-resolve the Call Control App connection_id if not provided
       let connectionId = body.connection_id;
       if (!connectionId) {

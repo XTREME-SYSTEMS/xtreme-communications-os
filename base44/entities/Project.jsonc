@@ -1,0 +1,143 @@
+{
+  "name": "Project",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Project name"
+    },
+    "description": {
+      "type": "string",
+      "description": "What this project is about"
+    },
+    "client_name": {
+      "type": "string",
+      "description": "Client or business this project is for"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "planning",
+        "active",
+        "paused",
+        "completed",
+        "archived"
+      ],
+      "default": "planning"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ],
+      "default": "medium"
+    },
+    "industry": {
+      "type": "string",
+      "description": "Industry vertical (e.g. real_estate, dental, legal, hvac)"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "target_end_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "assigned_agent_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Agent IDs assigned to this project"
+    },
+    "workflow_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Workflow IDs created under this project"
+    },
+    "campaign_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Campaign IDs launched under this project"
+    },
+    "template_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "CommunicationTemplate IDs for this project's scripts"
+    },
+    "phone_number_id": {
+      "type": "string",
+      "description": "PhoneNumber ID assigned to this project"
+    },
+    "progress_percent": {
+      "type": "integer",
+      "default": 0,
+      "description": "0-100 completion estimate"
+    },
+    "metrics": {
+      "type": "object",
+      "description": "Aggregate metrics: messages_sent, calls_made, leads_generated, appointments_booked, revenue_attributed"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "notes": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "Owner user ID for per-user isolation"
+    }
+  },
+  "required": [
+    "name",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

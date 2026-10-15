@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
-import   { LayoutDashboard, CheckCircle2, Phone, PhoneCall, Brain, KeyRound, Settings, LogOut, ExternalLink, FileText, MessageCircle, ArrowLeftRight, Sparkles, FlaskConical, Palette, HardDrive, GitBranch, Share2, Radio, Users, Tag, Building2, Link2, CreditCard, Rocket, Zap, MessageSquare, ChevronDown, UserCircle } from "lucide-react";
+import   { LayoutDashboard, CheckCircle2, Phone, PhoneCall, Brain, KeyRound, Settings, LogOut, ExternalLink, FileText, MessageCircle, ArrowLeftRight, Sparkles, FlaskConical, Palette, HardDrive, GitBranch, Share2, Radio, Users, Tag, Building2, Link2, CreditCard, Rocket, Zap, MessageSquare, ChevronDown, UserCircle, FolderKanban } from "lucide-react";
 import { cn } from "@/lib/utils";
 import MobileNav from "@/components/portal/MobileNav";
 import AccountButton from "@/components/portal/AccountButton";
@@ -11,6 +11,7 @@ import BreezeCopilot from "@/components/portal/BreezeCopilot";
 // ── CORE NAV: the primary daily tools (no admin/engineering here) ──
 const CORE_NAV = [
   { path: "/portal", label: "Dashboard", icon: LayoutDashboard, exact: true },
+  { path: "/portal/projects", label: "Projects", icon: FolderKanban },
   { path: "/portal/crm", label: "CRM", icon: Users },
   { path: "/portal/contacts-manager", label: "Contacts", icon: UserCircle },
   { path: "/portal/agent-factory", label: "Agent Factory", icon: Rocket },

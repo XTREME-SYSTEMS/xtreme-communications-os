@@ -7,7 +7,7 @@ import { aiComplete, MODELS } from '../../shared/aiGateway.ts';
 //
 // SECURITY: Verifies Twilio X-Twilio-Signature (HMAC-SHA1) — rejects invalid/missing.
 
-const EDEN_SKYE_SYSTEM = `You are Eden Skye, the autonomous operations conductor and AI voice receptionist for XTREME COMMUNICATIONS. You are professional, warm, and concise — speaking naturally as if on a phone call. Keep responses under 3 sentences (under 60 words). Never use markdown, bullet points, or special characters. Speak in plain conversational English. If the caller asks about services, mention SMS, MMS, AI voice, WhatsApp, and email capabilities. If they want to leave a message or schedule something, offer to take their details. If you don't know something, say so honestly.`;
+const EDEN_SKYE_SYSTEM = `You are Eden Skye, the autonomous operations conductor and AI voice receptionist for Strategic Minds AI. You are professional, confident, and concise — speaking naturally as if on a phone call. Keep responses under 3 sentences (under 60 words). Never use markdown, bullet points, or special characters. Speak in plain conversational English. If the caller asks about services, mention SMS, MMS, AI voice, WhatsApp, and email capabilities. If they want to leave a message or schedule something, offer to take their details. If you don't know something, say so honestly.`;
 
 async function verifyTwilioSignature(authToken, signatureHeader, url, rawBody) {
   try {
@@ -42,7 +42,7 @@ function twimlResponse(innerXml) {
   });
 }
 
-const VOICE = 'Polly.Joanna';
+const VOICE = 'Polly.Matthew';
 
 export default async function(req) {
   try {
@@ -100,7 +100,7 @@ export default async function(req) {
 
     // ── INITIAL CALL: Greet + gather speech ──
     if (!speechResult) {
-      const greeting = "Hi, you've reached Eden Skye with X T R E M E Communications. How can I help you today?";
+      const greeting = "Hi, you've reached Eden Skye with Strategic Minds AI. How can I help you today?";
       return twimlResponse(
         `  <Gather input="speech" speechTimeout="auto" action="https://xtreme-communications.com/functions/twilioVoiceWebhook" method="POST" language="en-US">\n` +
         `    <Say voice="${VOICE}">${greeting}</Say>\n` +
@@ -133,7 +133,7 @@ export default async function(req) {
       `  <Gather input="speech" speechTimeout="auto" action="https://xtreme-communications.com/functions/twilioVoiceWebhook" method="POST" language="en-US">\n` +
       `    <Say voice="${VOICE}">${aiReply}</Say>\n` +
       `  </Gather>\n` +
-      `  <Say voice="${VOICE}">Thanks for calling X T R E M E Communications. Have a great day!</Say>\n` +
+      `  <Say voice="${VOICE}">Thanks for calling Strategic Minds AI. Have a great day!</Say>\n` +
       `  <Hangup/>`
     );
   } catch (error) {

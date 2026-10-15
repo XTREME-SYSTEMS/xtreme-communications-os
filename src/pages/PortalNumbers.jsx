@@ -43,12 +43,12 @@ export default function PortalNumbers() {
     setSearching(true);
     setResults([]);
     try {
-      const res = await base44.functions.invoke('gatewayNumberSearch', { ...searchParams, api_key: apiKey, action: "search" });
+      const res = await base44.functions.invoke('gatewayTwilioNumbers', { ...searchParams, api_key: apiKey, action: "search" });
       const data = res.data || res;
       const found = (data.numbers || []).map(n => ({
         ...n,
-        monthly_cost: n.cost || n.monthly_cost || 1.15,
-        capabilities: (n.capabilities || []).map(c => typeof c === "string" ? c : c.name).filter(c => ["sms", "mms", "voice", "whatsapp"].includes(c)),
+        monthly_cost: n.monthly_cost || n.cost || 1.15,
+        capabilities: (n.capabilities || ["sms", "voice"]).map(c => typeof c === "string" ? c : c.name).filter(c => ["sms", "mms", "voice", "whatsapp"].includes(c)),
       }));
       setResults(found);
       if (found.length === 0) toast({ title: "No numbers found", description: "Try a different area code." });
@@ -63,12 +63,12 @@ export default function PortalNumbers() {
     setScanning(true);
     setResults([]);
     try {
-      const res = await base44.functions.invoke('gatewayNumberSearch', { ...searchParams, api_key: apiKey, action: "search", limit: 10 });
+      const res = await base44.functions.invoke('gatewayTwilioNumbers', { ...searchParams, api_key: apiKey, action: "search", limit: 10 });
       const data = res.data || res;
       const found = (data.numbers || []).map(n => ({
         ...n,
-        monthly_cost: n.cost || n.monthly_cost || 1.15,
-        capabilities: (n.capabilities || []).map(c => typeof c === "string" ? c : c.name).filter(c => ["sms", "mms", "voice", "whatsapp"].includes(c)),
+        monthly_cost: n.monthly_cost || n.cost || 1.15,
+        capabilities: (n.capabilities || ["sms", "voice"]).map(c => typeof c === "string" ? c : c.name).filter(c => ["sms", "mms", "voice", "whatsapp"].includes(c)),
       }));
       setResults(found);
       if (found.length === 0) toast({ title: "No numbers found", description: "Try a different area code." });
@@ -80,24 +80,38 @@ export default function PortalNumbers() {
 
   const handleVanitySearch = async () => {
     if (!vanityWord) return;
+    if (!apiKey) { toast({ title: "No API key", description: "Create an API key in the API Keys page first.", variant: "destructive" }); return; }
     setScanning(true);
     setVanityResults([]);
-    const keypad = { a:2,b:2,c:2,d:3,e:3,f:3,g:4,h:4,i:4,j:5,k:5,l:5,m:6,n:6,o:6,p:7,q:7,r:7,s:7,t:8,u:8,v:8,w:9,x:9,y:9,z:9 };
-    const digits = vanityWord.toLowerCase().split('').map(c => keypad[c] || c).join('');
-    const padded = digits.padEnd(7, '0').slice(0, 7);
-    const results = [{ e164: `+1${searchParams.area_code || "954"}${padded}`, monthly_cost: 1.00, capabilities: ["sms","voice"], vanity: vanityWord.toUpperCase() }];
-    ["800","888","877","866","855"].forEach(ac => {
-      results.push({ e164: `+1${ac}${padded}`, monthly_cost: 2.00, capabilities: ["sms","voice"], vanity: vanityWord.toUpperCase(), toll_free: true });
-    });
-    setVanityResults(results);
+    try {
+      const keypad = { a:2,b:2,c:2,d:3,e:3,f:3,g:4,h:4,i:4,j:5,k:5,l:5,m:6,n:6,o:6,p:7,q:7,r:7,s:7,t:8,u:8,v:8,w:9,x:9,y:9,z:9 };
+      const digits = vanityWord.toLowerCase().split('').map(c => keypad[c] || c).join('');
+      const containsPattern = digits.padEnd(7, '*').slice(0, 7);
+      const res = await base44.functions.invoke('gatewayTwilioNumbers', {
+        api_key: apiKey, action: "search",
+        contains: `*${containsPattern}`,
+        type: searchParams.type, country_code: searchParams.country_code,
+      });
+      const data = res.data || res;
+      const found = (data.numbers || []).map(n => ({
+        ...n,
+        monthly_cost: n.monthly_cost || n.cost || 1.15,
+        capabilities: (n.capabilities || ["sms", "voice"]).map(c => typeof c === "string" ? c : c.name).filter(c => ["sms", "mms", "voice", "whatsapp"].includes(c)),
+        vanity: vanityWord.toUpperCase(),
+      }));
+      setVanityResults(found);
+      if (found.length === 0) toast({ title: "No vanity numbers found", description: `Try a different word.` });
+      else toast({ title: "Vanity search complete", description: `${found.length} numbers found for "${vanityWord.toUpperCase()}"` });
+    } catch (e) {
+      toast({ title: "Vanity search failed", description: e.message || "Provider error", variant: "destructive" });
+    }
     setScanning(false);
-    toast({ title: "Vanity search complete", description: `${results.length} numbers found for "${vanityWord.toUpperCase()}"` });
   };
 
   const handleBuy = async (number) => {
     const e164 = number.e164 || number.phone_number;
     try {
-      const res = await base44.functions.invoke('gatewayNumberSearch', {
+      const res = await base44.functions.invoke('gatewayTwilioNumbers', {
         api_key: apiKey, action: "buy", e164,
         type: searchParams.type, country_code: searchParams.country_code,
         capabilities: number.capabilities || ["sms", "voice"],
@@ -105,7 +119,7 @@ export default function PortalNumbers() {
       });
       const data = res.data || res;
       if (data.error) { toast({ title: "Purchase failed", description: data.error, variant: "destructive" }); return; }
-      toast({ title: "Number purchased!", description: `${e164} is now live on Telnyx` });
+      toast({ title: "Number purchased!", description: `${e164} is now live on Twilio` });
       setResults(results.filter(r => r.e164 !== e164));
       await loadNumbers();
     } catch (e) {
@@ -126,7 +140,7 @@ export default function PortalNumbers() {
       <div className="mb-6">
         <Link to="/portal" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 mb-2"><ArrowLeft className="h-3 w-3" /> Dashboard</Link>
         <h1 className="text-2xl font-display font-bold text-foreground">Phone Numbers</h1>
-        <p className="text-sm text-muted-foreground mt-1">Search, buy, and manage your phone numbers.</p>
+        <p className="text-sm text-muted-foreground mt-1">Search, buy, and manage your phone numbers via Twilio.</p>
       </div>
 
       {/* Search */}

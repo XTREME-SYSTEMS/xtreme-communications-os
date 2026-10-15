@@ -22,21 +22,23 @@ function errMsg(d) {
 
 // ── Twilio Call gateway — for numbers owned by Twilio account ──
 async function twilioDial(accountSid, authToken, from, to, webhookUrl) {
+  const params = new URLSearchParams({
+    To: to,
+    From: from,
+    Url: webhookUrl,
+    Timeout: "30",
+  });
   const res = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Calls.json`, {
     method: "POST",
     headers: {
       "Authorization": "Basic " + btoa(`${accountSid}:${authToken}`),
       "Content-Type": "application/x-www-form-urlencoded",
     },
-    body: new URLSearchParams({
-      To: to,
-      From: from,
-      Url: webhookUrl,
-      Timeout: "30",
-    }).toString(),
+    body: params.toString(),
   });
   let data = {};
   try { data = await res.json(); } catch (_) {}
+  console.log("[gatewayVoiceControl] Twilio dial response:", res.status, JSON.stringify(data).slice(0, 500));
   return { ok: res.ok, status: res.status, data };
 }
 
@@ -83,10 +85,12 @@ export default async function(req) {
 
       if (twilioSid && twilioToken && isTwilioNumber(from, twilioNumbers)) {
         // ── Route through Twilio ──
-        const voiceWebhookUrl = body.webhook_url || `https://xtreme-comms.base44.app/functions/twilioVoiceWebhook`;
+        const voiceWebhookUrl = body.webhook_url || `https://xtreme-communications.com/functions/twilioVoiceWebhook`;
         const res = await twilioDial(twilioSid, twilioToken, from, to, voiceWebhookUrl);
         if (!res.ok) {
-          return Response.json({ status: "failed", error: res.data?.message || errMsg(res.data), code: res.data?.code }, { status: res.status });
+          const twilioError = res.data?.message || res.data?.more_info || errMsg(res.data) || `Twilio API error ${res.status}`;
+          console.error("[gatewayVoiceControl] Twilio dial failed:", res.status, twilioError);
+          return Response.json({ status: "failed", error: twilioError, code: res.data?.code, twilio_detail: res.data }, { status: res.status });
         }
         const callSid = res.data.sid;
         await base44.asServiceRole.entities.CommsEvent.create({

@@ -142,8 +142,8 @@ export default function NumberWorkflow() {
         setTested(true);
       }
     } catch (e) {
-      const errData = e?.response?.data;
-      setCallError(errData?.error || e.message || "Call failed");
+      const errData = e?.response?.data || e?.response || e;
+      setCallError(errData?.error || errData?.message || e.message || "Call failed");
     }
     setCalling(false);
   };

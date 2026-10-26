@@ -1,0 +1,66 @@
+{
+  "version": 1,
+  "integration_branch": "integration/agent-sync-20261013",
+  "max_behind_commits": 10,
+  "protected_paths": [
+    ".github/workflows/",
+    "config/agent-sync.json",
+    "scripts/branch-safety.mjs",
+    "scripts/branch-drift.mjs",
+    "tests/branch-safety.test.mjs",
+    ".npmrc",
+    "base44/config.jsonc",
+    "supabase/migrations/",
+    "railway/",
+    "vercel.json",
+    "package.json",
+    "package-lock.json",
+    "tsconfig.json",
+    "base44/workflows/",
+    "base44/entities/",
+    "base44/agents/",
+    "base44/connectors/",
+    "base44/secrets/",
+    "supabase/config.toml",
+    "supabase/functions/"
+  ],
+  "sync_mode": "READ_ONLY_BOUNDED_DRIFT",
+  "auto_force_push": false,
+  "auto_production_merge": false,
+  "base44_data_isolation": "REQUIRES_INDEPENDENT_STAGING",
+  "repository": "XTREME-SYSTEMS/xtreme-communications-os",
+  "lanes": {
+    "agent/comms-twilio-20261013": {
+      "paths": [
+        "base44/functions/gptTwilio/",
+        "base44/functions/gatewayTwilio/",
+        "base44/functions/twilioWebhooks/",
+        "src/pages/Twilio",
+        "docs/twilio/",
+        "tests/twilio"
+      ],
+      "mode": "SINGLE_WRITER"
+    },
+    "agent/comms-core-20261013": {
+      "paths": [
+        "base44/functions/gatewayCalls/",
+        "base44/functions/gatewayMessages/",
+        "base44/functions/orchestrateConversation/",
+        "base44/functions/gatewayVoiceControl/",
+        "src/pages/CommunicationStudio",
+        "docs/communications/",
+        "tests/communications"
+      ],
+      "mode": "SINGLE_WRITER"
+    },
+    "agent/comms-guardian-20261013": {
+      "paths": [
+        "docs/validation/",
+        "tests/guardian/",
+        "scripts/qa/",
+        "evidence/"
+      ],
+      "mode": "SINGLE_WRITER"
+    }
+  }
+}

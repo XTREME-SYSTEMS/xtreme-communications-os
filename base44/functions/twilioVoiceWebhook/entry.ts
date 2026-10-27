@@ -61,7 +61,8 @@ export default async function(req) {
     const callStatus = params.CallStatus || '';
 
     // ── Signature verification ──
-    const authToken = process.env.TWILIO_AUTH_TOKEN;
+    // Must match the token Twilio actually signs with (see twilioWebhook).
+    const authToken = process.env.TWILLO_AUTH_API_KEY || process.env.TWILIO_AUTH_TOKEN;
     const signatureHeader = req.headers.get('x-twilio-signature') || req.headers.get('X-Twilio-Signature') || '';
     let signatureValid = false;
 

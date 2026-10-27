@@ -80,7 +80,11 @@ export default async function(req) {
     const channel = mediaUrls.length > 0 ? 'mms' : 'sms';
 
     // ── 1. SIGNATURE VERIFICATION (fail closed) ──
-    const authToken = process.env.TWILIO_AUTH_TOKEN;
+    // Must match the token Twilio actually signs with. The live value currently
+    // lives in the misspelled TWILLO_AUTH_API_KEY secret; the canonical
+    // TWILIO_AUTH_TOKEN still holds a rotated/stale value, which caused every
+    // genuine Twilio request to fail signature validation (Twilio error 11200).
+    const authToken = process.env.TWILLO_AUTH_API_KEY || process.env.TWILIO_AUTH_TOKEN;
     const signatureHeader = req.headers.get('x-twilio-signature') || req.headers.get('X-Twilio-Signature') || '';
     let signatureValid = false;
 
@@ -130,8 +134,9 @@ export default async function(req) {
 
     // Resolve tenant from the destination number
     let tenantId = 'system';
+    let phones: any[] = [];
     if (to) {
-      const phones = await base44.asServiceRole.entities.PhoneNumber.filter({ e164: to });
+      phones = await base44.asServiceRole.entities.PhoneNumber.filter({ e164: to });
       if (phones.length && phones[0].tenant_id) tenantId = phones[0].tenant_id;
     }
 

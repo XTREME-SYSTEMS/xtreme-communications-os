@@ -750,15 +750,17 @@ export function getAllFemaleVoices(): { provider: string; provider_name: string;
 
 // ── Get best Twilio Polly voice for a gender preference ──
 export function getPollyVoice(gender: 'female' | 'male' = 'female', tone: 'professional' | 'warm' | 'energetic' = 'professional'): string {
+  // Generative is the most human engine the phone network can reach without a
+  // live media stream — it replaces the older standard voices (Kendra, Joey…).
   const femaleMap = {
-    professional: 'Polly.Kendra',    // professional, authoritative
-    warm: 'Polly.Joanna',           // warm, conversational
-    energetic: 'Polly.Ivy',         // bright, energetic
+    professional: 'Polly.Danielle-Generative', // grounded, in control
+    warm: 'Polly.Joanna-Generative',           // warm, conversational
+    energetic: 'Polly.Kendra-Generative',      // bright, clear
   };
   const maleMap = {
-    professional: 'Polly.Matthew',   // professional, clear
-    warm: 'Polly.Joey',             // warm, friendly
-    energetic: 'Polly.Justin',      // young, energetic
+    professional: 'Polly.Matthew-Generative',  // professional, clear
+    warm: 'Polly.Stephen-Generative',          // warm, calm
+    energetic: 'Polly.Matthew-Generative',     // young, energetic
   };
   return gender === 'female' ? femaleMap[tone] : maleMap[tone];
 }

@@ -22,8 +22,15 @@ export type TwilioConfig = {
 };
 
 export function twilioConfig(): TwilioConfig {
-  const sid = process.env.TWILIO_ACCOUNT_SID;
-  const token = process.env.TWILIO_AUTH_TOKEN;
+  // The account was first provisioned under a misspelled secret pair
+  // (TWILLO_SID / TWILLO_AUTH_API_KEY). That pair is the one that actually
+  // authenticates (verified HTTP 200); the correctly spelled TWILIO_* secrets
+  // hold a stale token and return 401 / error 20003.
+  // Order is intentional until the canonical secrets are repopulated: once
+  // TWILIO_ACCOUNT_SID + TWILIO_AUTH_TOKEN verify, swap these two lines back
+  // and delete the misspelled pair.
+  const sid = process.env.TWILLO_SID || process.env.TWILIO_ACCOUNT_SID;
+  const token = process.env.TWILLO_AUTH_API_KEY || process.env.TWILIO_AUTH_TOKEN;
   const from = process.env.TWILIO_PHONE_NUMBER || TWILIO_DEFAULT_FROM;
   const missing = [
     !sid ? "TWILIO_ACCOUNT_SID" : null,

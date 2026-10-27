@@ -31,7 +31,7 @@ export default async function(req) {
           content: `You are the Vision Sweep agent in an autonomous intelligence platform.
 Your job is to identify the lowest-hanging fruit opportunities.
 
-EXISTING ASSETS: ${JSON.stringify(existing_assets || ['AI communications platform', 'Telnyx phone numbers', 'Vercel AI Gateway', 'Supabase vector DB'])}
+EXISTING ASSETS: ${JSON.stringify(existing_assets || ['AI communications platform', 'Twilio phone numbers', 'Vercel AI Gateway', 'Supabase vector DB'])}
 INDUSTRY FOCUS: ${industry || 'construction, home services, SaaS'}
 GOALS: ${JSON.stringify(goals || ['maximize autonomous economic output per dollar of infrastructure'])}
 

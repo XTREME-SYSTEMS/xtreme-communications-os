@@ -26,16 +26,6 @@ export default async function(req) {
           else { const t = await r.text(); result = { status: "error", detail: `Twilio ${r.status}: ${t.slice(0, 140)}`, latency_ms: Date.now() - t0, verified: false }; }
         } catch (e) { result = { status: "error", detail: String(e), latency_ms: Date.now() - t0, verified: false }; }
       }
-    } else if (type === "telnyx") {
-      const key = secrets.get("TELNYX_API_KEY");
-      if (!key) { result.detail = "Set TELNYX_API_KEY in Secrets"; }
-      else {
-        try {
-          const r = await fetch("https://api.telnyx.com/v2/phone_numbers?limit=1", { headers: { Authorization: `Bearer ${key}` } });
-          if (r.ok) { result = { status: "connected", detail: "telnyx api reachable", latency_ms: Date.now() - t0, verified: true }; }
-          else { const t = await r.text(); result = { status: "error", detail: `Telnyx ${r.status}: ${t.slice(0, 140)}`, latency_ms: Date.now() - t0, verified: false }; }
-        } catch (e) { result = { status: "error", detail: String(e), latency_ms: Date.now() - t0, verified: false }; }
-      }
     } else if (type === "plivo") {
       const authId = secrets.get("PLIVO_AUTH_ID");
       const authToken = secrets.get("PLIVO_AUTH_TOKEN");

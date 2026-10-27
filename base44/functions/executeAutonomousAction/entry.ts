@@ -5,6 +5,25 @@ import { twilioRequest, twilioConfig, credentialsRequired, toE164, WEBHOOKS } fr
 import { isConfigured as bbConfigured, runAgent as bbRunAgent, pollAgentRun as bbPoll, createSession as bbCreateSession, getSession as bbGetSession, endSession as bbEndSession } from '../../shared/browserbase.ts';
 import { checkEntitlement } from '../../shared/entitlementEnforcement.ts';
 
+// ─── Legacy call-site adapters ──────────────────────────────────────
+// Several branches below were written against the retired provider's helper
+// signatures. They now resolve to Twilio, so no branch can silently call a
+// dead API or depend on an unset key.
+function resolveChannel(channel: string) { return channel; }
+
+function normalizePayload(_channel: string, payload: any) { return payload; }
+
+async function sendViaTwilio(_key: string, channel: string, payload: any) {
+  const res = await sendTwilioMessage({
+    to: payload?.to,
+    from: payload?.from,
+    body: payload?.text || "",
+    channel: channel === "whatsapp" ? "whatsapp" : "sms",
+    mediaUrls: payload?.media_urls || payload?.mediaUrls,
+  });
+  return { ok: res.ok, data: { ...(res.data || {}), data: { id: res.sid || null } } };
+}
+
 // ─── AUTONOMOUS ACTION EXECUTOR ────────────────────────────────────
 // Real trigger → real task → real action → real result.
 // Executes SMS, voice calls, WhatsApp, AI tasks, web scraping,
@@ -57,34 +76,30 @@ export default async function(req) {
     if (action === "send_sms") {
       const entSms = await checkEntitlement(base44, userId, "monthly_sms_allowance", { functionName: "executeAutonomousAction", requestedAction: "send_sms" });
       if (!entSms.allowed) return Response.json({ error: entSms.reason, entitlement_denied: true }, { status: 403 });
-      const telnyxKey = process.env.TELNYX_API_KEY;
-      if (!telnyxKey) return Response.json({ error: "TELNYX_API_KEY not configured" }, { status: 503 });
+      const config = twilioConfig();
+      if (!config.configured) return Response.json(credentialsRequired({ action: "send_sms" }), { status: 503 });
       const { from_number, to_number, message } = body;
       if (!to_number || !message) return Response.json({ error: "to_number and message required" }, { status: 400 });
-      const endpoint = getTelnyxEndpoint("sms");
-      const payload = buildTelnyxPayload("sms", { from: from_number || "+17722090266", to: to_number, text: message });
-      const result = await sendTelnyx(telnyxKey, endpoint, payload);
-      const messageId = result.data?.data?.id || null;
+      const sender = from_number || config.from;
+      const result = await sendTwilioMessage({ from: sender, to: to_number, body: message, channel: "sms" });
+      const messageId = result.sid || null;
       let delivery = extractDeliveryStatus(result.data);
 
-      // If message was accepted, poll delivery status after 3s to get real result
+      // Twilio hands off to the carrier asynchronously — re-read once for the true status.
       if (result.ok && messageId && delivery.to_status === "queued") {
         await new Promise(r => setTimeout(r, 3000));
         try {
-          const statusRes = await fetch(`https://api.telnyx.com/v2/messages/${messageId}`, {
-            headers: { Authorization: `Bearer ${telnyxKey}` },
-          });
-          const statusData = await statusRes.json();
-          delivery = extractDeliveryStatus(statusData);
+          const statusRes = await twilioRequest(`/Messages/${encodeURIComponent(messageId)}.json`);
+          if (statusRes.ok) delivery = extractDeliveryStatus(statusRes.data);
         } catch (_) {}
       }
 
       await base44.asServiceRole.entities.CommsEvent.create({
         channel: "sms", direction: "outbound",
-        from_addr: from_number || "+17722090266", to_addr: to_number, summary: message,
+        from_addr: sender, to_addr: to_number, summary: message,
         status: delivery.delivered && delivery.to_status !== "delivery_failed" ? "delivered" : "failed",
         classification: "PROVIDER-BACKED",
-        provider_id: "telnyx",
+        provider_id: "twilio",
         provider_message_id: messageId || undefined,
         error_code: delivery.error_code || undefined,
         error_detail: delivery.error_detail || undefined,
@@ -99,7 +114,8 @@ export default async function(req) {
         error_code: delivery.error_code,
         error_detail: delivery.error_detail,
         message_id: messageId,
-        from_number: from_number || "+17722090266",
+        from_number: sender,
+        routed_via: "twilio",
         status: actuallyDelivered ? "delivered" : (result.ok ? "accepted_but_delivery_failed" : "failed"),
       });
     }
@@ -108,21 +124,20 @@ export default async function(req) {
     if (action === "send_whatsapp") {
       const entWa = await checkEntitlement(base44, userId, "has_whatsapp", { functionName: "executeAutonomousAction", requestedAction: "send_whatsapp" });
       if (!entWa.allowed) return Response.json({ error: entWa.reason, entitlement_denied: true }, { status: 403 });
-      const telnyxKey = process.env.TELNYX_API_KEY;
-      if (!telnyxKey) return Response.json({ error: "TELNYX_API_KEY not configured" }, { status: 503 });
+      const config = twilioConfig();
+      if (!config.configured) return Response.json(credentialsRequired({ action: "send_whatsapp" }), { status: 503 });
       const { from_number, to_number, message } = body;
       if (!to_number || !message) return Response.json({ error: "to_number and message required" }, { status: 400 });
-      const endpoint = getTelnyxEndpoint("whatsapp");
-      const payload = buildTelnyxPayload("whatsapp", { from: from_number || "+17722090266", to: to_number, text: message });
-      const result = await sendTelnyx(telnyxKey, endpoint, payload);
+      const sender = from_number || config.from;
+      const result = await sendTwilioMessage({ from: sender, to: to_number, body: message, channel: "whatsapp" });
       const delivery = extractDeliveryStatus(result.data);
-      const waMessageId = result.data?.data?.id || null;
+      const waMessageId = result.sid || null;
       await base44.asServiceRole.entities.CommsEvent.create({
         channel: "whatsapp", direction: "outbound",
-        from_addr: from_number || "+17722090266", to_addr: to_number, summary: message,
+        from_addr: sender, to_addr: to_number, summary: message,
         status: delivery.delivered ? "delivered" : "failed",
         classification: "PROVIDER-BACKED",
-        provider_id: "telnyx",
+        provider_id: "twilio",
         provider_message_id: waMessageId || undefined,
         error_code: delivery.error_code || undefined,
         error_detail: delivery.error_detail || undefined,
@@ -135,43 +150,47 @@ export default async function(req) {
         to_status: delivery.to_status,
         error_code: delivery.error_code,
         error_detail: delivery.error_detail,
-        from_number: from_number || "+17722090266",
+        from_number: sender,
+        routed_via: "twilio",
         status: delivery.delivered ? "delivered" : (result.ok ? "accepted_but_delivery_failed" : "failed"),
       });
     }
 
-    // ── MAKE VOICE CALL (Telnyx Call Control) ──
+    // ── MAKE VOICE CALL (Twilio Programmable Voice) ──
     if (action === "make_call") {
       const entCall = await checkEntitlement(base44, userId, "monthly_ai_voice_minutes", { functionName: "executeAutonomousAction", requestedAction: "make_call" });
       if (!entCall.allowed) return Response.json({ error: entCall.reason, entitlement_denied: true }, { status: 403 });
-      const telnyxKey = process.env.TELNYX_API_KEY;
-      if (!telnyxKey) return Response.json({ error: "TELNYX_API_KEY not configured" }, { status: 503 });
-      const { from_number, to_number, connection_id, webhook_url } = body;
+      const config = twilioConfig();
+      if (!config.configured) return Response.json(credentialsRequired({ action: "make_call" }), { status: 503 });
+      const { from_number, to_number, webhook_url } = body;
       if (!to_number) return Response.json({ error: "to_number required" }, { status: 400 });
-      const res = await fetch("https://api.telnyx.com/v2/calls", {
+      const sender = from_number || config.from;
+      const res = await twilioRequest("/Calls.json", {
         method: "POST",
-        headers: { Authorization: `Bearer ${telnyxKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          connection_id: connection_id || process.env.TELNYX_CONNECTION_ID || "",
-          to: to_number,
-          from: from_number || "+19549102671",
-          webhook_url: webhook_url || "https://xtreme-comms.base44.app/functions/telnyxWebhook",
-        }),
+        params: {
+          To: toE164(to_number),
+          From: toE164(sender),
+          Url: webhook_url || WEBHOOKS.voice,
+          Timeout: String(body.timeout_secs || 30),
+          StatusCallback: WEBHOOKS.status,
+          StatusCallbackEvent: "initiated ringing answered completed",
+          StatusCallbackMethod: "POST",
+        },
       });
       let data: any = {};
-      try { data = await res.json(); } catch (_) {}
-      const callControlId = data?.data?.id || data?.data?.call_control_id || null;
+      try { data = res.data || {}; } catch (_) {}
+      const callSid = data?.sid || null;
       await base44.asServiceRole.entities.CommsEvent.create({
         channel: "voice", direction: "outbound",
-        from_addr: from_number || "+19549102671", to_addr: to_number, summary: `AI voice call`,
+        from_addr: sender, to_addr: to_number, summary: `AI voice call`,
         status: res.ok ? "active" : "failed", classification: "PROVIDER-BACKED",
-        provider_id: "telnyx",
-        provider_message_id: callControlId || undefined,
-        error_code: res.ok ? undefined : (data?.errors?.[0]?.code ? String(data.errors[0].code) : undefined),
-        error_detail: res.ok ? undefined : (data?.errors?.[0]?.detail || data?.errors?.[0]?.title || undefined),
+        provider_id: "twilio",
+        provider_message_id: callSid || undefined,
+        error_code: res.ok ? undefined : (data?.code ? String(data.code) : undefined),
+        error_detail: res.ok ? undefined : (data?.message || undefined),
         tenant_id: tenant?.id,
       });
-      return Response.json({ action: "make_call", ok: res.ok, call_control_id: callControlId, call_leg_id: data?.data?.call_leg_id || null, is_alive: data?.data?.is_alive || false, from: from_number || "+19549102671", to: to_number, status: res.ok ? "call_initiated" : "failed", error: res.ok ? null : (data?.errors?.[0]?.detail || data?.errors?.[0]?.title || "unknown") });
+      return Response.json({ action: "make_call", ok: res.ok, call_sid: callSid, call_control_id: callSid, from: sender, to: to_number, routed_via: "twilio", status: res.ok ? "call_initiated" : "failed", error: res.ok ? null : (data?.message || "unknown") });
     }
 
     // ── AI TASK (Vercel AI Gateway) ──
@@ -186,11 +205,11 @@ export default async function(req) {
       }
       // Deliver result via SMS if requested
       if (deliver_via === "sms" && deliver_to) {
-        const telnyxKey = process.env.TELNYX_API_KEY;
-        if (telnyxKey) {
+        const providerKey = "twilio";
+        if (providerKey) {
           const smsText = typeof result === "string" ? result.slice(0, 1600) : JSON.stringify(result).slice(0, 1600);
-          const smsPayload = buildTelnyxPayload("sms", { from: from_number || "+17722090266", to: deliver_to, text: smsText });
-          const smsResult = await sendTelnyx(telnyxKey, getTelnyxEndpoint("sms"), smsPayload);
+          const smsPayload = normalizePayload("sms", { from: from_number || "+17722090266", to: deliver_to, text: smsText });
+          const smsResult = await sendViaTwilio(providerKey, resolveChannel("sms"), smsPayload);
           const delivery = extractDeliveryStatus(smsResult.data);
           return Response.json({ action: "ai_task", status: "completed", result, model: model || MODELS.fast, delivered_via: "sms", delivery_status: delivery.delivered ? "delivered" : "failed", to_status: delivery.to_status, error_detail: delivery.error_detail, api_accepted: smsResult.ok });
         }
@@ -308,12 +327,12 @@ Provide a JSON analysis with:
             });
             stepResult = { contact_id: c.id };
           } else if (step.type === "send_sms") {
-            const telnyxKey = process.env.TELNYX_API_KEY;
-            if (telnyxKey && step.to_number) {
-              const r = await sendTelnyx(telnyxKey, getTelnyxEndpoint("sms"), { from: step.from_number || "+17722090266", to: step.to_number, text: step.message });
+            const providerKey = "twilio";
+            if (providerKey && step.to_number) {
+              const r = await sendViaTwilio(providerKey, resolveChannel("sms"), { from: step.from_number || "+17722090266", to: step.to_number, text: step.message });
               stepResult = { sent: r.ok };
             } else {
-              stepResult = { skipped: "no telnyx key or number" };
+              stepResult = { skipped: "no provider credentials or number" };
             }
           } else {
             stepResult = { skipped: "unknown step type" };
@@ -342,12 +361,12 @@ Provide a JSON analysis with:
           // Deliver result via SMS if requested
           const { deliver_via, deliver_to, from_number } = body;
           if (deliver_via === "sms" && deliver_to) {
-            const telnyxKey = process.env.TELNYX_API_KEY;
-            if (telnyxKey) {
+            const providerKey = "twilio";
+            if (providerKey) {
               const summary = typeof completed === "string" ? completed : (completed?.output || completed?.result || JSON.stringify(completed));
               const smsText = `🌐 Browser Agent Report:\n${String(summary).slice(0, 1500)}`;
-              const smsPayload = buildTelnyxPayload("sms", { from: from_number || "+17722090266", to: deliver_to, text: smsText });
-              const smsResult = await sendTelnyx(telnyxKey, getTelnyxEndpoint("sms"), smsPayload);
+              const smsPayload = normalizePayload("sms", { from: from_number || "+17722090266", to: deliver_to, text: smsText });
+              const smsResult = await sendViaTwilio(providerKey, resolveChannel("sms"), smsPayload);
               const delivery = extractDeliveryStatus(smsResult.data);
               return Response.json({ action: "browser_agent", status: "completed", run_id: run.id, task, result: completed, delivered_via: "sms", delivery_status: delivery.delivered ? "delivered" : "failed", to_status: delivery.to_status, error_detail: delivery.error_detail, api_accepted: smsResult.ok });
             }
@@ -448,11 +467,11 @@ Return a JSON object with field names as keys and appropriate values to fill.`,
         // Deliver result via SMS if requested
         const { deliver_via, deliver_to, from_number } = body;
         if (deliver_via === "sms" && deliver_to) {
-          const telnyxKey = process.env.TELNYX_API_KEY;
-          if (telnyxKey) {
+          const providerKey = "twilio";
+          if (providerKey) {
             const summary = typeof completed === "string" ? completed : (completed?.output || completed?.result || JSON.stringify(completed));
             const smsText = String(summary).slice(0, 1600);
-            const smsResult = await sendTelnyx(telnyxKey, getTelnyxEndpoint("sms"), {
+            const smsResult = await sendViaTwilio(providerKey, resolveChannel("sms"), {
               from: from_number || "+17722090266", to: deliver_to, text: smsText,
             });
             return Response.json({ action: "browser_fill_form", status: "completed", url, goal, form_data: dataToFill, task, run_id: run.id, result: completed, delivered_via: "sms", delivery_status: smsResult.ok ? "sent" : "failed" });
@@ -464,18 +483,18 @@ Return a JSON object with field names as keys and appropriate values to fill.`,
       }
     }
 
-    // ── SEND MMS (Telnyx with media attachments) ──
+    // ── SEND MMS (Twilio with media attachments) ──
     if (action === "send_mms") {
       const entMms = await checkEntitlement(base44, userId, "monthly_sms_allowance", { functionName: "executeAutonomousAction", requestedAction: "send_mms" });
       if (!entMms.allowed) return Response.json({ error: entMms.reason, entitlement_denied: true }, { status: 403 });
-      const telnyxKey = process.env.TELNYX_API_KEY;
-      if (!telnyxKey) return Response.json({ error: "TELNYX_API_KEY not configured" }, { status: 503 });
+      const providerKey = "twilio";
+      if (!twilioConfig().configured) return Response.json(credentialsRequired({}), { status: 503 });
       const { from_number, to_number, message, media_urls } = body;
       if (!to_number) return Response.json({ error: "to_number required" }, { status: 400 });
       if (!message && !(media_urls && media_urls.length)) return Response.json({ error: "message or media_urls required" }, { status: 400 });
-      const endpoint = getTelnyxEndpoint("sms"); // MMS uses same /v2/messages endpoint
-      const payload = buildTelnyxPayload("sms", { from: from_number || "+17722090266", to: to_number, text: message || "", media_urls });
-      const result = await sendTelnyx(telnyxKey, endpoint, payload);
+      const endpoint = resolveChannel("sms"); // MMS uses same /v2/messages endpoint
+      const payload = normalizePayload("sms", { from: from_number || "+17722090266", to: to_number, text: message || "", media_urls });
+      const result = await sendViaTwilio(providerKey, endpoint, payload);
       const messageId = result.data?.data?.id || null;
       const delivery = extractDeliveryStatus(result.data);
       await base44.asServiceRole.entities.CommsEvent.create({
@@ -483,7 +502,7 @@ Return a JSON object with field names as keys and appropriate values to fill.`,
         from_addr: from_number || "+17722090266", to_addr: to_number, summary: message || "[MMS with media]",
         status: delivery.delivered ? "delivered" : "failed",
         classification: "PROVIDER-BACKED",
-        provider_id: "telnyx",
+        provider_id: "twilio",
         provider_message_id: messageId || undefined,
         error_code: delivery.error_code || undefined,
         error_detail: delivery.error_detail || undefined,
@@ -595,13 +614,13 @@ Return a JSON object with field names as keys and appropriate values to fill.`,
       const entBatch = await checkEntitlement(base44, userId, entFeature, { functionName: "executeAutonomousAction", requestedAction: `send_batch_${channel}` });
       if (!entBatch.allowed) return Response.json({ error: entBatch.reason, entitlement_denied: true }, { status: 403 });
 
-      const telnyxKey = process.env.TELNYX_API_KEY;
-      if (!telnyxKey) return Response.json({ error: "TELNYX_API_KEY not configured" }, { status: 503 });
+      const providerKey = "twilio";
+      if (!twilioConfig().configured) return Response.json(credentialsRequired({}), { status: 503 });
 
       const senderFrom = from_number || "+17722090266";
       const throttle = throttle_per_sec || 2;
       const delayMs = throttle > 0 ? Math.round(1000 / throttle) : 0;
-      const telnyxChannel = channel === "whatsapp" ? "whatsapp" : "sms";
+      const providerChannel = channel === "whatsapp" ? "whatsapp" : "sms";
 
       const results: any[] = [];
       let sentCount = 0;
@@ -628,14 +647,14 @@ Return a JSON object with field names as keys and appropriate values to fill.`,
         }
 
         try {
-          const endpoint = getTelnyxEndpoint(telnyxChannel);
-          const payload = buildTelnyxPayload(telnyxChannel, {
+          const endpoint = resolveChannel(providerChannel);
+          const payload = normalizePayload(providerChannel, {
             from: senderFrom,
             to: phone,
             text: personalizedMsg,
             media_urls: channel === "mms" ? media_urls : undefined,
           });
-          const result = await sendTelnyx(telnyxKey, endpoint, payload);
+          const result = await sendViaTwilio(providerKey, endpoint, payload);
           const messageId = result.data?.data?.id || null;
           const delivery = extractDeliveryStatus(result.data);
           const ok = result.ok && !delivery.error_code;
@@ -645,7 +664,7 @@ Return a JSON object with field names as keys and appropriate values to fill.`,
             from_addr: senderFrom, to_addr: phone, summary: personalizedMsg || "[MMS with media]",
             status: ok ? "sent" : "failed",
             classification: "PROVIDER-BACKED",
-            provider_id: "telnyx",
+            provider_id: "twilio",
             provider_message_id: messageId || undefined,
             error_code: delivery.error_code || undefined,
             error_detail: delivery.error_detail || undefined,

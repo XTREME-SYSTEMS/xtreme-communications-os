@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Mic, Play, Save, Phone, Sparkles, Zap, DollarSign, Clock, Languages, Search, Heart, Star, Volume2, Check } from 'lucide-react';
+import SolVoiceRanking from '@/components/voice/SolVoiceRanking';
 
 // Benchmark data from research (2026)
 const PROVIDER_BENCHMARKS = [
@@ -322,12 +323,18 @@ export default function VoiceLibrary() {
         </div>
 
         <Tabs defaultValue="catalog" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 max-w-lg">
+          <TabsList className="grid w-full grid-cols-5 max-w-2xl">
+            <TabsTrigger value="sol">Sol Match</TabsTrigger>
             <TabsTrigger value="catalog">Voice Catalog</TabsTrigger>
             <TabsTrigger value="benchmarks">Benchmarks</TabsTrigger>
             <TabsTrigger value="studio">Voice Studio</TabsTrigger>
             <TabsTrigger value="profiles">Profiles</TabsTrigger>
           </TabsList>
+
+          {/* ── SOL MATCH TAB — audited Oct 2026 ── */}
+          <TabsContent value="sol" className="space-y-4">
+            <SolVoiceRanking />
+          </TabsContent>
 
           {/* ── VOICE CATALOG TAB (massive browsable grid) ── */}
           <TabsContent value="catalog" className="space-y-4">

@@ -208,7 +208,7 @@ export default async function(req) {
 
     // ── 6. Log the provisioning ──
     await base44.asServiceRole.entities.ProviderLog.create({
-      provider: 'telnyx',
+      provider: 'twilio',
       channel,
       event_type: 'agent.provisioned',
       direction: 'system',

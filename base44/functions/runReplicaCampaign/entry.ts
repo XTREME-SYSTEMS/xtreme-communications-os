@@ -101,8 +101,10 @@ Return JSON with a "messages" array, one per contact (match by contact_index).`,
 
     const messages = contentRes.messages || [];
     const results = [];
-    const telnyxKey = secrets.get('TELNYX_API_KEY');
-    const senderNumber = from_number || '+19548848885';
+    const twilioSid = process.env.TWILIO_ACCOUNT_SID;
+    const twilioToken = process.env.TWILIO_AUTH_TOKEN;
+    const twilioFrom = process.env.TWILIO_PHONE_NUMBER;
+    const senderNumber = from_number || twilioFrom || '+18665711174';
 
     // ── Send each message ──
     for (const msg of messages) {
@@ -138,23 +140,25 @@ Return JSON with a "messages" array, one per contact (match by contact_index).`,
             sendError = err?.error?.message || `HTTP ${sendRes.status}`;
           }
         } else if (ch === 'sms' && contact.phone) {
-          if (!telnyxKey) {
+          if (!twilioSid || !twilioToken) {
             sendStatus = 'failed';
-            sendError = 'TELNYX_API_KEY not configured';
+            sendError = 'Twilio credentials not configured';
           } else {
-            const smsRes = await fetch('https://api.telnyx.com/v2/messages', {
+            const smsRes = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${twilioSid}/Messages.json`, {
               method: 'POST',
-              headers: { 'Authorization': `Bearer ${telnyxKey}`, 'Content-Type': 'application/json' },
-              body: JSON.stringify({ from: senderNumber, to: contact.phone, text: msg.body })
+              headers: {
+                'Authorization': `Basic ${Buffer.from(`${twilioSid}:${twilioToken}`).toString('base64')}`,
+                'Content-Type': 'application/x-www-form-urlencoded'
+              },
+              body: new URLSearchParams({ From: senderNumber, To: contact.phone, Body: msg.body }).toString()
             });
+            const data = await smsRes.json().catch(() => ({}));
             if (smsRes.ok) {
-              const data = await smsRes.json();
               sendStatus = 'sent';
-              messageId = data.data?.id;
+              messageId = data.sid;
             } else {
-              const err = await smsRes.json().catch(() => ({}));
               sendStatus = 'failed';
-              sendError = err?.errors?.[0]?.detail || `HTTP ${smsRes.status}`;
+              sendError = data?.message || `HTTP ${smsRes.status}`;
             }
           }
         } else {

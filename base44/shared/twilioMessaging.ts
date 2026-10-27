@@ -36,6 +36,7 @@ export async function sendTwilioMessage(options: {
   to: string;
   body: string;
   from?: string;
+  channel?: string;
   mediaUrls?: string[];
   statusCallback?: string;
 }): Promise<SendResult> {
@@ -44,9 +45,13 @@ export async function sendTwilioMessage(options: {
     return { ok: false, status: 503, credentialsRequired: true, error: "Twilio credentials not configured" };
   }
 
+  // WhatsApp addresses carry the whatsapp: scheme; SMS/MMS use bare E.164.
+  const whatsapp = (options.channel || "").toLowerCase() === "whatsapp";
+  const addr = (value: string) => (whatsapp ? `whatsapp:${toE164(value)}` : toE164(value));
+
   const params: Record<string, string> = {
-    To: toE164(options.to),
-    From: toE164(options.from || from),
+    To: addr(options.to),
+    From: addr(options.from || from),
     Body: options.body || "",
   };
   if (options.statusCallback) params.StatusCallback = options.statusCallback;
@@ -77,15 +82,38 @@ export async function sendSms(to: string, body: string, from?: string): Promise<
   return sendTwilioMessage({ to, body, from });
 }
 
-/** Map a Twilio delivery status onto the internal CommsEvent status enum. */
-export function extractDeliveryStatus(payload: any): string {
-  const raw =
+export type DeliveryStatus = {
+  delivered: boolean;
+  to_status: string;
+  error_code: string | null;
+  error_detail: string | null;
+};
+
+/**
+ * Normalize a Twilio message/call payload into delivery facts.
+ * Twilio reports: queued | sent | delivered | undelivered | failed | read.
+ */
+export function extractDeliveryStatus(payload: any): DeliveryStatus {
+  const raw = String(
     payload?.MessageStatus ||
     payload?.SmsStatus ||
     payload?.CallStatus ||
     payload?.status ||
-    "queued";
-  return mapMessageStatus(raw);
+    "queued"
+  ).toLowerCase();
+
+  if (raw === "delivered" || raw === "read" || raw === "completed") {
+    return { delivered: true, to_status: "delivered", error_code: null, error_detail: null };
+  }
+  if (raw === "undelivered" || raw === "failed" || raw === "busy" || raw === "no-answer" || raw === "canceled") {
+    return {
+      delivered: false,
+      to_status: "delivery_failed",
+      error_code: payload?.error_code ? String(payload.error_code) : null,
+      error_detail: payload?.error_message || payload?.error_detail || null,
+    };
+  }
+  return { delivered: false, to_status: "queued", error_code: null, error_detail: null };
 }
 
 /** Twilio account SID (used only for display/logging). */

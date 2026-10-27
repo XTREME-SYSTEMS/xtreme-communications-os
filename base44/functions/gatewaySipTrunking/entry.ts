@@ -1,103 +1,226 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
+import {
+  twilioRequest,
+  twilioConfig,
+  credentialsRequired,
+  twilioError,
+  toE164,
+  numberKey,
+} from '../../shared/twilioClient.ts';
 
-// SIP Trunking / BYOC gateway — provisions and manages Telnyx SIP trunks + connections.
-// Actions: create_trunk, list_trunks, create_connection, list_connections, assign_number.
-// Real Telnyx API v2 calls via TELNYX_API_KEY. Surfaces credentials_required when unset.
-async function telnyx(path, method, key, body) {
-  const res = await fetch(`https://api.telnyx.com/v2${path}`, {
-    method,
-    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  let data = {};
-  try { data = await res.json(); } catch (_) {}
-  return { ok: res.ok, status: res.status, data };
-}
-function errMsg(d) { return d?.errors?.[0]?.detail || d?.errors?.[0]?.title || d?.message || "unknown"; }
+// ─────────────────────────────────────────────────────────────────────────────
+// SIP Trunking Gateway — Twilio only
+// Actions: create_trunk, list_trunks, create_connection, list_connections,
+//          assign_number, list_numbers
+//
+// Twilio model: a SIP "Trunk" carries calls between your PBX and Twilio;
+// a SIP "Domain" (origination) is the registration endpoint equivalent.
+// ─────────────────────────────────────────────────────────────────────────────
 
-export default async function(req) {
+export default async function (req) {
   try {
     const base44 = createClientFromRequest(req);
     let body = {};
     try { body = await req.json(); } catch (_) {}
-    const apiKey = body.api_key || (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "");
-    if (!apiKey) return Response.json({ error: "api_key required" }, { status: 401 });
-    const keys = await base44.asServiceRole.entities.ApiKey.filter({ key_value: apiKey, status: "active" });
-    if (!keys.length) return Response.json({ error: "invalid api key" }, { status: 403 });
+
+    const apiKey = body.api_key || (req.headers.get('authorization') || '').replace(/^Bearer\s+/i, '');
+    if (!apiKey) return Response.json({ error: 'api_key required' }, { status: 401 });
+
+    const keys = await base44.asServiceRole.entities.ApiKey.filter({ key_value: apiKey, status: 'active' });
+    if (!keys.length) return Response.json({ error: 'invalid api key' }, { status: 403 });
     const key = keys[0];
-    const tenant = await base44.asServiceRole.entities.Tenant.get(key.tenant_id);
-    if (!tenant || tenant.status !== "active") return Response.json({ error: "tenant not active" }, { status: 403 });
 
-    const telnyxKey = process.env.TELNYX_API_KEY;
-    if (!telnyxKey) return Response.json({ status: "credentials_required", error: "TELNYX_API_KEY not configured" }, { status: 503 });
+    let tenant;
+    try { tenant = await base44.asServiceRole.entities.Tenant.get(key.tenant_id); }
+    catch (_) { return Response.json({ error: 'tenant not found' }, { status: 403 }); }
+    if (!tenant || tenant.status !== 'active') {
+      return Response.json({ error: 'tenant not active' }, { status: 403 });
+    }
 
-    const action = body.action || "list_trunks";
+    const config = twilioConfig();
+    if (!config.configured) return Response.json(credentialsRequired({ action: body.action }), { status: 503 });
 
-    // ── CREATE SIP TRUNK (IP auth) ──
-    if (action === "create_trunk") {
-      const res = await telnyx("/ip_connections", "POST", telnyxKey, {
-        name: body.name || `${tenant.name} SIP Trunk`,
-        transport: body.transport || "UDP",
-        inbound: { ip_notifications_endpoint: body.webhook_url || `https://xtreme-comms.base44.app/functions/telnyxWebhook` },
-        outbound: { host: body.host || null, port: body.port || 5060 },
+    const action = body.action || 'list_trunks';
+
+    // ── CREATE TRUNK ──
+    if (action === 'create_trunk') {
+      const name = body.friendly_name || body.name || `${tenant.name} Trunk`;
+      const params: Record<string, string | boolean> = { FriendlyName: name };
+      if (body.domain_name) params.DomainName = body.domain_name;
+
+      const res = await twilioRequest('/SIP/Trunks.json', { method: 'POST', params });
+      if (!res.ok) {
+        if (res.credentialsRequired) return Response.json(res.data, { status: 503 });
+        return Response.json({ status: 'failed', error: twilioError(res.data), code: res.data?.code }, { status: res.status });
+      }
+
+      try {
+        await base44.asServiceRole.entities.SipTrunk.create({
+          name,
+          provider_id: 'twilio',
+          trunk_sid: res.data?.sid,
+          domain: res.data?.domain_name || body.domain_name || null,
+          status: 'active',
+          tenant_id: tenant.id,
+        });
+      } catch (_) { /* non-fatal */ }
+
+      return Response.json({
+        status: 'created',
+        trunk_sid: res.data?.sid,
+        trunk_id: res.data?.sid,
+        friendly_name: res.data?.friendly_name,
+        domain_name: res.data?.domain_name,
+        classification: 'LIVE',
+        routed_via: 'twilio',
       });
-      if (!res.ok) return Response.json({ status: "failed", error: errMsg(res.data) }, { status: res.status });
-      const trunk = await base44.asServiceRole.entities.SipTrunk.create({
-        tenant_id: tenant.id, name: body.name || `${tenant.name} SIP Trunk`,
-        host: body.host || "", port: body.port || 5060,
-        transport: body.transport || "UDP", type: "bidirectional",
-        status: "connected", enabled: true, provider_id: res.data.data?.id,
-      });
-      return Response.json({ trunk_id: trunk.id, connection_id: res.data.data?.id, status: "connected", classification: "LIVE", provider: "telnyx" });
     }
 
     // ── LIST TRUNKS ──
-    if (action === "list_trunks") {
-      const res = await telnyx("/ip_connections?page[size]=50", "GET", telnyxKey);
-      if (!res.ok) return Response.json({ status: "failed", error: errMsg(res.data) }, { status: res.status });
-      const trunks = (res.data.data || []).map((t) => ({
-        id: t.id, name: t.name, transport: t.transport, status: t.status || "active",
-      }));
-      return Response.json({ count: trunks.length, trunks, classification: "LIVE", provider: "telnyx" });
-    }
-
-    // ── CREATE CONNECTION (credential auth) ──
-    if (action === "create_connection") {
-      const res = await telnyx("/credential_connections", "POST", telnyxKey, {
-        name: body.name || `${tenant.name} Credential Connection`,
-        user_name: body.username, password: body.password,
-        sip_server: { host: body.host || null, port: body.port || 5060 },
-        transport: body.transport || "UDP",
+    if (action === 'list_trunks') {
+      const res = await twilioRequest('/SIP/Trunks.json', {
+        method: 'GET',
+        params: { PageSize: Math.min(body.limit || 50, 100) },
       });
-      if (!res.ok) return Response.json({ status: "failed", error: errMsg(res.data) }, { status: res.status });
-      return Response.json({ connection_id: res.data.data?.id, status: "created", classification: "LIVE", provider: "telnyx" });
-    }
+      if (!res.ok) {
+        if (res.credentialsRequired) return Response.json(res.data, { status: 503 });
+        return Response.json({ status: 'failed', error: twilioError(res.data) }, { status: res.status });
+      }
 
-    // ── LIST CONNECTIONS ──
-    if (action === "list_connections") {
-      const res = await telnyx("/credential_connection?page[size]=50", "GET", telnyxKey);
-      if (!res.ok) return Response.json({ status: "failed", error: errMsg(res.data) }, { status: res.status });
-      const conns = (res.data.data || []).map((c) => ({
-        id: c.id, name: c.name, transport: c.transport, status: c.status || "active",
+      const trunks = (res.data?.trunks || []).map((t) => ({
+        trunk_sid: t.sid,
+        trunk_id: t.sid,
+        friendly_name: t.friendly_name,
+        domain_name: t.domain_name,
+        date_created: t.date_created,
       }));
-      return Response.json({ count: conns.length, connections: conns, classification: "LIVE", provider: "telnyx" });
+
+      return Response.json({ trunks, count: trunks.length, classification: 'LIVE', routed_via: 'twilio' });
     }
 
-    // ── ASSIGN NUMBER to trunk ──
-    if (action === "assign_number") {
-      const res = await telnyx("/phone_numbers/slim?page[size]=100", "GET", telnyxKey);
-      if (!res.ok) return Response.json({ status: "failed", error: errMsg(res.data) }, { status: res.status });
-      const record = (res.data.data || []).find((p) => p.phone_number === body.e164);
-      if (!record) return Response.json({ error: "number not found in Telnyx account" }, { status: 404 });
-      const assign = await telnyx(`/phone_numbers/${record.id}`, "PATCH", telnyxKey, {
-        connection_id: body.connection_id,
+    // ── CREATE ORIGINATION DOMAIN (the "connection" equivalent) ──
+    if (action === 'create_connection') {
+      const domainName = body.domain_name || body.name;
+      if (!domainName) return Response.json({ error: 'domain_name required' }, { status: 400 });
+
+      const params: Record<string, string | boolean> = {
+        DomainName: domainName,
+        FriendlyName: body.friendly_name || domainName,
+        SipRegistration: body.sip_registration !== false,
+      };
+      if (body.voice_url) params.VoiceUrl = body.voice_url;
+      if (body.voice_method) params.VoiceMethod = body.voice_method;
+
+      const res = await twilioRequest('/SIP/Domains.json', { method: 'POST', params });
+      if (!res.ok) {
+        if (res.credentialsRequired) return Response.json(res.data, { status: 503 });
+        return Response.json({ status: 'failed', error: twilioError(res.data), code: res.data?.code }, { status: res.status });
+      }
+
+      return Response.json({
+        status: 'created',
+        connection_id: res.data?.sid,
+        domain_sid: res.data?.sid,
+        domain_name: res.data?.domain_name,
+        sip_registration: params.SipRegistration,
+        classification: 'LIVE',
+        routed_via: 'twilio',
       });
-      if (!assign.ok) return Response.json({ status: "failed", error: errMsg(assign.data) }, { status: assign.status });
-      return Response.json({ e164: body.e164, connection_id: body.connection_id, status: "assigned", classification: "LIVE" });
     }
 
-    return Response.json({ error: "unknown action", action }, { status: 400 });
+    // ── LIST ORIGINATION DOMAINS ──
+    if (action === 'list_connections') {
+      const res = await twilioRequest('/SIP/Domains.json', {
+        method: 'GET',
+        params: { PageSize: Math.min(body.limit || 50, 100) },
+      });
+      if (!res.ok) {
+        if (res.credentialsRequired) return Response.json(res.data, { status: 503 });
+        return Response.json({ status: 'failed', error: twilioError(res.data) }, { status: res.status });
+      }
+
+      const connections = (res.data?.domains || []).map((d) => ({
+        connection_id: d.sid,
+        domain_sid: d.sid,
+        domain_name: d.domain_name,
+        friendly_name: d.friendly_name,
+        sip_registration: d.sip_registration,
+        voice_url: d.voice_url,
+      }));
+
+      return Response.json({
+        connections,
+        count: connections.length,
+        classification: 'LIVE',
+        routed_via: 'twilio',
+      });
+    }
+
+    // ── ASSIGN A NUMBER TO A TRUNK ──
+    if (action === 'assign_number') {
+      const target = body.e164 || body.number || body.phone_number;
+      const trunkSid = body.trunk_sid || body.trunk_id;
+      if (!target) return Response.json({ error: 'e164 required' }, { status: 400 });
+      if (!trunkSid) return Response.json({ error: 'trunk_sid required' }, { status: 400 });
+
+      const number = toE164(target);
+
+      const owned = await twilioRequest('/IncomingPhoneNumbers.json', {
+        method: 'GET',
+        params: { PhoneNumber: number },
+      });
+      if (!owned.ok) {
+        if (owned.credentialsRequired) return Response.json(owned.data, { status: 503 });
+        return Response.json({ status: 'failed', error: twilioError(owned.data) }, { status: owned.status });
+      }
+
+      const match = (owned.data?.incoming_phone_numbers || []).find(
+        (n) => numberKey(n.phone_number) === numberKey(number)
+      );
+      if (!match) return Response.json({ status: 'not_found', error: 'number not owned by this account' }, { status: 404 });
+
+      const res = await twilioRequest(`/IncomingPhoneNumbers/${encodeURIComponent(match.sid)}.json`, {
+        method: 'POST',
+        params: { TrunkSid: trunkSid },
+      });
+      if (!res.ok) {
+        if (res.credentialsRequired) return Response.json(res.data, { status: 503 });
+        return Response.json({ status: 'failed', error: twilioError(res.data) }, { status: res.status });
+      }
+
+      return Response.json({
+        status: 'assigned',
+        e164: number,
+        trunk_sid: trunkSid,
+        classification: 'LIVE',
+        routed_via: 'twilio',
+      });
+    }
+
+    // ── LIST NUMBERS ELIGIBLE FOR TRUNK ASSIGNMENT ──
+    if (action === 'list_numbers') {
+      const res = await twilioRequest('/IncomingPhoneNumbers.json', {
+        method: 'GET',
+        params: { PageSize: Math.min(body.limit || 50, 100) },
+      });
+      if (!res.ok) {
+        if (res.credentialsRequired) return Response.json(res.data, { status: 503 });
+        return Response.json({ status: 'failed', error: twilioError(res.data) }, { status: res.status });
+      }
+
+      const numbers = (res.data?.incoming_phone_numbers || []).map((n) => ({
+        e164: n.phone_number,
+        twilio_sid: n.sid,
+        trunk_sid: n.trunk_sid || null,
+        voice_capable: Boolean(n.capabilities?.voice),
+      }));
+
+      return Response.json({ numbers, count: numbers.length, classification: 'LIVE', routed_via: 'twilio' });
+    }
+
+    return Response.json({ error: `unknown action: ${action}` }, { status: 400 });
   } catch (error) {
+    console.error('[gatewaySipTrunking] unhandled:', error?.message);
     return Response.json({ error: error.message }, { status: 500 });
   }
 }

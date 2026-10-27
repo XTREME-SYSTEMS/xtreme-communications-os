@@ -1,6 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { aiCompleteJson, aiComplete, MODELS } from '../../shared/aiGateway.ts';
-import { sendTelnyx, getTelnyxEndpoint, personalize, buildTelnyxPayload, extractDeliveryStatus } from '../../shared/telnyxMessaging.ts';
+import { sendTwilioMessage, personalize, extractDeliveryStatus } from '../../shared/twilioMessaging.ts';
+import { twilioRequest, twilioConfig, credentialsRequired, toE164, WEBHOOKS } from '../../shared/twilioClient.ts';
 import { isConfigured as bbConfigured, runAgent as bbRunAgent, pollAgentRun as bbPoll, createSession as bbCreateSession, getSession as bbGetSession, endSession as bbEndSession } from '../../shared/browserbase.ts';
 import { checkEntitlement } from '../../shared/entitlementEnforcement.ts';
 
@@ -39,9 +40,9 @@ export default async function(req) {
     if (action === "capability_status") {
       return Response.json({
         capabilities: {
-          sms: { live: !!process.env.TELNYX_API_KEY, label: "SMS via Telnyx", detail: "Real SMS messaging" },
-          voice: { live: !!process.env.TELNYX_API_KEY, label: "Voice Calls via Telnyx", detail: "AI voice call initiation" },
-          whatsapp: { live: !!process.env.TELNYX_API_KEY, label: "WhatsApp via Telnyx", detail: "WhatsApp Business messaging" },
+          sms: { live: twilioConfig().configured, label: "SMS via Twilio", detail: "Real SMS messaging" },
+          voice: { live: twilioConfig().configured, label: "Voice Calls via Twilio", detail: "AI voice call initiation" },
+          whatsapp: { live: twilioConfig().configured, label: "WhatsApp via Twilio", detail: "WhatsApp Business messaging" },
           ai_gateway: { live: !!process.env.VERCEL_AI_GATEWAY_API_KEY, label: "Vercel AI Gateway", detail: "Multi-model LLM routing" },
           web_scrape: { live: true, label: "Web Scraper", detail: "Fetch & extract page content" },
           web_interact: { live: !!process.env.VERCEL_AI_GATEWAY_API_KEY, label: "AI Web Interaction", detail: "AI-powered form analysis & action planning" },

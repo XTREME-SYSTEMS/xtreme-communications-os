@@ -1,6 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { getPlaybook } from '../../shared/playbooks.ts';
-import { personalize, sendTelnyx, getTelnyxEndpoint } from '../../shared/telnyxMessaging.ts';
+import { personalize, sendTwilioMessage } from '../../shared/twilioMessaging.ts';
+import { twilioConfig, credentialsRequired } from '../../shared/twilioClient.ts';
 
 // ─── Agent Provisioning & Launch Function ─────────────────────────
 // Takes a playbook ID and provisions a COMPLETE, operational agent:
@@ -36,10 +37,10 @@ export default async function(req) {
     const playbook = getPlaybook(playbookId);
     if (!playbook) return Response.json({ error: 'playbook not found', playbook_id: playbookId }, { status: 404 });
 
-    const telnyxKey = process.env.TELNYX_API_KEY;
-    if (!telnyxKey) return Response.json({ status: 'credentials_required', error: 'TELNYX_API_KEY not configured' }, { status: 503 });
+    const config = twilioConfig();
+    if (!config.configured) return Response.json(credentialsRequired(), { status: 503 });
 
-    const fromNumber = body.from_number || '+18334843799';
+    const fromNumber = body.from_number || config.from;
     const channel = body.channel || 'whatsapp';
     const now = new Date().toISOString();
 
@@ -149,7 +150,6 @@ export default async function(req) {
     });
 
     // ── 5. LAUNCH: Send Day 1 messages immediately (capped to avoid timeout) ──
-    const endpoint = getTelnyxEndpoint(channel);
     const maxImmediateSend = body.max_send || 50;
     const immediateContacts = contacts.slice(0, maxImmediateSend);
     const deferredContacts = contacts.slice(maxImmediateSend);
@@ -162,14 +162,15 @@ export default async function(req) {
     for (const contact of immediateContacts) {
       const message = personalize(day1Template, contact);
       try {
-        const sendRes = await sendTelnyx(telnyxKey, endpoint, {
+        const sendRes = await sendTwilioMessage({
           from: fromNumber,
           to: contact.phone,
-          text: message,
+          body: message,
+          channel,
         });
 
         if (!sendRes.ok) {
-          launchResults.push({ contact_id: contact.id, name: contact.full_name, status: 'failed', error: sendRes.data?.errors?.[0]?.detail || 'unknown' });
+          launchResults.push({ contact_id: contact.id, name: contact.full_name, status: 'failed', error: sendRes.error || 'unknown' });
           failed++;
         } else {
           // Update contact: mark as contacted, advance to day 2

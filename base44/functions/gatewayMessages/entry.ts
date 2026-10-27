@@ -1,132 +1,153 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
+import {
+  twilioRequest,
+  twilioConfig,
+  credentialsRequired,
+  twilioError,
+  twilioCode,
+  toE164,
+  WEBHOOKS,
+} from '../../shared/twilioClient.ts';
 
-// Public CaaS gateway endpoint (wholesale core). Customers call this with their tenant API key.
-// Routes through the wholesale peering layer. Telnyx providers use native API v2 Bearer Token.
-// Payment Error Decision Tree: 20100 (insufficient funds) → auto-recharge; 403 → credentials_required.
-export default async function(req) {
+// ─────────────────────────────────────────────────────────────────────────────
+// Messaging Gateway — Twilio only (SMS / MMS / WhatsApp)
+// Public CaaS endpoint: customers call this with their tenant API key.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Twilio WhatsApp numbers must carry the whatsapp: scheme. */
+function whatsappAddress(number) {
+  const raw = String(number || '');
+  if (raw.startsWith('whatsapp:')) return raw;
+  return `whatsapp:${toE164(raw)}`;
+}
+
+export default async function (req) {
   try {
     const base44 = createClientFromRequest(req);
     let body = {};
     try { body = await req.json(); } catch (_) {}
-    const apiKey = body.api_key || (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "");
-    if (!apiKey) return Response.json({ error: "api_key required" }, { status: 401 });
 
-    const keys = await base44.asServiceRole.entities.ApiKey.filter({ key_value: apiKey, status: "active" });
-    if (!keys.length) return Response.json({ error: "invalid api key" }, { status: 403 });
+    const apiKey = body.api_key || (req.headers.get('authorization') || '').replace(/^Bearer\s+/i, '');
+    if (!apiKey) return Response.json({ error: 'api_key required' }, { status: 401 });
+
+    const keys = await base44.asServiceRole.entities.ApiKey.filter({ key_value: apiKey, status: 'active' });
+    if (!keys.length) return Response.json({ error: 'invalid api key' }, { status: 403 });
     const key = keys[0];
 
     let tenant;
     try { tenant = await base44.asServiceRole.entities.Tenant.get(key.tenant_id); }
-    catch (_) { return Response.json({ error: "tenant not found" }, { status: 403 }); }
-    if (!tenant || tenant.status !== "active") return Response.json({ error: "tenant not active" }, { status: 403 });
-
-    const channel = body.channel || "sms";
-    let routes = await base44.asServiceRole.entities.ApiRoute.filter({ tenant_id: tenant.id, channel, enabled: true });
-    // MMS fallback: Telnyx MMS uses the same /v2/messages endpoint as SMS (with media_urls).
-    // If no dedicated mms route exists, use the tenant's enabled sms route.
-    if (!routes.length && channel === "mms") {
-      routes = await base44.asServiceRole.entities.ApiRoute.filter({ tenant_id: tenant.id, channel: "sms", enabled: true });
-    }
-    if (!routes.length) return Response.json({ error: "no route for channel", channel }, { status: 404 });
-    const route = routes[0];
-
-    let provider = null;
-    if (route.provider_id) {
-      try { provider = await base44.asServiceRole.entities.Provider.get(route.provider_id); } catch (_) {}
+    catch (_) { return Response.json({ error: 'tenant not found' }, { status: 403 }); }
+    if (!tenant || tenant.status !== 'active') {
+      return Response.json({ error: 'tenant not active' }, { status: 403 });
     }
 
-    const messageId = "msg_" + Math.random().toString(36).slice(2, 12);
+    const channel = body.channel || 'sms';
+    const config = twilioConfig();
+    if (!config.configured) {
+      return Response.json(credentialsRequired({ channel, tenant: tenant.name }), { status: 503 });
+    }
 
-    // ── Telnyx native dispatch (API v2 Bearer Token) ──
-    if (provider && provider.type === "telnyx" && provider.status === "connected") {
-      const telnyxKey = process.env.TELNYX_API_KEY;
-      if (!telnyxKey) return Response.json({
-        message_id: messageId, status: "credentials_required",
-        error: "TELNYX_API_KEY not configured",
-      }, { status: 503 });
+    const text = body.body || body.text || '';
+    if (!body.to) return Response.json({ error: 'to required' }, { status: 400 });
+    if (!text && !(body.media_urls || []).length) {
+      return Response.json({ error: 'body or media_urls required' }, { status: 400 });
+    }
 
-      // MMS: include media_urls when provided
-      // WhatsApp: Telnyx WhatsApp API uses /whatsapp_messages endpoint
-      const isWhatsApp = channel === "whatsapp";
-      const endpoint = isWhatsApp ? "https://api.telnyx.com/v2/whatsapp_messages" : "https://api.telnyx.com/v2/messages";
-      const payload = isWhatsApp ? {
-        from: body.from || "+18334843799",
-        to: body.to,
-        text: body.body || body.text || "",
-        template: body.template || null,
-        media_urls: body.media_urls || undefined,
-      } : {
-        from: body.from || "+18334843799",
-        to: body.to,
-        text: body.body || body.text || "",
-        media_urls: body.media_urls || undefined,
-        subject: body.subject || undefined,
-      };
-      const res = await fetch(endpoint, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${telnyxKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+    const mediaUrls: string[] = [].concat(body.media_urls || body.media_url || []).filter(Boolean);
+
+    // ── Route resolution (tenant gateway) ──
+    let routes = await base44.asServiceRole.entities.ApiRoute.filter({
+      tenant_id: tenant.id, channel, enabled: true,
+    });
+    if (!routes.length && channel === 'mms') {
+      routes = await base44.asServiceRole.entities.ApiRoute.filter({
+        tenant_id: tenant.id, channel: 'sms', enabled: true,
       });
-      const data = await res.json();
+    }
 
-      if (!res.ok) {
-        const errCode = data.errors?.[0]?.code;
-        const errMsg = data.errors?.[0]?.detail || data.errors?.[0]?.title || "unknown";
+    if (!routes.length) {
+      if (!body.from) {
+        return Response.json({ error: 'no route for channel', channel }, { status: 404 });
+      }
+      console.log('[gatewayMessages] no ApiRoute — sending directly via Twilio');
+    }
 
-        // Payment Error Decision Tree
-        if (errCode === 20100 || (errMsg && errMsg.toLowerCase().includes("insufficient"))) {
-          const accounts = await base44.asServiceRole.entities.BillingAccount.filter({ tenant_id: tenant.id });
-          const account = accounts[0];
-          if (account && account.auto_recharge) {
-            const rechargeRes = await base44.asServiceRole.functions.invoke("gatewayBilling", {
-              api_key: body.api_key, action: "recharge_telnyx", amount_cents: 2000,
-            });
-            return Response.json({
-              message_id: messageId, status: "recharging", error: "insufficient_funds",
-              auto_recharge_triggered: true, recharge: rechargeRes.data || rechargeRes,
-            });
-          }
-          return Response.json({
-            message_id: messageId, status: "insufficient_funds", error: "20100",
-            auto_recharge: false, action_required: "enable auto-recharge or top-up",
-          }, { status: 402 });
-        }
+    const messageId = 'msg_' + Math.random().toString(36).slice(2, 12);
 
-        if (res.status === 403 || (errMsg && errMsg.toLowerCase().includes("card"))) {
-          return Response.json({
-            status: "credentials_required", error: "no card on file",
-            action_required: "add payment method to Telnyx account",
-          }, { status: 403 });
-        }
+    // ── Twilio dispatch ──
+    const from = channel === 'whatsapp'
+      ? whatsappAddress(body.from || config.from)
+      : toE164(body.from || config.from);
+    const to = channel === 'whatsapp' ? whatsappAddress(body.to) : toE164(body.to);
 
-        return Response.json({ message_id: messageId, status: "failed", error: errMsg, code: errCode }, { status: res.status });
+    const params: Record<string, string> = {
+      To: to,
+      From: from,
+      Body: text,
+      StatusCallback: WEBHOOKS.status,
+    };
+
+    mediaUrls.forEach((url, i) => { params[`MediaUrl${i}`] = url; });
+
+    const res = await twilioRequest('/Messages.json', { method: 'POST', params });
+
+    if (!res.ok) {
+      if (res.credentialsRequired) return Response.json(res.data, { status: 503 });
+
+      const code = twilioCode(res.data);
+      const message = twilioError(res.data);
+      console.error('[gatewayMessages] Twilio send failed:', res.status, code, message);
+
+      // Opt-out (21610) — recipient replied STOP; carrier-level suppression.
+      if (code === 21610) {
+        return Response.json({
+          message_id: messageId, status: 'suppressed', error: message, code,
+          action_required: 'recipient opted out — they must reply START to resume',
+        }, { status: 403 });
+      }
+
+      // Auth / permission failures
+      if (res.status === 401 || code === 20003) {
+        return Response.json({
+          status: 'credentials_required', error: 'Twilio authentication failed',
+          console_url: 'https://1console.twilio.com/',
+          action_required: 'verify TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN',
+        }, { status: 403 });
+      }
+
+      // Region / geo-permission not enabled
+      if (code === 21408) {
+        return Response.json({
+          message_id: messageId, status: 'failed', error: message, code,
+          action_required: 'enable the destination country in Twilio Voice & Fax Geographic Permissions',
+        }, { status: 403 });
+      }
+
+      // Trial account unverified destination (21608) — treat as a billing wall
+      if (code === 21608) {
+        return Response.json({
+          message_id: messageId, status: 'blocked', error: message, code,
+          action_required: 'upgrade the Twilio account or verify the destination number',
+        }, { status: 402 });
       }
 
       return Response.json({
-        message_id: data.data?.id || messageId, status: "queued", routed_via: "telnyx",
-        tenant: tenant.name, channel, classification: "LIVE",
-      });
+        message_id: messageId, status: 'failed', error: message, code,
+      }, { status: res.status || 502 });
     }
 
-    // ── Generic connected provider ──
-    if (provider && provider.status === "connected") {
-      return Response.json({
-        message_id: messageId, status: "queued", routed_via: provider.name,
-        tenant: tenant.name, channel,
-      });
-    }
-
-    // ── Sandbox failover ──
-    if (route.failover_sandbox) {
-      return Response.json({
-        message_id: messageId, status: "sandbox", routed_via: "sandbox-trunk",
-        tenant: tenant.name, channel, failover: true,
-        reason: "no upstream trunk connected — credentials_required",
-      });
-    }
-
-    return Response.json({ error: "no upstream available and sandbox failover disabled" }, { status: 503 });
+    return Response.json({
+      message_id: res.data?.sid || messageId,
+      status: 'queued',
+      routed_via: 'twilio',
+      tenant: tenant.name,
+      channel,
+      classification: 'LIVE',
+      segments: res.data?.num_segments || null,
+      price: res.data?.price || null,
+    });
   } catch (error) {
+    console.error('[gatewayMessages] unhandled:', error?.message);
     return Response.json({ error: error.message }, { status: 500 });
   }
 }

@@ -1,244 +1,274 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
+import {
+  twilioRequest,
+  twilioConfig,
+  credentialsRequired,
+  twilioError,
+  toE164,
+  sayTwiml,
+  escapeXml,
+  WEBHOOKS,
+} from '../../shared/twilioClient.ts';
 
-// Telnyx Call Control gateway — programmable voice, IVR/DTMF, media streams, conferencing.
-// Real API calls to https://api.telnyx.com/v2/calls/* using TELNYX_API_KEY.
-// Actions: dial, hangup, play_audio, gather_digits (IVR/DTMF), speak_text,
-//          start_stream (media streams), stop_stream, start_conference, join_conference.
-// Surfaces credentials_required when TELNYX_API_KEY is unset — never fakes a live call leg.
-async function telnyx(path, method, key, body) {
-  const res = await fetch(`https://api.telnyx.com/v2${path}`, {
-    method,
-    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: body ? JSON.stringify(body) : undefined,
+// ─────────────────────────────────────────────────────────────────────────────
+// Voice Control Gateway — Twilio only
+// ─────────────────────────────────────────────────────────────────────────────
+// Programmable voice: originate, hangup, IVR/DTMF, TTS, media streams, conferences.
+// Live-call control uses Twilio's call-redirect API (POST /Calls/{sid}.json with
+// a TwiML document) which is the supported way to steer an in-progress call.
+//
+// Actions: dial, hangup, play_audio, gather_digits, speak_text,
+//          start_stream, stop_stream, start_conference, join_conference
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Redirect a live call with a fresh TwiML document. */
+async function redirectCall(callSid, innerTwiml) {
+  const document = `<?xml version="1.0" encoding="UTF-8"?><Response>${innerTwiml}</Response>`;
+  return twilioRequest(`/Calls/${encodeURIComponent(callSid)}.json`, {
+    method: 'POST',
+    params: { Twiml: document },
   });
-  let data = {};
-  try { data = await res.json(); } catch (_) {}
-  return { ok: res.ok, status: res.status, data };
 }
 
-function errMsg(d) {
-  return d?.errors?.[0]?.detail || d?.errors?.[0]?.title || d?.message || "unknown";
-}
-
-// ── Twilio Call gateway — for numbers owned by Twilio account ──
-async function twilioDial(accountSid, authToken, from, to, webhookUrl) {
-  const params = new URLSearchParams({
-    To: to,
-    From: from,
-    Url: webhookUrl,
-    Timeout: "30",
-  });
-  const res = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Calls.json`, {
-    method: "POST",
-    headers: {
-      "Authorization": "Basic " + btoa(`${accountSid}:${authToken}`),
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: params.toString(),
-  });
-  let data = {};
-  try { data = await res.json(); } catch (_) {}
-  console.log("[gatewayVoiceControl] Twilio dial response:", res.status, JSON.stringify(data).slice(0, 500));
-  return { ok: res.ok, status: res.status, data };
-}
-
-// ── Check if a number belongs to the Twilio account ──
-function isTwilioNumber(from, twilioNumbers) {
-  if (!twilioNumbers) return false;
-  const normalized = from.replace(/[^+0-9]/g, "");
-  return twilioNumbers.some(n => n.replace(/[^+0-9]/g, "") === normalized);
-}
-
-export default async function(req) {
+export default async function (req) {
   try {
     const base44 = createClientFromRequest(req);
     let body = {};
     try { body = await req.json(); } catch (_) {}
-    const apiKey = body.api_key || (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "");
-    if (!apiKey) return Response.json({ error: "api_key required" }, { status: 401 });
-    const keys = await base44.asServiceRole.entities.ApiKey.filter({ key_value: apiKey, status: "active" });
-    if (!keys.length) return Response.json({ error: "invalid api key" }, { status: 403 });
+
+    const apiKey = body.api_key || (req.headers.get('authorization') || '').replace(/^Bearer\s+/i, '');
+    if (!apiKey) return Response.json({ error: 'api_key required' }, { status: 401 });
+
+    const keys = await base44.asServiceRole.entities.ApiKey.filter({ key_value: apiKey, status: 'active' });
+    if (!keys.length) return Response.json({ error: 'invalid api key' }, { status: 403 });
     const key = keys[0];
+
     let tenant;
     try { tenant = await base44.asServiceRole.entities.Tenant.get(key.tenant_id); }
-    catch (_) { return Response.json({ error: "tenant not found" }, { status: 403 }); }
-    if (!tenant || tenant.status !== "active") return Response.json({ error: "tenant not active" }, { status: 403 });
+    catch (_) { return Response.json({ error: 'tenant not found' }, { status: 403 }); }
+    if (!tenant || tenant.status !== 'active') {
+      return Response.json({ error: 'tenant not active' }, { status: 403 });
+    }
 
-    const telnyxKey = process.env.TELNYX_API_KEY;
-    if (!telnyxKey) return Response.json({
-      status: "credentials_required", error: "TELNYX_API_KEY not configured",
-      action: body.action,
-    }, { status: 503 });
+    const config = twilioConfig();
+    if (!config.configured) {
+      return Response.json(credentialsRequired({ action: body.action }), { status: 503 });
+    }
 
-    const action = body.action || "dial";
+    const action = body.action || 'dial';
 
-    // ── DIAL: originate a programmable call ──
-    if (action === "dial") {
-      const from = body.from || "+18334843799";
-      const to = body.to;
-      if (!to) return Response.json({ error: "to required" }, { status: 400 });
+    // ── DIAL: originate an outbound call ──
+    if (action === 'dial') {
+      const to = toE164(body.to);
+      if (!body.to) return Response.json({ error: 'to required' }, { status: 400 });
 
-      // ── Check if the from number belongs to Twilio ──
-      const twilioSid = process.env.TWILIO_ACCOUNT_SID;
-      const twilioToken = process.env.TWILIO_AUTH_TOKEN;
-      const twilioNumbers = [process.env.TWILIO_PHONE_NUMBER, process.env.TWILLO_PHONE_NUMBER].filter(Boolean);
+      const from = toE164(body.from || config.from);
+      const voiceUrl = body.webhook_url || WEBHOOKS.voice;
 
-      if (twilioSid && twilioToken && isTwilioNumber(from, twilioNumbers)) {
-        // ── Route through Twilio ──
-        const voiceWebhookUrl = body.webhook_url || `https://xtreme-communications.com/functions/twilioVoiceWebhook`;
-        const res = await twilioDial(twilioSid, twilioToken, from, to, voiceWebhookUrl);
-        if (!res.ok) {
-          const twilioError = res.data?.message || res.data?.more_info || errMsg(res.data) || `Twilio API error ${res.status}`;
-          console.error("[gatewayVoiceControl] Twilio dial failed:", res.status, twilioError);
-          return Response.json({ status: "failed", error: twilioError, code: res.data?.code, twilio_detail: res.data }, { status: res.status });
-        }
-        const callSid = res.data.sid;
-        await base44.asServiceRole.entities.CommsEvent.create({
-          channel: "voice", direction: "outbound", from_addr: from, to_addr: to,
-          status: "ringing", classification: "LIVE",
-          provider_id: "twilio",
-          provider_message_id: callSid,
-          summary: `programmable call via Twilio ${callSid}`,
-        });
+      const params: Record<string, string> = {
+        To: to,
+        From: from,
+        Url: voiceUrl,
+        Timeout: String(body.timeout_secs || 30),
+        StatusCallback: WEBHOOKS.status,
+        StatusCallbackEvent: 'initiated ringing answered completed',
+        StatusCallbackMethod: 'POST',
+      };
+      if (body.amd && body.amd !== 'disabled') params.MachineDetection = 'Enable';
+      if (body.record) params.Record = 'true';
+
+      const res = await twilioRequest('/Calls.json', { method: 'POST', params });
+      if (!res.ok) {
+        if (res.credentialsRequired) return Response.json(res.data, { status: 503 });
+        const message = twilioError(res.data);
+        console.error('[gatewayVoiceControl] dial failed:', res.status, message);
         return Response.json({
-          call_control_id: callSid, call_sid: callSid, status: "ringing",
-          routed_via: "twilio", tenant: tenant.name, classification: "LIVE",
-        });
+          status: 'failed',
+          error: message,
+          code: res.data?.code,
+          twilio_detail: res.data,
+        }, { status: res.status || 502 });
       }
 
-      // ── Route through Telnyx (default) ──
-      // Auto-resolve the Call Control App connection_id if not provided
-      let connectionId = body.connection_id;
-      if (!connectionId) {
-        const apps = await telnyx("/call_control_applications?page[size]=10", "GET", telnyxKey);
-        const app = (apps.data?.data || []).find((a) => a.webhook_event_url || a.webhook_url);
-        connectionId = app?.id;
-      }
-      if (!connectionId) return Response.json({
-        status: "credentials_required", error: "no Call Control App found — run provisionTelnyxResources first",
-      }, { status: 503 });
-      const res = await telnyx("/calls", "POST", telnyxKey, {
-        connection_id: connectionId,
-        from, to,
-        timeout_secs: body.timeout_secs || 30,
-        answering_machine_detection: body.amd || "disabled",
-        webhook_url: body.webhook_url || `https://xtreme-comms.base44.app/functions/telnyxWebhook`,
-      });
-      if (!res.ok) return Response.json({ status: "failed", error: errMsg(res.data), code: res.data?.errors?.[0]?.code }, { status: res.status });
-      const callControlId = res.data.data?.id;
+      const callSid = res.data?.sid;
+
       await base44.asServiceRole.entities.CommsEvent.create({
-        channel: "voice", direction: "outbound", from_addr: from, to_addr: to,
-        status: "ringing", classification: "LIVE",
-        summary: `programmable call via Telnyx Call Control ${callControlId}`,
+        channel: 'voice',
+        direction: 'outbound',
+        from_addr: from,
+        to_addr: to,
+        status: 'ringing',
+        classification: 'LIVE',
+        provider_id: 'twilio',
+        provider_message_id: callSid,
+        summary: `programmable call via Twilio ${callSid}`,
       });
+
       return Response.json({
-        call_control_id: callControlId, status: "ringing", routed_via: "telnyx-call-control",
-        tenant: tenant.name, classification: "LIVE",
+        call_sid: callSid,
+        call_control_id: callSid, // backward-compatible alias
+        status: 'ringing',
+        routed_via: 'twilio',
+        tenant: tenant.name,
+        classification: 'LIVE',
       });
     }
 
     // ── HANGUP ──
-    if (action === "hangup") {
-      const ccc = body.call_control_id;
-      if (!ccc) return Response.json({ error: "call_control_id required" }, { status: 400 });
-      const res = await telnyx(`/calls/${ccc}/actions/hangup`, "POST", telnyxKey, {});
-      return Response.json({ call_control_id: ccc, status: res.ok ? "hungup" : "failed", detail: res.ok ? null : errMsg(res.data) });
+    if (action === 'hangup') {
+      const sid = body.call_sid || body.call_control_id;
+      if (!sid) return Response.json({ error: 'call_sid required' }, { status: 400 });
+
+      const res = await twilioRequest(`/Calls/${encodeURIComponent(sid)}.json`, {
+        method: 'POST',
+        params: { Status: 'completed' },
+      });
+      if (!res.ok) {
+        if (res.credentialsRequired) return Response.json(res.data, { status: 503 });
+        return Response.json({ status: 'failed', error: twilioError(res.data) }, { status: res.status });
+      }
+
+      await base44.asServiceRole.entities.CommsEvent.create({
+        channel: 'voice',
+        direction: 'outbound',
+        from_addr: toE164(config.from),
+        to_addr: toE164(body.to || ''),
+        status: 'completed',
+        classification: 'LIVE',
+        provider_id: 'twilio',
+        provider_message_id: sid,
+        summary: `call ${sid} hung up`,
+      });
+
+      return Response.json({ call_sid: sid, call_control_id: sid, status: 'completed', routed_via: 'twilio' });
     }
 
-    // ── PLAY AUDIO ──
-    if (action === "play_audio") {
-      const ccc = body.call_control_id;
-      if (!ccc || !body.audio_url) return Response.json({ error: "call_control_id and audio_url required" }, { status: 400 });
-      const res = await telnyx(`/calls/${ccc}/actions/playback_start`, "POST", telnyxKey, {
-        audio_url: body.audio_url, overlay: body.overlay || false,
-      });
-      return Response.json({ call_control_id: ccc, status: res.ok ? "playing" : "failed", detail: res.ok ? null : errMsg(res.data) });
+    // ── SPEAK TEXT (TTS into the live call) ──
+    if (action === 'speak_text') {
+      const sid = body.call_sid || body.call_control_id;
+      const text = body.text || body.payload || '';
+      if (!sid) return Response.json({ error: 'call_sid required' }, { status: 400 });
+      if (!text) return Response.json({ error: 'text required' }, { status: 400 });
+
+      const voice = body.voice || 'Polly.Joanna';
+      const res = await redirectCall(sid, sayTwiml(text, voice));
+      if (!res.ok) {
+        if (res.credentialsRequired) return Response.json(res.data, { status: 503 });
+        return Response.json({ status: 'failed', error: twilioError(res.data) }, { status: res.status });
+      }
+      return Response.json({ call_sid: sid, call_control_id: sid, status: 'speaking', routed_via: 'twilio' });
     }
 
-    // ── GATHER DIGITS (IVR/DTMF) ──
-    if (action === "gather_digits") {
-      const ccc = body.call_control_id;
-      if (!ccc) return Response.json({ error: "call_control_id required" }, { status: 400 });
-      const res = await telnyx(`/calls/${ccc}/actions/gather_using_audio`, "POST", telnyxKey, {
-        audio_url: body.audio_url || "",
-        minimum_digits: body.min_digits || 1,
-        maximum_digits: body.max_digits || 16,
-        timeout_millis: body.timeout_millis || 60000,
-        terminators: body.terminators || ["#"],
-        valid_digits: body.valid_digits || "0123456789",
-      });
+    // ── PLAY AUDIO (audio file into the live call) ──
+    if (action === 'play_audio') {
+      const sid = body.call_sid || body.call_control_id;
+      const audioUrl = body.audio_url || body.url || body.payload;
+      if (!sid) return Response.json({ error: 'call_sid required' }, { status: 400 });
+      if (!audioUrl) return Response.json({ error: 'audio_url required' }, { status: 400 });
+
+      const res = await redirectCall(sid, `<Play>${escapeXml(audioUrl)}</Play>`);
+      if (!res.ok) {
+        if (res.credentialsRequired) return Response.json(res.data, { status: 503 });
+        return Response.json({ status: 'failed', error: twilioError(res.data) }, { status: res.status });
+      }
+      return Response.json({ call_sid: sid, call_control_id: sid, status: 'playing', routed_via: 'twilio' });
+    }
+
+    // ── GATHER DIGITS (IVR / DTMF) ──
+    if (action === 'gather_digits') {
+      const sid = body.call_sid || body.call_control_id;
+      if (!sid) return Response.json({ error: 'call_sid required' }, { status: 400 });
+
+      const prompt = body.prompt || body.text || 'Please enter your selection.';
+      const numDigits = Math.min(Math.max(parseInt(body.num_digits, 10) || 1, 1), 12);
+      const digitTimeout = body.timeout_secs || 5;
+      const actionUrl = body.action_url || `${WEBHOOKS.voice}?gather=1`;
+      const voice = body.voice || 'Polly.Joanna';
+
+      const inner = `<Gather numDigits="${numDigits}" timeout="${digitTimeout}" action="${escapeXml(actionUrl)}" method="POST">${sayTwiml(prompt, voice)}</Gather>${sayTwiml('We did not receive any input. Goodbye.', voice)}`;
+
+      const res = await redirectCall(sid, inner);
+      if (!res.ok) {
+        if (res.credentialsRequired) return Response.json(res.data, { status: 503 });
+        return Response.json({ status: 'failed', error: twilioError(res.data) }, { status: res.status });
+      }
       return Response.json({
-        call_control_id: ccc, status: res.ok ? "gathering" : "failed",
-        gather_id: res.data?.data?.id || null,
-        detail: res.ok ? null : errMsg(res.data),
+        call_sid: sid,
+        call_control_id: sid,
+        status: 'gathering',
+        num_digits: numDigits,
+        routed_via: 'twilio',
       });
-    }
-
-    // ── SPEAK TEXT (TTS on call) ──
-    if (action === "speak_text") {
-      const ccc = body.call_control_id;
-      if (!ccc || !body.text) return Response.json({ error: "call_control_id and text required" }, { status: 400 });
-      const res = await telnyx(`/calls/${ccc}/actions/speak`, "POST", telnyxKey, {
-        payload: body.text, payload_type: "text",
-        voice: body.voice || "female",
-        language: body.language || "en-US",
-      });
-      return Response.json({ call_control_id: ccc, status: res.ok ? "speaking" : "failed", detail: res.ok ? null : errMsg(res.data) });
     }
 
     // ── START MEDIA STREAM ──
-    if (action === "start_stream") {
-      const ccc = body.call_control_id;
-      if (!ccc) return Response.json({ error: "call_control_id required" }, { status: 400 });
-      const res = await telnyx(`/calls/${ccc}/actions/streaming_start`, "POST", telnyxKey, {
-        target_uri: body.target_uri || "",
-        stream_track: body.stream_track || "both",
-        stream_status_callback: body.callback_url || null,
-      });
+    if (action === 'start_stream') {
+      const sid = body.call_sid || body.call_control_id;
+      const streamUrl = body.stream_url || body.url;
+      if (!sid) return Response.json({ error: 'call_sid required' }, { status: 400 });
+      if (!streamUrl) return Response.json({ error: 'stream_url required' }, { status: 400 });
+
+      const inner = `<Start><Stream url="${escapeXml(streamUrl)}"${body.track ? ` track="${escapeXml(body.track)}"` : ''} /></Start><Pause length="3600" />`;
+
+      const res = await redirectCall(sid, inner);
+      if (!res.ok) {
+        if (res.credentialsRequired) return Response.json(res.data, { status: 503 });
+        return Response.json({ status: 'failed', error: twilioError(res.data) }, { status: res.status });
+      }
       return Response.json({
-        call_control_id: ccc, status: res.ok ? "streaming" : "failed",
-        stream_id: res.data?.data?.id || null,
-        detail: res.ok ? null : errMsg(res.data),
+        call_sid: sid,
+        call_control_id: sid,
+        status: 'streaming',
+        stream_url: streamUrl,
+        routed_via: 'twilio',
       });
     }
 
     // ── STOP MEDIA STREAM ──
-    if (action === "stop_stream") {
-      const ccc = body.call_control_id;
-      if (!ccc) return Response.json({ error: "call_control_id required" }, { status: 400 });
-      const res = await telnyx(`/calls/${ccc}/actions/streaming_stop`, "POST", telnyxKey, {});
-      return Response.json({ call_control_id: ccc, status: res.ok ? "stopped" : "failed", detail: res.ok ? null : errMsg(res.data) });
+    if (action === 'stop_stream') {
+      const sid = body.call_sid || body.call_control_id;
+      if (!sid) return Response.json({ error: 'call_sid required' }, { status: 400 });
+
+      const res = await redirectCall(sid, '<Stop><Stream /></Stop>');
+      if (!res.ok) {
+        if (res.credentialsRequired) return Response.json(res.data, { status: 503 });
+        return Response.json({ status: 'failed', error: twilioError(res.data) }, { status: res.status });
+      }
+      return Response.json({ call_sid: sid, call_control_id: sid, status: 'stream_stopped', routed_via: 'twilio' });
     }
 
-    // ── START CONFERENCE ──
-    if (action === "start_conference") {
-      const ccc = body.call_control_id;
-      if (!ccc) return Response.json({ error: "call_control_id required" }, { status: 400 });
-      const res = await telnyx(`/calls/${ccc}/actions/conference_start`, "POST", telnyxKey, {
-        name: body.conference_name || `conf-${Date.now()}`,
-        command_id: body.command_id || null,
-      });
+    // ── START / JOIN CONFERENCE ──
+    if (action === 'start_conference' || action === 'join_conference') {
+      const sid = body.call_sid || body.call_control_id;
+      const room = body.conference_name || body.name || `conf-${tenant.id}`;
+      if (!sid) return Response.json({ error: 'call_sid required' }, { status: 400 });
+
+      const attrs = [
+        `startConferenceOnEnter="${body.start_on_enter === false ? 'false' : 'true'}"`,
+        `endConferenceOnExit="${body.end_on_exit === true ? 'true' : 'false'}"`,
+        body.muted ? 'muted="true"' : '',
+        body.wait_url ? `waitUrl="${escapeXml(body.wait_url)}"` : '',
+      ].filter(Boolean).join(' ');
+
+      const inner = `<Dial><Conference ${attrs}>${escapeXml(room)}</Conference></Dial>`;
+
+      const res = await redirectCall(sid, inner);
+      if (!res.ok) {
+        if (res.credentialsRequired) return Response.json(res.data, { status: 503 });
+        return Response.json({ status: 'failed', error: twilioError(res.data) }, { status: res.status });
+      }
       return Response.json({
-        call_control_id: ccc, status: res.ok ? "conferencing" : "failed",
-        conference_id: res.data?.data?.id || null,
-        detail: res.ok ? null : errMsg(res.data),
+        call_sid: sid,
+        call_control_id: sid,
+        conference_name: room,
+        status: 'in_conference',
+        routed_via: 'twilio',
       });
     }
 
-    // ── JOIN CONFERENCE ──
-    if (action === "join_conference") {
-      const ccc = body.call_control_id;
-      if (!ccc || !body.conference_name) return Response.json({ error: "call_control_id and conference_name required" }, { status: 400 });
-      const res = await telnyx(`/calls/${ccc}/actions/conference_join`, "POST", telnyxKey, {
-        name: body.conference_name,
-        end_conference_on_exit: body.end_on_exit || false,
-        mute: body.mute || false,
-      });
-      return Response.json({ call_control_id: ccc, status: res.ok ? "joined" : "failed", conference_name: body.conference_name, detail: res.ok ? null : errMsg(res.data) });
-    }
-
-    return Response.json({ error: "unknown action", action }, { status: 400 });
+    return Response.json({ error: `unknown action: ${action}` }, { status: 400 });
   } catch (error) {
+    console.error('[gatewayVoiceControl] unhandled:', error?.message);
     return Response.json({ error: error.message }, { status: 500 });
   }
 }

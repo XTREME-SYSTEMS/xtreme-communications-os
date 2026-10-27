@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
-import { personalize, sendTelnyx, getTelnyxEndpoint } from '../../shared/telnyxMessaging.ts';
+import { personalize, sendTwilioMessage } from '../../shared/twilioMessaging.ts';
+import { twilioConfig, credentialsRequired } from '../../shared/twilioClient.ts';
 
 // Daily Follow-Up Sequence Engine — finds contacts due for their next follow-up
 // and sends the appropriate day's message.
@@ -52,10 +53,10 @@ export default async function(req) {
     }
     if (!tenant || tenant.status !== 'active') return Response.json({ error: 'tenant not active' }, { status: 403 });
 
-    const telnyxKey = process.env.TELNYX_API_KEY;
-    if (!telnyxKey) return Response.json({ status: 'credentials_required', error: 'TELNYX_API_KEY not configured' }, { status: 503 });
+    const config = twilioConfig();
+    if (!config.configured) return Response.json(credentialsRequired(), { status: 503 });
 
-    const defaultFromNumber = body.from_number || '+18334843799';
+    const defaultFromNumber = body.from_number || config.from;
     const channel = body.channel || 'whatsapp';
     const now = new Date().toISOString();
 
@@ -97,8 +98,6 @@ export default async function(req) {
       const tpl = templates.find(t => t.sequence_day === dayNumber);
       return tpl ? tpl.template_body : null;
     }
-
-    const endpoint = getTelnyxEndpoint(channel);
 
     let sent = 0;
     let failed = 0;
@@ -146,14 +145,15 @@ export default async function(req) {
       const message = personalize(templateText, contact);
 
       try {
-        const sendRes = await sendTelnyx(telnyxKey, endpoint, {
+        const sendRes = await sendTwilioMessage({
           from: fromNumber,
           to: contact.phone,
-          text: message,
+          body: message,
+          channel,
         });
 
         if (!sendRes.ok) {
-          results.push({ contact_id: contact.id, name: contact.full_name, day: dayIndex + 1, status: 'failed', error: sendRes.data?.errors?.[0]?.detail || 'unknown' });
+          results.push({ contact_id: contact.id, name: contact.full_name, day: dayIndex + 1, status: 'failed', error: sendRes.error || 'unknown' });
           failed++;
           continue;
         }

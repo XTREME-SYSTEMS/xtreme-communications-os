@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Brain, FileText, FlaskConical, Users, Radio, GitBranch, Sparkles } from "lucide-react";
+import { LayoutDashboard, Brain, FileText, FlaskConical, Users, Radio, GitBranch, Sparkles, PhoneCall } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // Bottom navigation bar for mobile — most-used daily workflow tools only.
@@ -8,6 +8,7 @@ const MOBILE_NAV = [
   { path: "/portal", label: "Home", icon: LayoutDashboard, exact: true },
   { path: "/portal/crm", label: "CRM", icon: Users },
   { path: "/portal/agents", label: "Agents", icon: Brain },
+  { path: "/portal/voice-library", label: "Voices", icon: PhoneCall },
   { path: "/portal/templates", label: "Templates", icon: FileText },
   { path: "/portal/testing-studio", label: "Test", icon: FlaskConical },
   { path: "/portal/live-monitoring", label: "Live", icon: Radio },

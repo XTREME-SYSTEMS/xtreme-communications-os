@@ -21,6 +21,17 @@
 
 import { secrets } from 'base44:runtime';
 
+// Chunked base64 encode — a single String.fromCharCode(...bytes) spread blows the
+// call stack on multi-second audio.
+function toBase64(buf: ArrayBuffer): string {
+  const bytes = new Uint8Array(buf);
+  let binary = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  }
+  return btoa(binary);
+}
+
 export interface VoiceProvider {
   id: string;
   name: string;
@@ -155,21 +166,14 @@ const OPENAI_FEMALE: VoiceEntry[] = [
 
 // Cartesia Sonic — female voices
 const CARTESIA_FEMALE: VoiceEntry[] = [
-  { id: 'Lily', name: 'Lily', accent: 'American', tone: 'Warm, conversational', language: 'en' },
-  { id: 'Hannah', name: 'Hannah', accent: 'American', tone: 'Professional, clear', language: 'en' },
-  { id: 'Sarah', name: 'Sarah', accent: 'American', tone: 'Calm, measured', language: 'en' },
-  { id: 'Mia', name: 'Mia', accent: 'American', tone: 'Young, energetic', language: 'en' },
-  { id: 'Aria', name: 'Aria', accent: 'American', tone: 'Bright, expressive', language: 'en' },
-  { id: 'Emma', name: 'Emma', accent: 'British', tone: 'Warm, refined', language: 'en' },
-  { id: 'Charlotte', name: 'Charlotte', accent: 'American', tone: 'Professional, confident', language: 'en' },
-  { id: 'Sophia', name: 'Sophia', accent: 'American', tone: 'Warm, nurturing', language: 'en' },
-  { id: 'Isabella', name: 'Isabella', accent: 'American', tone: 'Expressive, warm', language: 'en' },
-  { id: 'Amelia', name: 'Amelia', accent: 'British', tone: 'Elegant, clear', language: 'en' },
-  { id: 'Olivia', name: 'Olivia', accent: 'American', tone: 'Calm, professional', language: 'en' },
-  { id: 'Ava', name: 'Ava', accent: 'American', tone: 'Bright, friendly', language: 'en' },
-  { id: 'Zoe', name: 'Zoe', accent: 'American', tone: 'Energetic, youthful', language: 'en' },
-  { id: 'Luna', name: 'Luna', accent: 'American', tone: 'Soft, dreamy', language: 'en' },
-  { id: 'Maya', name: 'Maya', accent: 'American', tone: 'Warm, natural', language: 'en' },
+  { id: '6c756032-11c3-4be8-a120-74f9673fb700', name: 'Harlow', accent: 'American', tone: 'Warm, professional support', language: 'en' },
+  { id: 'cfce9402-0067-458b-95a7-95846f469406', name: 'Sheryl', accent: 'American', tone: 'Warm briefing', language: 'en' },
+  { id: 'fd91495f-b8da-4944-ab8f-674c13089d7f', name: 'Blair', accent: 'American', tone: 'Triage, calm and clear', language: 'en' },
+  { id: 'f4c33650-23a7-43bd-8199-1af16815e58a', name: 'Bronwen', accent: 'British', tone: 'Guidance narrator', language: 'en' },
+  { id: '33d406dd-ff6f-4be7-a7f5-8b1ba183b3e4', name: 'Nandi', accent: 'American', tone: 'Poised concierge', language: 'en' },
+  { id: 'f4e419a9-fc75-4252-9d4e-93e4247f07c9', name: 'Peyton', accent: 'American', tone: 'Peer-to-peer, friendly', language: 'en' },
+  { id: '5241b0aa-3c09-479d-b0b8-a6ec68daef5e', name: 'Brielle', accent: 'American', tone: 'Renewal partner, upbeat', language: 'en' },
+  { id: 'f014dce5-df0e-4cfa-98e1-bd4bb73bb0b1', name: 'Haven', accent: 'American', tone: 'Survey host, light', language: 'en' },
 ];
 
 // Deepgram Aura-2 — female voices
@@ -403,19 +407,21 @@ const Cartesia: VoiceProvider = {
   generate: async (params) => {
     const apiKey = secrets.get('CARTESIA_API_KEY');
     if (!apiKey) throw new Error('CARTESIA_API_KEY not configured');
-    const voiceId = params.voice_id || '79e4e4e4-4e4e-4e4e-4e4e-4e4e4e4e4e4e';
-    const res = await fetch('https://api.cartesia.ai/tts', {
+    const voiceId = params.voice_id || CARTESIA_FEMALE[0].id;
+    const res = await fetch('https://api.cartesia.ai/tts/bytes', {
       method: 'POST',
       headers: {
         'X-API-Key': apiKey,
+        'Cartesia-Version': '2024-06-10',
         'Content-Type': 'application/json',
         'Accept': 'audio/mpeg',
       },
       body: JSON.stringify({
-        model_id: 'sonic-3.5',
+        model_id: 'sonic-3',
         transcript: params.text.slice(0, 5000),
-        voice: { id: voiceId },
-        speed: params.speed ?? 1.0,
+        voice: { mode: 'id', id: voiceId },
+        language: 'en',
+        output_format: { container: 'mp3', bit_rate: 128000, sample_rate: 44100 },
       }),
     });
     if (!res.ok) {
@@ -423,7 +429,7 @@ const Cartesia: VoiceProvider = {
       return { provider: 'cartesia', voice_id: voiceId, characters: params.text.length, cost_estimate_usd: 0, error: err };
     }
     const audioBuf = await res.arrayBuffer();
-    const audio_base64 = btoa(String.fromCharCode(...new Uint8Array(audioBuf)));
+    const audio_base64 = toBase64(audioBuf);
     return {
       provider: 'cartesia',
       voice_id: voiceId,

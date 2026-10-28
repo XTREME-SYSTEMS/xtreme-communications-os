@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Mic, Play, Save, Phone, Sparkles, Zap, DollarSign, Clock, Languages, Search, Heart, Star, Volume2, Check } from 'lucide-react';
 import SolVoiceRanking from '@/components/voice/SolVoiceRanking';
+import VoiceEnginePanel from '@/components/voice/VoiceEnginePanel';
 
 // Benchmark data from research (2026)
 const PROVIDER_BENCHMARKS = [
@@ -321,6 +322,8 @@ export default function VoiceLibrary() {
             <Sparkles className="w-3 h-3 mr-1" /> {totalFemaleVoices} Voices Indexed
           </Badge>
         </div>
+
+        <VoiceEnginePanel />
 
         <Tabs defaultValue="catalog" className="space-y-6">
           <TabsList className="grid w-full grid-cols-5 max-w-2xl">

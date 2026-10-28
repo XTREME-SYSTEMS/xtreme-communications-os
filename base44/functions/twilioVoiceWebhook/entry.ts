@@ -1,6 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.54';
 import { aiComplete, MODELS } from '../../shared/aiGateway.ts';
 import { getPollyVoice } from '../../shared/voiceProviders.ts';
+import { synthesizeToPublicUrl } from '../../shared/voiceSynthesis.ts';
 
 // Twilio Voice Webhook — Eden Skye AI receptionist
 // Handles incoming voice calls to +18665711174.
@@ -46,6 +47,32 @@ function twimlResponse(innerXml) {
 // Voice is resolved per-call from VoiceProfile entity, with fallback to professional female
 let VOICE = getPollyVoice('female', 'professional');
 
+// Premium engines render audio and are played back; Polly stays inline in the call
+// so a provider outage never leaves the caller in silence.
+const PREMIUM_ENGINES = ['cartesia', 'elevenlabs'];
+
+function escapeXml(text: string) {
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+async function speak(base44, text: string, voice: { provider: string; voice_id?: string; polly: string }) {
+  if (PREMIUM_ENGINES.includes(voice.provider)) {
+    try {
+      const audio = await synthesizeToPublicUrl(base44, {
+        text,
+        provider: voice.provider,
+        voice_id: voice.voice_id,
+      });
+      if (audio.url) return `<Play>${escapeXml(audio.url)}</Play>`;
+    } catch (_) { /* fall back to Polly below */ }
+  }
+  return `<Say voice="${voice.polly}">${escapeXml(text)}</Say>`;
+}
+
 export default async function(req) {
   try {
     const base44 = createClientFromRequest(req);
@@ -87,15 +114,23 @@ export default async function(req) {
     }
 
     // ── Resolve voice profile for this number ──
-    let resolvedVoice = VOICE;
+    let voiceConf = { provider: 'polly', voice_id: undefined as string | undefined, polly: VOICE };
     let resolvedGreeting = null;
     let resolvedPersona = 'Eden Skye';
     let resolvedSystem = EDEN_SKYE_SYSTEM;
     try {
       const profiles = await base44.asServiceRole.entities.VoiceProfile.filter({ assigned_number: to, active: true });
-      const profile = profiles[0];
+      let profile = profiles[0];
+      if (!profile) {
+        const defaults = await base44.asServiceRole.entities.VoiceProfile.filter({ is_default: true, active: true });
+        profile = defaults[0];
+      }
       if (profile) {
-        if (profile.provider === 'polly') resolvedVoice = `Polly.${profile.voice_id}`;
+        voiceConf = {
+          provider: profile.provider || 'polly',
+          voice_id: profile.voice_id,
+          polly: profile.provider === 'polly' && profile.voice_id ? `Polly.${profile.voice_id}` : VOICE,
+        };
         resolvedGreeting = profile.greeting || null;
         resolvedPersona = profile.persona_name || resolvedPersona;
         resolvedSystem = profile.system_prompt || resolvedSystem;
@@ -120,11 +155,12 @@ export default async function(req) {
     // ── INITIAL CALL: Greet + gather speech ──
     if (!speechResult) {
       const greeting = resolvedGreeting || `Hi, you've reached ${resolvedPersona} with Strategic Minds AI. How can I help you today?`;
+      const spoken = await speak(base44, greeting, voiceConf);
       return twimlResponse(
         `  <Gather input="speech" speechTimeout="auto" action="https://xtreme-communications.com/functions/twilioVoiceWebhook" method="POST" language="en-US">\n` +
-        `    <Say voice="${resolvedVoice}">${greeting}</Say>\n` +
+        `    ${spoken}\n` +
         `  </Gather>\n` +
-        `  <Say voice="${resolvedVoice}">I didn't catch that. Feel free to call back anytime. Goodbye!</Say>\n` +
+        `  <Say voice="${voiceConf.polly}">I didn't catch that. Feel free to call back anytime. Goodbye!</Say>\n` +
         `  <Hangup/>`
       );
     }
@@ -148,11 +184,12 @@ export default async function(req) {
       aiReply = "I'm having trouble processing that right now. Could you repeat what you said?";
     }
 
+    const spoken = await speak(base44, aiReply, voiceConf);
     return twimlResponse(
       `  <Gather input="speech" speechTimeout="auto" action="https://xtreme-communications.com/functions/twilioVoiceWebhook" method="POST" language="en-US">\n` +
-      `    <Say voice="${resolvedVoice}">${aiReply}</Say>\n` +
+      `    ${spoken}\n` +
       `  </Gather>\n` +
-      `  <Say voice="${resolvedVoice}">Thanks for calling Strategic Minds AI. Have a great day!</Say>\n` +
+      `  <Say voice="${voiceConf.polly}">Thanks for calling Strategic Minds AI. Have a great day!</Say>\n` +
       `  <Hangup/>`
     );
   } catch (error) {

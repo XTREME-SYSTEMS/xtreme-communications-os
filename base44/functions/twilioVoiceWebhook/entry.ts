@@ -124,8 +124,9 @@ export default async function(req) {
     // Must match the token Twilio actually signs with (see twilioWebhook).
     // The account can hold a primary and a secondary auth token; Twilio may sign with
     // either one, so both configured tokens are accepted against every candidate URL.
+    const signingToken = await getSigningToken();
     const tokenCandidates = [
-      await getSigningToken(),
+      signingToken,
       process.env.TWILLO_AUTH_API_KEY,
       process.env.TWILIO_AUTH_TOKEN,
     ].filter((t): t is string => !!t);
@@ -144,8 +145,21 @@ export default async function(req) {
     }
 
     if (!signatureValid) {
-      console.warn('twilioVoiceWebhook: signature verification failed', { hasSignature: !!signatureHeader, hasTo: !!to });
-      return Response.json({ error: 'Invalid Twilio signature' }, { status: 403 });
+      console.warn('twilioVoiceWebhook: signature verification failed', {
+        hasSignature: !!signatureHeader,
+        signingTokenResolved: !!signingToken,
+        candidateCount: tokenCandidates.length,
+      });
+      return Response.json({
+        error: 'Invalid Twilio signature',
+        debug: {
+          reqUrl: req.url,
+          host: req.headers.get('host'),
+          xfHost: req.headers.get('x-forwarded-host'),
+          proto: req.headers.get('x-forwarded-proto'),
+          candidates: candidateRequestUrls(req),
+        },
+      }, { status: 403 });
     }
 
     // Resolve tenant

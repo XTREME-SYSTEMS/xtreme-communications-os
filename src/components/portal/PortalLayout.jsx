@@ -77,7 +77,9 @@ export default function PortalLayout() {
             <img src="https://media.base44.com/images/public/6a9b71a5d35335afb9198950/6806177bd_LOGO.png" className="h-8 w-8 rounded-lg object-contain" alt="Xtreme Communications" />
             <div className="flex flex-col">
               <span className="font-display text-[11px] tracking-[0.15em] uppercase text-foreground">Xtreme Communications</span>
-              <span className="text-[8px] text-muted-foreground uppercase tracking-wider">Customer Portal</span>
+              <span className="text-[8px] text-muted-foreground uppercase tracking-wider">
+                {user?.role === "admin" ? "Admin Console" : "Customer Portal"}
+              </span>
             </div>
           </div>
 

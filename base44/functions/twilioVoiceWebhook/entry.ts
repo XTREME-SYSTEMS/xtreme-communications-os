@@ -150,16 +150,7 @@ export default async function(req) {
         signingTokenResolved: !!signingToken,
         candidateCount: tokenCandidates.length,
       });
-      return Response.json({
-        error: 'Invalid Twilio signature',
-        debug: {
-          reqUrl: req.url,
-          host: req.headers.get('host'),
-          xfHost: req.headers.get('x-forwarded-host'),
-          proto: req.headers.get('x-forwarded-proto'),
-          candidates: candidateRequestUrls(req),
-        },
-      }, { status: 403 });
+      return Response.json({ error: 'Invalid Twilio signature' }, { status: 403 });
     }
 
     // Resolve tenant

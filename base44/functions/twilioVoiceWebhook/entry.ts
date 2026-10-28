@@ -29,12 +29,18 @@ async function verifyTwilioSignature(authToken, signatureHeader, url, rawBody) {
   }
 }
 
-function getRequestUrl(req) {
+// Twilio signs the exact URL it dialed. Behind the proxy the reconstructed URL can
+// differ (host header rewrite, custom domain), so every plausible origin is checked.
+function candidateRequestUrls(req) {
   const proto = req.headers.get('x-forwarded-proto') || 'https';
   const host = req.headers.get('x-forwarded-host') || req.headers.get('host') || '';
-  const path = req.url || '/functions/twilioVoiceWebhook';
-  const cleanPath = path.startsWith('http') ? new URL(path).pathname + new URL(path).search : path;
-  return `${proto}://${host}${cleanPath}`;
+  const raw = req.url || '/functions/twilioVoiceWebhook';
+  const path = raw.startsWith('http') ? new URL(raw).pathname + new URL(raw).search : raw;
+  const urls = new Set<string>();
+  if (host) urls.add(`${proto}://${host}${path}`);
+  urls.add(`https://xtreme-comms.base44.app${path}`);
+  urls.add(`https://xtreme-communications.com${path}`);
+  return [...urls];
 }
 
 function twimlResponse(innerXml) {
@@ -89,20 +95,26 @@ export default async function(req) {
 
     // ── Signature verification ──
     // Must match the token Twilio actually signs with (see twilioWebhook).
-    const authToken = process.env.TWILLO_AUTH_API_KEY || process.env.TWILIO_AUTH_TOKEN;
+    // The account can hold a primary and a secondary auth token; Twilio may sign with
+    // either one, so both configured tokens are accepted against every candidate URL.
+    const tokenCandidates = [process.env.TWILLO_AUTH_API_KEY, process.env.TWILIO_AUTH_TOKEN]
+      .filter((t): t is string => !!t);
     const signatureHeader = req.headers.get('x-twilio-signature') || req.headers.get('X-Twilio-Signature') || '';
     let signatureValid = false;
 
-    if (authToken && signatureHeader) {
-      const requestUrl = getRequestUrl(req);
-      signatureValid = await verifyTwilioSignature(authToken, signatureHeader, requestUrl, rawBody);
-      if (!signatureValid) {
-        const fallbackUrl = 'https://xtreme-communications.com/functions/twilioVoiceWebhook';
-        signatureValid = await verifyTwilioSignature(authToken, signatureHeader, fallbackUrl, rawBody);
+    if (signatureHeader && tokenCandidates.length) {
+      outer: for (const token of tokenCandidates) {
+        for (const url of candidateRequestUrls(req)) {
+          if (await verifyTwilioSignature(token, signatureHeader, url, rawBody)) {
+            signatureValid = true;
+            break outer;
+          }
+        }
       }
     }
 
     if (!signatureValid) {
+      console.warn('twilioVoiceWebhook: signature verification failed', { hasSignature: !!signatureHeader, hasTo: !!to });
       return Response.json({ error: 'Invalid Twilio signature' }, { status: 403 });
     }
 

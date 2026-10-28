@@ -22,7 +22,7 @@ export default async function(req) {
     if (action === "auto_generate_team") {
       const { industry, strategy_goal, team_size, channels, company_name } = body;
 
-      const result = await aiCompleteJson({
+      const result = await aiCompleteJson(base44, {
         model: MODELS.fast,
         messages: [{
           role: 'user',

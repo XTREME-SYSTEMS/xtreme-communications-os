@@ -24,7 +24,7 @@ export default async function(req) {
     if (action === "sweep") {
       const { existing_assets, industry, goals, max_opportunities } = body;
 
-      const result = await aiCompleteJson({
+      const result = await aiCompleteJson(base44, {
         model: MODELS.best,
         messages: [{
           role: 'user',

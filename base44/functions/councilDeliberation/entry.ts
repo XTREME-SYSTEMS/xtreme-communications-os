@@ -59,7 +59,7 @@ export default async function(req) {
         const batch = relevantAgents.slice(i, i + batchSize);
         const batchResults = await Promise.all(batch.map(async (agent) => {
           try {
-            const result = await aiCompleteJson({
+            const result = await aiCompleteJson(base44, {
               model: MODELS.fast,
               messages: [{
                 role: 'user',
@@ -115,7 +115,7 @@ Be specific and evidence-based. Do not fabricate.`,
 
       let synthesisResult: any;
       try {
-        synthesisResult = await aiCompleteJson({
+        synthesisResult = await aiCompleteJson(base44, {
           model: MODELS.best,
           messages: [{
             role: 'user',

@@ -49,7 +49,7 @@ export default async function(req) {
 
         // ── STEP 1: AI processes brief into structured tasks ──
         result.steps.push({ step: "ai_processing", status: "running" });
-        const aiResult = await aiCompleteJson({
+        const aiResult = await aiCompleteJson(base44, {
           model: MODELS.complex,
           messages: [{
             role: "user",

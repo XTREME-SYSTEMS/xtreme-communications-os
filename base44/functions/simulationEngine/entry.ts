@@ -44,7 +44,7 @@ export default async function(req) {
       // Run the simulation through AI Gateway
       let simResult: any;
       try {
-        simResult = await aiCompleteJson({
+        simResult = await aiCompleteJson(base44, {
           model: MODELS.best,
           messages: [{
             role: 'user',

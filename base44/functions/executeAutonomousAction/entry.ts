@@ -62,9 +62,9 @@ export default async function(req) {
           sms: { live: twilioConfig().configured, label: "SMS via Twilio", detail: "Real SMS messaging" },
           voice: { live: twilioConfig().configured, label: "Voice Calls via Twilio", detail: "AI voice call initiation" },
           whatsapp: { live: twilioConfig().configured, label: "WhatsApp via Twilio", detail: "WhatsApp Business messaging" },
-          ai_gateway: { live: !!process.env.VERCEL_AI_GATEWAY_API_KEY, label: "Vercel AI Gateway", detail: "Multi-model LLM routing" },
+          ai_gateway: { live: true, label: "Base44 Native AI", detail: "Core.InvokeLLM on GPT-5.6 Sol via shared/aiCore.ts" },
           web_scrape: { live: true, label: "Web Scraper", detail: "Fetch & extract page content" },
-          web_interact: { live: !!process.env.VERCEL_AI_GATEWAY_API_KEY, label: "AI Web Interaction", detail: "AI-powered form analysis & action planning" },
+          web_interact: { live: true, label: "AI Web Interaction", detail: "AI-powered form analysis & action planning (Base44 native)" },
           cloud_browser: { live: bbConfigured(), label: "Cloud Browser (Browserbase)", detail: bbConfigured() ? "Full browser automation — navigate, fill forms, click" : "Needs BROWSERBASE_API_KEY" },
           email: { live: false, label: "Email", detail: "Blocked by credit exhaustion until 2026-09-12" },
           lead_creation: { live: true, label: "CRM Lead Creation", detail: "Create contacts in XTREME CRM" },
@@ -199,9 +199,9 @@ export default async function(req) {
       if (!prompt) return Response.json({ error: "prompt required" }, { status: 400 });
       let result;
       if (schema) {
-        result = await aiCompleteJson({ model: model || MODELS.fast, messages: [{ role: "user", content: prompt }], schema });
+        result = await aiCompleteJson(base44, { model: model || MODELS.fast, messages: [{ role: "user", content: prompt }], schema });
       } else {
-        result = await aiComplete({ model: model || MODELS.fast, messages: [{ role: "user", content: prompt }] });
+        result = await aiComplete(base44, { model: model || MODELS.fast, messages: [{ role: "user", content: prompt }] });
       }
       // Deliver result via SMS if requested
       if (deliver_via === "sms" && deliver_to) {
@@ -244,7 +244,7 @@ export default async function(req) {
       const formMatches = [...html.matchAll(/<form[^>]*>[\s\S]*?<\/form>/gi)];
       const inputs = [...html.matchAll(/<(?:input|textarea|select)[^>]*name=["']([^"']+)["'][^>]*>/gi)].map(m => m[1]);
 
-      const analysis = await aiCompleteJson({
+      const analysis = await aiCompleteJson(base44, {
         model: MODELS.fast,
         messages: [{
           role: "user",
@@ -316,7 +316,7 @@ Provide a JSON analysis with:
         try {
           let stepResult: any;
           if (step.type === "ai_task") {
-            stepResult = await aiComplete({ model: MODELS.fast, messages: [{ role: "user", content: step.prompt }] });
+            stepResult = await aiComplete(base44, { model: MODELS.fast, messages: [{ role: "user", content: step.prompt }] });
           } else if (step.type === "web_scrape") {
             const r = await fetch(step.url, { headers: { "User-Agent": "Mozilla/5.0 (compatible; XTREME-AI/1.0)" } });
             const html = await r.text();
@@ -435,7 +435,7 @@ Provide a JSON analysis with:
         const inputs = [...html.matchAll(/<(?:input|textarea|select)[^>]*name=["']([^"']+)["'][^>]*>/gi)].map(m => m[1]);
 
         // AI determines form data
-        const aiResult = await aiCompleteJson({
+        const aiResult = await aiCompleteJson(base44, {
           model: MODELS.fast,
           messages: [{
             role: "user",

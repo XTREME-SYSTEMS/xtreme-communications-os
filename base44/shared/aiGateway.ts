@@ -1,42 +1,38 @@
-// ── Vercel AI Gateway Helper ───────────────────────────────────────
-// Routes LLM calls through Vercel AI Gateway (https://ai-gateway.vercel.sh/v1)
-// Supports: Groq (fast), Gemini (web research), Claude (complex), OpenAI
-// Bypasses Base44 integration credit limits — uses the user's Vercel account.
+// ── Shared AI layer — thin adapter over the XTREME AI CORE ───────────
+// This module used to call Vercel's AI Gateway with VERCEL_AI_GATEWAY_API_KEY,
+// which is not configured for this app — so every AI call failed at runtime.
 //
-// Usage:
-//   import { aiComplete, aiCompleteJson } from '../../shared/aiGateway.ts';
-//   const text = await aiComplete({ model: 'anthropic/claude-sonnet-4', messages: [...] });
-//   const data = await aiCompleteJson({ model: 'google/gemini-2.5-flash', messages: [...], schema: {...} });
+// It now delegates to base44/shared/aiCore.ts, which uses Base44's native
+// Core.InvokeLLM on GPT-5.6 Sol with a transparent fallback chain.
+//
+// Kept as a compatibility shim on purpose: ~20 backend functions already import
+// these helpers, so centralizing here upgrades all of them at once instead of
+// forking a second AI system beside the existing one.
+//
+// Usage (server-side only — Core.InvokeLLM is not callable from the browser):
+//   const text = await aiComplete(base44, { messages: [...] });
+//   const data = await aiCompleteJson(base44, { messages: [...], schema: {...} });
 
-import { secrets } from 'base44:runtime';
+import { invokeAI, messagesToPrompt, SOL, SOL_SECONDARY } from './aiCore.ts';
 
-const DEFAULT_BASE_URL = 'https://ai-gateway.vercel.sh/v1';
-
-// Model routing — pick the right model for the job
+// Logical roles → native Base44 model ids. Sol is the default reasoning engine.
 export const MODELS = {
-  // Fast/cheap — classification, extraction, simple tasks
-  fast: 'openai/gpt-5.4-mini',
-  // Web research — has built-in search
-  research: 'google/gemini-2.5-flash',
-  // Complex reasoning — deep analysis, code generation
-  complex: 'anthropic/claude-sonnet-4',
-  // Heavy reasoning — most complex tasks
-  heavy: 'anthropic/claude-opus-4',
-  // Default
-  default: 'anthropic/claude-sonnet-4',
+  fast: SOL_SECONDARY,
+  research: 'gemini_3_1_pro',
+  complex: SOL,
+  heavy: SOL,
+  best: SOL,
+  default: SOL,
 };
 
-export function getBaseUrl(): string {
-  // The AI Gateway API endpoint is always https://ai-gateway.vercel.sh/v1
-  // The VERCEL_AI_GATEWAY_BASE_URL secret is the dashboard URL (not the API endpoint),
-  // so we always use the canonical API base.
-  return DEFAULT_BASE_URL;
-}
-
-export function getApiKey(): string {
-  const key = secrets.get('VERCEL_AI_GATEWAY_API_KEY');
-  if (!key) throw new Error('VERCEL_AI_GATEWAY_API_KEY not configured');
-  return key;
+/** Map legacy Vercel-style ids ("anthropic/claude-sonnet-4") onto native ids. */
+function normalizeModel(model?: string): string {
+  if (!model) return MODELS.default;
+  if (model.includes('/')) {
+    // Old external-provider aliases: route complex work to Sol, cheap to Luna.
+    return /mini|flash|haiku|fast/i.test(model) ? MODELS.fast : SOL;
+  }
+  return model;
 }
 
 interface AICompleteParams {
@@ -45,79 +41,65 @@ interface AICompleteParams {
   temperature?: number;
   max_tokens?: number;
   response_format?: { type: string; json_schema?: object };
+  addInternetContext?: boolean;
+  fileUrls?: string[];
 }
 
-export async function aiComplete(params: AICompleteParams): Promise<string> {
-  const baseUrl = getBaseUrl();
-  const apiKey = getApiKey();
+/** Plain-text completion. Returns raw model text; metadata is dropped here. */
+export async function aiComplete(base44: any, params: AICompleteParams): Promise<string> {
+  const { system, prompt } = messagesToPrompt(params.messages || []);
+  const res = await invokeAI(base44, {
+    prompt,
+    system,
+    models: [normalizeModel(params.model)],
+    addInternetContext: params.addInternetContext,
+    fileUrls: params.fileUrls,
+  });
+  return String(res.data);
+}
 
-  const body: any = {
-    model: params.model || MODELS.default,
-    messages: params.messages,
-    temperature: params.temperature ?? 0.3,
-    max_tokens: params.max_tokens ?? 4096,
-  };
-
-  if (params.response_format) {
-    body.response_format = params.response_format;
-  }
-
-  const url = baseUrl.endsWith('/')
-    ? `${baseUrl}chat/completions`
-    : `${baseUrl}/chat/completions`;
-
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(body),
+/** Schema-validated structured completion. Throws if required fields are absent. */
+export async function aiCompleteJson(
+  base44: any,
+  params: AICompleteParams & { schema: object },
+): Promise<any> {
+  const { system, prompt } = messagesToPrompt(params.messages || []);
+  const res = await invokeAI(base44, {
+    prompt,
+    system,
+    models: [normalizeModel(params.model)],
+    responseJsonSchema: params.schema,
+    addInternetContext: params.addInternetContext,
+    fileUrls: params.fileUrls,
   });
 
-  if (!res.ok) {
-    const errText = await res.text();
-    throw new Error(`AI Gateway error ${res.status} at ${url}: ${errText}`);
+  let data: any = res.data;
+  if (typeof data === 'string') {
+    try {
+      data = JSON.parse(data);
+    } catch {
+      const match = data.match(/```(?:json)?\s*([\s\S]*?)```/);
+      if (match) data = JSON.parse(match[1]);
+      else throw new Error(`AI returned non-JSON: ${data.slice(0, 200)}`);
+    }
   }
 
-  const data = await res.json();
-  return data.choices?.[0]?.message?.content || '';
-}
-
-// Get structured JSON output with schema validation
-export async function aiCompleteJson(params: AICompleteParams & { schema: object }): Promise<any> {
-  // Ensure schema is strict-compatible (required by OpenAI structured outputs)
-  const strictSchema = {
-    ...params.schema,
-    additionalProperties: false,
-  };
-
-  const text = await aiComplete({
-    ...params,
-    response_format: {
-      type: 'json_schema',
-      json_schema: {
-        name: 'response',
-        strict: true,
-        schema: strictSchema,
-      },
-    },
-  });
-
-  try {
-    return JSON.parse(text);
-  } catch {
-    // Fallback: extract JSON from markdown code blocks
-    const match = text.match(/```(?:json)?\s*([\s\S]*?)```/);
-    if (match) return JSON.parse(match[1]);
-    throw new Error(`AI Gateway returned non-JSON: ${text.slice(0, 200)}`);
+  const required: string[] = (params.schema as any)?.required || [];
+  const missing = required.filter((k) => data?.[k] === undefined);
+  if (missing.length) {
+    throw new Error(`AI response missing required fields: ${missing.join(', ')}`);
   }
+
+  return data;
 }
 
-// Quick helper for single-prompt calls
-export async function aiPrompt(prompt: string, model?: string): Promise<string> {
-  return aiComplete({
+/** Single-prompt convenience. */
+export async function aiPrompt(base44: any, prompt: string, model?: string): Promise<string> {
+  return aiComplete(base44, {
     model: model || MODELS.default,
     messages: [{ role: 'user', content: prompt }],
   });
 }
+
+// Re-exported so call sites can build metadata-aware responses for the UI.
+export { invokeAI, SOL, SOL_SECONDARY };

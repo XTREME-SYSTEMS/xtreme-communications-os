@@ -64,7 +64,8 @@
     },
     "llm_model": {
       "type": "string",
-      "default": "anthropic/claude-haiku-4-5"
+      "description": "Native Base44 model id. Defaults to GPT-5.6 Sol; external-provider ids (e.g. anthropic/...) are rejected by Core.InvokeLLM.",
+      "default": "gpt_5_6_sol"
     },
     "status": {
       "type": "string",

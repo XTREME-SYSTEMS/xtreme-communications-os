@@ -215,7 +215,7 @@ export default async function(req) {
     // ── GATHER CALLBACK: AI response + continue conversation ──
     let aiReply = '';
     try {
-      aiReply = await aiComplete({
+      aiReply = await aiComplete(base44, {
         model: MODELS.fast,
         messages: [
           { role: 'system', content: resolvedSystem },

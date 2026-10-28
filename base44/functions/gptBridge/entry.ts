@@ -459,7 +459,7 @@ export default async function(req: any) {
             const evt = await base44.asServiceRole.entities.CommsEvent.get(msgId);
             if (evt) { messageContent = evt.summary || ""; fromAddr = evt.from_addr || ""; }
           }
-          const analysis = await aiCompleteJson({
+          const analysis = await aiCompleteJson(base44, {
             model: MODELS.fast,
             messages: [{
               role: "user",
@@ -485,7 +485,7 @@ Return JSON with: category (support/sales/spam/urgent/inquiry/other), priority (
           const conversationId = input?.conversation_id;
           const originalMessage = input?.original_message || "";
           const context = input?.context || "";
-          const draft = await aiCompleteJson({
+          const draft = await aiCompleteJson(base44, {
             model: MODELS.fast,
             messages: [{
               role: "user",

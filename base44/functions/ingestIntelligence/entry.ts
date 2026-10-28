@@ -80,7 +80,7 @@ async function classifyContent(base44: any, content: string, category: string): 
   reason?: string;
 }> {
   try {
-    const result = await aiCompleteJson({
+    const result = await aiCompleteJson(base44, {
       model: MODELS.fast,
       messages: [{
         role: 'user',

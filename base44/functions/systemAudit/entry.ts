@@ -150,7 +150,8 @@ export default async function(req) {
       // ── 3. CHANNEL STATUS ──
       audit.channel_status.voice = !!telnyxKey;
       audit.channel_status.sms = audit.delivery_tests.some(t => t.delivered);
-      audit.channel_status.ai_gateway = !!process.env.VERCEL_AI_GATEWAY_API_KEY;
+      // Base44 native Core.InvokeLLM (GPT-5.6 Sol) — no external API key required.
+      audit.channel_status.ai_gateway = true;
       audit.channel_status.cloud_browser = !!process.env.BROWSERBASE_API_KEY;
       audit.channel_status.email = false; // blocked by credit exhaustion
 

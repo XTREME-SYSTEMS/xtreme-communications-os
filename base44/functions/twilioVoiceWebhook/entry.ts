@@ -43,6 +43,33 @@ function candidateRequestUrls(req) {
   return [...urls];
 }
 
+// Twilio signs webhooks with the account's PRIMARY auth token, which may not be the
+// token stored in app secrets (secondary tokens authenticate REST but never sign).
+// It is read from the Twilio API with our own credentials and cached for 10 minutes.
+let cachedSigningToken: string | null = null;
+let cachedSigningTokenAt = 0;
+
+async function getSigningToken(): Promise<string | null> {
+  if (cachedSigningToken && Date.now() - cachedSigningTokenAt < 600000) return cachedSigningToken;
+  const sid = process.env.TWILLO_SID || process.env.TWILIO_ACCOUNT_SID;
+  const tok = process.env.TWILLO_AUTH_API_KEY || process.env.TWILIO_AUTH_TOKEN;
+  if (!sid || !tok) return null;
+  try {
+    const res = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${sid}.json`, {
+      headers: { Authorization: `Basic ${btoa(`${sid}:${tok}`)}` },
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (data?.auth_token) {
+      cachedSigningToken = data.auth_token;
+      cachedSigningTokenAt = Date.now();
+    }
+    return cachedSigningToken;
+  } catch (_) {
+    return null;
+  }
+}
+
 function twimlResponse(innerXml) {
   return new Response(`<?xml version="1.0" encoding="UTF-8"?>\n<Response>\n${innerXml}\n</Response>`, {
     status: 200,
@@ -97,8 +124,11 @@ export default async function(req) {
     // Must match the token Twilio actually signs with (see twilioWebhook).
     // The account can hold a primary and a secondary auth token; Twilio may sign with
     // either one, so both configured tokens are accepted against every candidate URL.
-    const tokenCandidates = [process.env.TWILLO_AUTH_API_KEY, process.env.TWILIO_AUTH_TOKEN]
-      .filter((t): t is string => !!t);
+    const tokenCandidates = [
+      await getSigningToken(),
+      process.env.TWILLO_AUTH_API_KEY,
+      process.env.TWILIO_AUTH_TOKEN,
+    ].filter((t): t is string => !!t);
     const signatureHeader = req.headers.get('x-twilio-signature') || req.headers.get('X-Twilio-Signature') || '';
     let signatureValid = false;
 

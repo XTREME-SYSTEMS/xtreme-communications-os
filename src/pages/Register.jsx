@@ -46,6 +46,7 @@ export default function Register() {
       if (result?.access_token) {
         base44.auth.setToken(result.access_token);
       }
+      base44.analytics.track({ eventName: "user_registered" });
       window.location.href = safeReturnTo() === "/" ? "/portal" : safeReturnTo();
     } catch (err) {
       setError(err.message || "Invalid verification code");

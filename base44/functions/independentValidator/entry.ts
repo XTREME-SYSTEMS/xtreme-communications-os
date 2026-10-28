@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
+import { requireAuth } from '../../shared/requireAuth.ts';
 
 /**
  * INDEPENDENT VALIDATOR
@@ -14,6 +15,8 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 export default async function(req: Request): Promise<Response> {
   try {
     const base44 = createClientFromRequest(req);
+    const auth = await requireAuth(base44, req, { roles: ['admin'] });
+    if (!auth.ok) return auth.response;
     const body = await req.json().catch(() => ({}));
     const systemId = body.system_id || 'xtreme-comms';
 

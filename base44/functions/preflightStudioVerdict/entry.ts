@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
+import { requireAuth } from '../../shared/requireAuth.ts';
 
 // Studio-grade neural TTS verdict — produces a production-quality audio summary of the preflight
 // score and readiness using the GenerateSpeech integration (neural voice, not browser TTS).
@@ -6,6 +7,8 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 export default async function(req) {
   try {
     const base44 = createClientFromRequest(req);
+    const auth = await requireAuth(base44, req);
+    if (!auth.ok) return auth.response;
     let body = {};
     try { body = await req.json(); } catch (_) {}
     const score = body.score ?? 0;

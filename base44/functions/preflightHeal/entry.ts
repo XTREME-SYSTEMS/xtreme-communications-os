@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
+import { requireAuth } from '../../shared/requireAuth.ts';
 
 // Autonomous intelligent prompt creator for the Preflight system.
 // Attached to every pipeline stage (discover → audit → test → score → fix → heal → harden → validate → launch).
@@ -7,6 +8,8 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 export default async function(req) {
   try {
     const base44 = createClientFromRequest(req);
+    const auth = await requireAuth(base44, req, { roles: ['admin'] });
+    if (!auth.ok) return auth.response;
     let body = {};
     try { body = await req.json(); } catch (_) {}
     const action = body.action || "heal";

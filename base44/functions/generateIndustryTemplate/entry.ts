@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
+import { requireAuth } from '../../shared/requireAuth.ts';
 
 // Intelligent industry template generator — researches an industry (live web context) and
 // produces a complete, production-grade conversation/template set for the requested channel.
@@ -7,6 +8,8 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 export default async function(req) {
   try {
     const base44 = createClientFromRequest(req);
+    const auth = await requireAuth(base44, req);
+    if (!auth.ok) return auth.response;
     let body = {};
     try { body = await req.json(); } catch (_) {}
     const industry = body.industry || "Real Estate";

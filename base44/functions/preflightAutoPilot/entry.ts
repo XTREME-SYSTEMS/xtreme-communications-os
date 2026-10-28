@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
+import { requireAuth } from '../../shared/requireAuth.ts';
 
 // Autonomous self-healing autopilot — the closed-loop engine that drives the system to 100%.
 // Sweeps all sub-100% capabilities, diagnoses the top-N critical gaps via LLM, queues targeted
@@ -6,6 +7,8 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 export default async function(req) {
   try {
     const base44 = createClientFromRequest(req);
+    const auth = await requireAuth(base44, req);
+    if (!auth.ok) return auth.response;
     let body = {};
     try { body = await req.json(); } catch (_) {}
     const maxGaps = Math.min(body.max_gaps || 5, 10);

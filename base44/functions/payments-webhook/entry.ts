@@ -211,6 +211,16 @@ async function handleOrderApproved(db: any, eventData: any): Promise<Response> {
   });
 
   console.log("payments-webhook: fulfilled purchase", { purchaseId: purchase.id, checkoutId, orderId });
+
+  try {
+    await db.analytics.track({
+      eventName: "checkout_completed",
+      properties: { product: String(purchase.productId || "unknown") },
+    });
+  } catch (_) {
+    // Telemetry is non-critical — never fail a paid fulfillment over it.
+  }
+
   return new Response("OK", { status: 200 });
 }
 

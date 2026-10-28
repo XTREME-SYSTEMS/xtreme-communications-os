@@ -1,10 +1,13 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
+import { requireAuth } from '../../shared/requireAuth.ts';
 
 // Wraps Core.InvokeLLM so the client can generate content (agent prompts, templates,
 // WhatsApp messages, etc.) without a direct Core integration call (blocked from runtime).
 export default async function(req) {
   try {
     const base44 = createClientFromRequest(req);
+    const auth = await requireAuth(base44, req);
+    if (!auth.ok) return auth.response;
     const body = await req.json();
     const prompt = body.prompt;
     if (!prompt) return Response.json({ error: "Prompt required" }, { status: 400 });

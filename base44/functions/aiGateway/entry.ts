@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
+import { requireAuth } from '../../shared/requireAuth.ts';
 import { aiComplete, aiCompleteJson, aiPrompt, MODELS } from '../../shared/aiGateway.ts';
 
 // ── AI Gateway Proxy Function ─────────────────────────────────────
@@ -15,6 +16,8 @@ import { aiComplete, aiCompleteJson, aiPrompt, MODELS } from '../../shared/aiGat
 export default async function(req) {
   try {
     const base44 = createClientFromRequest(req);
+    const auth = await requireAuth(base44, req);
+    if (!auth.ok) return auth.response;
     let body: any = {};
     try { body = await req.json(); } catch (_) {}
 

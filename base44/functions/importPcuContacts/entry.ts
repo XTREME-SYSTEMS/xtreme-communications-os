@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
+import { requireAuth } from '../../shared/requireAuth.ts';
 import * as XLSX from 'npm:xlsx@0.18.5';
 
 // PCU Master List Importer — downloads an xlsx file, parses all sheets,
@@ -112,6 +113,8 @@ function chunkArray(arr, size) {
 export default async function(req) {
   try {
     const base44 = createClientFromRequest(req);
+    const auth = await requireAuth(base44, req, { roles: ['admin'] });
+    if (!auth.ok) return auth.response;
     let body = {};
     try { body = await req.json(); } catch (_) {}
 

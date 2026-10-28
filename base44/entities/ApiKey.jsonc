@@ -11,6 +11,14 @@
     "key_value": {
       "type": "string"
     },
+    "token_hash": {
+      "type": "string",
+      "description": "SHA-256 of the key \u2014 preferred over storing key_value in the clear"
+    },
+    "prefix": {
+      "type": "string",
+      "description": "Short non-secret prefix shown in the UI for identification"
+    },
     "scopes": {
       "type": "array",
       "items": {
@@ -33,5 +41,55 @@
   "required": [
     "tenant_id",
     "key_value"
-  ]
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.tenant_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "$or": [
+        {
+          "data.tenant_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.tenant_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.tenant_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
 }

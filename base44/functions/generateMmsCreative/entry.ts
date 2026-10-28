@@ -1,10 +1,13 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
+import { requireAuth } from '../../shared/requireAuth.ts';
 
 // MMS Creative Generator — produces branded images, logos, hooks, closes, bids, and pricing
 // sheets for use in MMS campaigns. Text generators use InvokeLLM; image generators use GenerateImage.
 export default async function(req) {
   try {
     const base44 = createClientFromRequest(req);
+    const auth = await requireAuth(base44, req);
+    if (!auth.ok) return auth.response;
     const body = await req.json();
     const { type, company_name, industry, brand_colors, context, target_audience } = body;
 

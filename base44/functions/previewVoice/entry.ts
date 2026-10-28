@@ -1,10 +1,13 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
+import { requireAuth } from '../../shared/requireAuth.ts';
 
 // Wraps Core.GenerateSpeech so the client can preview voices without a direct
 // Core integration call (which is blocked from app runtime).
 export default async function(req) {
   try {
     const base44 = createClientFromRequest(req);
+    const auth = await requireAuth(base44, req);
+    if (!auth.ok) return auth.response;
     const body = await req.json();
     const text = body.text || "Hi! I'm your AI assistant. I'm here to help you with whatever you need. How can I assist you today?";
     const voice = body.voice || "river";

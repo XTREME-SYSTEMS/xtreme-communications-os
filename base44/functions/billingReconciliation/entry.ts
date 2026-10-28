@@ -5,11 +5,14 @@
 // NEVER auto-modifies balances — only flags for operator review.
 
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
+import { requireAuth } from '../../shared/requireAuth.ts';
 import { isUnknownRate } from '../../shared/usageRateRegistry.ts';
 
 export default async function(req) {
   try {
     const base44 = createClientFromRequest(req);
+    const auth = await requireAuth(base44, req, { roles: ['admin'] });
+    if (!auth.ok) return auth.response;
     let body: any = {};
     try { body = await req.json(); } catch (_) {}
 

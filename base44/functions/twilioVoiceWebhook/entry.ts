@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.54';
-import { aiComplete, MODELS } from '../../shared/aiGateway.ts';
+import { aiComplete, SOL } from '../../shared/aiGateway.ts';
 import { getPollyVoice } from '../../shared/voiceProviders.ts';
 import { synthesizeToPublicUrl } from '../../shared/voiceSynthesis.ts';
 
@@ -216,7 +216,7 @@ export default async function(req) {
     let aiReply = '';
     try {
       aiReply = await aiComplete(base44, {
-        model: MODELS.fast,
+        model: SOL,
         messages: [
           { role: 'system', content: resolvedSystem },
           { role: 'user', content: speechResult },

@@ -35,14 +35,47 @@ async function verifyTwilioSignature(
   }
 }
 
-// ── Reconstruct the URL Twilio called ──
-function getRequestUrl(req: any): string {
+// ── Candidate URLs Twilio may have called ──
+// Twilio signs the exact URL it dialed; behind the proxy the reconstructed URL can
+// differ (host rewrite, custom domain), so every plausible origin is checked.
+function candidateRequestUrls(req: any): string[] {
   const proto = req.headers.get('x-forwarded-proto') || 'https';
   const host = req.headers.get('x-forwarded-host') || req.headers.get('host') || '';
-  const path = req.url || '/functions/twilioWebhook';
-  // req.url may be a full URL or just a path
-  const cleanPath = path.startsWith('http') ? new URL(path).pathname + new URL(path).search : path;
-  return `${proto}://${host}${cleanPath}`;
+  const raw = req.url || '/functions/twilioWebhook';
+  const path = raw.startsWith('http') ? new URL(raw).pathname + new URL(raw).search : raw;
+  const urls = new Set<string>();
+  if (host) urls.add(`${proto}://${host}${path}`);
+  urls.add(`https://xtreme-comms.base44.app${path}`);
+  urls.add(`https://xtreme-communications.com${path}`);
+  return [...urls];
+}
+
+// ── The token Twilio actually signs with ──
+// Twilio signs webhooks with the account's PRIMARY auth token, which may not be the
+// token stored in app secrets (secondary tokens authenticate REST but never sign).
+// Read from the Twilio API with our own credentials, cached for 10 minutes.
+let cachedSigningToken: string | null = null;
+let cachedSigningTokenAt = 0;
+
+async function getSigningToken(): Promise<string | null> {
+  if (cachedSigningToken && Date.now() - cachedSigningTokenAt < 600000) return cachedSigningToken;
+  const sid = process.env.TWILLO_SID || process.env.TWILIO_ACCOUNT_SID;
+  const tok = process.env.TWILLO_AUTH_API_KEY || process.env.TWILIO_AUTH_TOKEN;
+  if (!sid || !tok) return null;
+  try {
+    const res = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${sid}.json`, {
+      headers: { Authorization: `Basic ${btoa(`${sid}:${tok}`)}` },
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (data?.auth_token) {
+      cachedSigningToken = data.auth_token;
+      cachedSigningTokenAt = Date.now();
+    }
+    return cachedSigningToken;
+  } catch (_) {
+    return null;
+  }
 }
 
 export default async function(req) {
@@ -80,11 +113,12 @@ export default async function(req) {
     const channel = mediaUrls.length > 0 ? 'mms' : 'sms';
 
     // ── 1. SIGNATURE VERIFICATION (fail closed) ──
-    // Must match the token Twilio actually signs with. The live value currently
-    // lives in the misspelled TWILLO_AUTH_API_KEY secret; the canonical
-    // TWILIO_AUTH_TOKEN still holds a rotated/stale value, which caused every
-    // genuine Twilio request to fail signature validation (Twilio error 11200).
+    // Verified against the account's real signing token (primary auth token) plus the
+    // configured secrets, over every candidate request URL.
     const authToken = process.env.TWILLO_AUTH_API_KEY || process.env.TWILIO_AUTH_TOKEN;
+    const signingToken = await getSigningToken();
+    const tokenCandidates = [signingToken, process.env.TWILLO_AUTH_API_KEY, process.env.TWILIO_AUTH_TOKEN]
+      .filter((t): t is string => !!t);
     const signatureHeader = req.headers.get('x-twilio-signature') || req.headers.get('X-Twilio-Signature') || '';
     let signatureValid = false;
 
@@ -98,13 +132,14 @@ export default async function(req) {
       return Response.json({ error: 'TWILIO_AUTH_TOKEN not configured — cannot verify signature' }, { status: 503 });
     }
 
-    if (signatureHeader) {
-      const requestUrl = getRequestUrl(req);
-      signatureValid = await verifyTwilioSignature(authToken, signatureHeader, requestUrl, rawBody);
-      // Fallback: try with the known custom domain URL if proxy headers don't match
-      if (!signatureValid) {
-        const fallbackUrl = 'https://xtreme-communications.com/functions/twilioWebhook';
-        signatureValid = await verifyTwilioSignature(authToken, signatureHeader, fallbackUrl, rawBody);
+    if (signatureHeader && tokenCandidates.length) {
+      outer: for (const token of tokenCandidates) {
+        for (const url of candidateRequestUrls(req)) {
+          if (await verifyTwilioSignature(token, signatureHeader, url, rawBody)) {
+            signatureValid = true;
+            break outer;
+          }
+        }
       }
     }
 
